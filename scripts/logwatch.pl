@@ -62,6 +62,11 @@ use File::Temp qw/ tempdir /;
 eval "use lib \"$BaseDir/lib\";";
 eval "use Logwatch \':dates\'";
 
+my @argvClone = @ARGV;
+my $gop = Getopt::Long::Parser->new;
+$gop->configure("pass_through");
+$gop->getoptionsfromarray(\@argvClone, "confdir=s" => \$ConfigDir);
+
 my (%Config, @ServiceList, @LogFileList, %ServiceData, %LogFileData);
 my (@AllShared, @AllLogFiles, @FileList);
 # These need to not be global variables one day
@@ -135,6 +140,7 @@ my %wordsToInts = (yes  => 1,  no     => 0,
 
 # Load main config file...
 if ($Config{'debug'} > 8) {
+   print "\nConfigDir:$ConfigDir\n";
    print "\nDefault Config:\n";
    &PrintConfig();
 }
@@ -192,6 +198,7 @@ my ($tmp_mailto, $tmp_savefile);
 
 &GetOptions ("d|detail=s"   => \$Config{'detail'},
              "l|logfile=s@" => \@TempLogFileList,
+             "confdir=s"    => \$ConfigDir,
              "logdir=s"     => \$Config{'logdir'},
              "s|service=s@" => \@TempServiceList,
              "m|mailto=s"   => \$tmp_mailto,
@@ -1088,6 +1095,7 @@ sub Usage () {
    print "--detail <level>: Report Detail Level - High, Med, Low or any #.\n";
    print "--logfile <name>: *Name of a logfile definition to report on.\n";
    print "--logdir <name>: Name of default directory where logs are stored.\n";
+   print "--confdir <name>: Name of default directory where configuration is stored.\n";
    print "--service <name>: *Name of a service definition to report on.\n";
    print "--output <output type>: Report Output - stdout [default], mail, file.\n"; #8.0
    print "--format <formatting>: Report Format - text [default], html.\n"; #8.0
