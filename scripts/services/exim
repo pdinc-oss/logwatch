@@ -217,6 +217,9 @@ while (defined($ThisLine = <STDIN>)) {
       # Some hosts ask for TLS even when not offered (generalised to all cmds)
       $Proto{$ThisLine}++;
    }
+   elsif ( $ThisLine =~ /authenticator failed for/ ) {
+      $Proto{$ThisLine}++;
+   }
    elsif ( $ThisLine =~ /Connection from .* too many connections from that IP address/ ) {
       # Some hosts make lots of simultaneous connections
 	  # this is an extra error message when logging is high
@@ -597,6 +600,10 @@ if ($Detail >= $LvlProtocol) {
             $SmtpConnection{$bb}++;
          }
          elsif ( $ThisOne =~ /(SMTP protocol error in \"\w+\")/ ) {
+            $bb = $1;
+            $SmtpConnection{$bb}++;
+         }
+         elsif ( $ThisOne =~ /authenticator failed for \([^)]*\) \[($IPAddress)\]:\d+ I=\[$IPAddress\]:\d+: (.*) \(/ ) {
             $bb = $1;
             $SmtpConnection{$bb}++;
          }
