@@ -79,7 +79,7 @@ use strict;
 use Logwatch ':all';
 
 my (%denials, %grants, %loads);
-my @OtherList;
+my %OtherList;
 my $othercount = 0;
 my $Debug = ($ENV{'LOGWATCH_DEBUG'} || 0);
 my $Detail = ($ENV{'LOGWATCH_DETAIL_LEVEL'} || 0);
@@ -119,6 +119,7 @@ while ($ThisLine = <STDIN>) {
 	( $ThisLine =~ /audit\([0-9.]+:[0-9]+\): (selinux=[0-9]+|auid=[0-9]+|prom=[0-9]+|old_prom=[0-9]+|dev=[^ ]+|ses=[0-9]+| )+$/) or
         ( $ThisLine =~ /auditd[ ]+S [0-9A-F]+  [0-9]+  [0-9]+[ ]+[0-9]([ ]*[0-9]+[ ]*|[ ]*)[0-9]+  [0-9]+ \(NOTLB\)/) or
         ( $ThisLine =~ /Started dispatcher: \/sbin\/audispd pid: [0-9]+/) or
+        ( $ThisLine =~ /dispatcher [0-9]+ reaped/) or
         ( $ThisLine =~ /audit\([0-9.]*:[0-9]*\): bool=.* val=.* old_val=.* auid=[0-9]*/) or
         ( $ThisLine =~ /type=[0-9]+ audit\([0-9.]*:[0-9]*\): audit_enabled=[0-9]* old=[0-9]* auid=[0-9]* ses=[0-9]*/) or
         ( $ThisLine =~ /type=[0-9]+ audit\([0-9.]*:[0-9]*\): auid=[0-9]* ses=[0-9]* subj=system_u:system_r:.*:s0 op=.* key=.* list=[0-9]* res=[0-9]*/) or
@@ -180,11 +181,8 @@ while ($ThisLine = <STDIN>) {
             # type=1400 audit(1410503892.382:55490): apparmor="ALLOWED" operation="open" profile="/usr/lib/dovecot/imap" name="/root/mails/.Drafts/dovecot.index.log" pid=6305 comm="imap" requested_mask="rw" denied_mask="rw" fsuid=1003 ouid=1003
             $NumberOfAllowedMessages++;
         } else {
-            $othercount++;
             $ThisLine =~ s/^\s*//;
-            if ($othercount < $UELimit+1) {
-                push @OtherList, $ThisLine;
-            }
+            $OtherList{$ThisLine}++;
         }
     } elsif ( $Detail > 9 ) {
 	if ( $ThisLine =~ /avc:\s*denied\s*{\s*([^}]+).*scontext=(\S+)\s*tcontext=(\S+)\s*tclass=(\S+)/ ) {
@@ -196,11 +194,8 @@ while ($ThisLine = <STDIN>) {
         } elsif ($ThisLine =~ /security_sid_mls_copy:\s*invalid context\s*(\S+)/) {
             $InvalidContext{"context: ".$1}++;
 	} else {
-            $othercount++;
             $ThisLine =~ s/^\s*//;
-            if ($othercount < $UELimit+1) {
-	       push @OtherList, $ThisLine;
-            }
+            $OtherList{$ThisLine}++;
 	}
     } elsif ( $Detail > 4 ) {
 	if ( $ThisLine =~ /avc:\s*denied\s*{\s*[^}]+.*scontext=(\S+)\s*tcontext=(\S+)\s*tclass=(\S+)/ ) {
@@ -212,11 +207,8 @@ while ($ThisLine = <STDIN>) {
         } elsif ($ThisLine =~ /security_sid_mls_copy:\s*invalid context\s*(\S+)/) {
             $InvalidContext{"context: ".$1}++;
 	} else {
-            $othercount++;
             $ThisLine =~ s/^\s*//;
-            if ($othercount < $UELimit+1) {
-	       push @OtherList, $ThisLine;
-            }
+            $OtherList{$ThisLine}++;
 	}
     } else {
 	if ( $ThisLine =~ /avc:\s*denied\s*{\s*[^}]+.*scontext=([^:]+):[^:]+:\S+\s*tcontext=([^:]+):[^:]+:\S+\s*tclass=(\S+)/ ) {
@@ -228,11 +220,8 @@ while ($ThisLine = <STDIN>) {
         } elsif ($ThisLine =~ /security_sid_mls_copy:\s*invalid context\s*(\S+)/) {
             $InvalidContext{"context: ".$1}++;
 	} else {
-            $othercount++;
             $ThisLine =~ s/^\s*//;
-            if ($othercount < $UELimit+1) {
-	       push @OtherList, $ThisLine;
-            }
+            $OtherList{$ThisLine}++;
 	}
     }
 }
@@ -318,14 +307,11 @@ if ( %BugLog) {
   }
 }
 
-if ( $#OtherList >= 0 ) {
-    print "\n**Unmatched Entries** ";
-    if ($othercount > $UELimit) {
-       print "(Only first $UELimit out of $othercount are printed)";
-    }
-    print "\n ";
-    print join("\n ", @OtherList);
-    print "\n";
+if (keys %OtherList) {
+   print "\n**Unmatched Entries**\n";
+   foreach my $line (sort {$OtherList{$b}<=>$OtherList{$a} } keys %OtherList) {
+      print "   $line: $OtherList{$line} Time(s)\n";
+   }
 }
 
 exit(0);
