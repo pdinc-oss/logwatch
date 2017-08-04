@@ -55,7 +55,7 @@ while (defined($ThisLine = <STDIN>)) {
       ) {
       # We don't care about these
    }
-   elsif ( my ($Junk,$Login) = ( $ThisLine =~ /(login|Login by) ([^ ]+)$/) ) {
+   elsif ( my ($Junk,$Login) = ( $ThisLine =~ /(login|Login by) ([^ ]+)/) ) {
       chomp($Login);
       $UserLogin{$Login}++;
    }
