@@ -324,6 +324,9 @@ while (defined($ThisLine = <STDIN>)) {
    } elsif (($Zone,$RR) = ($ThisLine =~ /^\s*validating \@0x[[:xdigit:]]+: (.*) (\w+): bad cache hit/)) {
       $DNSSECBadCache{'__Total__'}++;
       $DNSSECBadCache{$Zone}{$RR}++;
+   } elsif (($Zone,$RR) = ($ThisLine =~ /^\s*validating \@0x[[:xdigit:]]+: (.*) (\w+): verify failed due to bad signature/)) {
+      $DNSSECInvalid{'__Total__'}++;
+      $DNSSECInvalid{$Zone}{$RR}++;
    } elsif (($Zone,$RR) = ($ThisLine =~ /^\s*validating ([^\/]*)\/(\w+): got insecure response; parent indicates it should be secure/)) {
       $DNSSECInsec{'__Total__'}++;
       $DNSSECInsec{$Zone}{$RR}++;
