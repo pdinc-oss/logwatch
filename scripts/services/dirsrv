@@ -75,6 +75,7 @@ while (defined(my $ThisLine = <STDIN>)) {
       #This line follows the previous normally in backups or shutdown
       $OtherList{$ThisLine}++ unless $PreviousLine =~ /^(export \w+: Processed \d+ entries|Waiting for \d+ database threads to stop|Backing up file|Copying .* to )/;
    } else {
+      next if $ThisLine =~ /^INFO -/ and $Detail < 5;
       $OtherList{$ThisLine}++;
    }
    $PreviousLine = $ThisLine;
