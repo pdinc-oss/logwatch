@@ -87,6 +87,7 @@ $Config{'numeric'} = 0;
 $Config{'pathtocat'} = "cat";
 $Config{'pathtozcat'} = "zcat";
 $Config{'pathtobzcat'} = "bzcat";
+$Config{'pathtoxzcat'} = "xzcat";
 $Config{'output'} = "stdout"; #8.0
 $Config{'format'} = "text"; #8.0
 $Config{'encode'} = "none"; #8.0
@@ -776,6 +777,10 @@ foreach $LogFile (@LogFileList) {
             my $arguments = "'${Archive}' 2>/dev/null >> $DestFile";
             system("$Config{'pathtobzcat'} $arguments") == 0
                or die "system '$Config{'pathtobzcat'} $arguments' failed: $?"
+         } elsif (($Archive =~ m/xz$/) && (-f "$Archive") && (-s "$Archive")) {
+            my $arguments = "'${Archive}' 2>/dev/null >> $DestFile";
+            system("$Config{'pathtoxzcat'} $arguments") == 0
+               or die "system '$Config{'pathtoxzcat'} $arguments' failed: $?"
          } elsif ((-f "$Archive") && (-s "$Archive")) {
             my $arguments = "'${Archive}'  >> $DestFile";
             system("$Config{'pathtocat'} $arguments") == 0
