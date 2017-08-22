@@ -279,7 +279,7 @@ while (defined($ThisLine = <STDIN>)) {
       ( $ThisLine =~ /pkexec: \S+: Executing command /) or
       ( $ThisLine =~ /su: pam_systemd(.*): Failed to parse message: /) or
       ( $ThisLine =~ /pam_systemd\(su:session\): Cannot create session: Already (running in|occupied by) a session/) or
-      ( $ThisLine =~ /systemd-logind\[\d+\]: (New|Removed) session/)
+      ( $ThisLine =~ /systemd-logind\[\d+\]: Removed session/)
    ) {
       # Ignore these entries
    } elsif ($ThisLine =~ /^spop3d/ || $ThisLine =~ /^pop\(\w+\)\[\d+\]:/) {
@@ -541,6 +541,8 @@ while (defined($ThisLine = <STDIN>)) {
       } elsif (my ($mins, $secs) = ($ThisLine =~ /Scanning took ([0-9]*) minutes? and ([0-9]*) seconds?/)) {
          $RootkitHunter{'time'}+= $mins*60 + $secs;
       }
+   } elsif ($ThisLine =~ /systemd-logind: New session \d+ of user (\w+)\./){
+      $UserLogin{$1}++;
    } else {
       # Unmatched entries...
       $ThisLine =~ s/\[\d+\]:/:/;
