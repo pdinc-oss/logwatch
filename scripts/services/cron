@@ -94,6 +94,8 @@ while (defined($ThisLine = <STDIN>)) {
          $BFMFile{$FileName}++;
       } elsif ( ($FileName) = ($ThisLine =~ /WRONG FILE OWNER \((.+)\)/) ) {
          $WFO{$FileName}++;
+      } elsif ($ThisLine =~ /NULL security context for user, but SELinux in permissive mode/ ) {
+         $SELCONTErr{$ThisLine}++;
       } else {
          # Report any unmatched entries...
          push @OtherList, "$ThisLine\n";
