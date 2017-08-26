@@ -80,6 +80,8 @@ $EndQueue = 0;
 # IPv6 part could be made more strict
 my $IPAddress = qr/\d+\.\d+\.\d+\.\d+|[a-fA-F0-9]*:[a-fA-F0-9:]+/;
 
+my $MatchedDate = 0;
+
 while (defined($ThisLine = <STDIN>)) {
    chomp($ThisLine);
     # pobierz dzisiejsza date z 2002-03-31 22:13:48 ...
@@ -216,6 +218,9 @@ while (defined($ThisLine = <STDIN>)) {
    elsif ( $ThisLine =~ /SMTP protocol error in \"\w+\"/ ) {
       # Some hosts ask for TLS even when not offered (generalised to all cmds)
       $Proto{$ThisLine}++;
+   }
+   elsif ( $ThisLine =~ /TLS error on connection from (\S+) \(([^)]*)\) \[(\S+)\]:(\d+) I=\[(\S+)\]:(\d+) \(send\): Error in the push function\./ ) {
+      # Ignore this, office 365 connector early disconnect.
    }
    elsif ( $ThisLine =~ /authenticator failed for/ ) {
       $Proto{$ThisLine}++;
