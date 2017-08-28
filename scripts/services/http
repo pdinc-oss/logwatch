@@ -62,7 +62,6 @@ my %users_logged =();
 my %ban_ip =();
 my %robots =();
 my $pattern = "";
-my $flag = 0;
 my $isahack = 0;
 my $a5xx_resp = 0;
 my $a4xx_resp = 0;
@@ -593,22 +592,19 @@ if (keys %proxy_host) {
 #  List (wannabe) blackhat sites
 #
 
-$flag = 1;
-foreach my $i (sort keys %ban_ip) {
-   if ($flag) {
-      print "\nA total of ".scalar(keys %ban_ip)." sites probed the server \n";
-      $flag = 0;
+if (keys %ban_ip and $detail) {
+   print "\nA total of ".scalar(keys %ban_ip)." sites probed the server \n";
+   if ($detail > 4) {
+      foreach my $i (sort keys %ban_ip) {
+         print "   $i\n";
+      }
    }
-   #if ($detail > 4) {
-      print "   $i\n";
-   #}
 }
 
 #
 #  List possible successful probes
 #
 
-$flag = 1;
 if (keys %hack_success) {
    print "\nA total of " . scalar(keys %hack_success) . " possible successful probes were detected (the following URLs\n";
    print "contain strings that match one or more of a listing of strings that\n";
@@ -672,13 +668,9 @@ if (keys %users_logged) {
 #  List robots that identified themselves
 #
 
-if ($detail > 4) {
-   $flag = 1;
+if (keys %robots and ($detail > 4)) {
+   print "\nA total of ".scalar(keys %robots)." ROBOTS were logged \n";
    foreach my $i (keys %robots) {
-      if ($flag) {
-         print "\nA total of ".scalar(keys %robots)." ROBOTS were logged \n";
-         $flag = 0;
-      }
       if ($detail > 9) {
          print "   $i $robots{$i} Time(s) \n";
       }
