@@ -34,6 +34,8 @@ while (defined(my $ThisLine = <STDIN>)) {
    chomp($ThisLine);
    
    if ($ThisLine =~ /^Listening for new connections again$/
+       or $ThisLine =~ /^Beginning export of /
+       or $ThisLine =~ /^Export finished/
        or $ThisLine =~ /Listening on .* (for LDAPI requests|port)/
        or $ThisLine =~ /^Waiting for \d+ database threads to stop/
        or $ThisLine =~ /^slapd shutting down - /
@@ -44,10 +46,12 @@ while (defined(my $ThisLine = <STDIN>)) {
        or $ThisLine =~ /^default_mr_indexer_create: warning - plugin \[caseIgnoreIA5Match\] does not handle caseExactIA5Match/
       ) {
       #Ignore
-   } elsif ($ThisLine =~ /error/i
+   } elsif ($ThisLine =~ /^ERR - /
+       or $ThisLine =~ /error/i
        or $ThisLine =~ /^Detected Disorderly Shutdown/) {
       $Errors{$ThisLine}++;
-   } elsif ($ThisLine =~ /warning/i
+   } elsif ($ThisLine =~ /^WARN - /
+       or $ThisLine =~ /warning/i
        or $ThisLine =~ /^Not listening for new connections/) {
       $Warnings{$ThisLine}++;
    } elsif ($ThisLine =~ /^(.*) starting up$/) {
@@ -75,7 +79,8 @@ while (defined(my $ThisLine = <STDIN>)) {
       #This line follows the previous normally in backups or shutdown
       $OtherList{$ThisLine}++ unless $PreviousLine =~ /^(export \w+: Processed \d+ entries|Waiting for \d+ database threads to stop|Backing up file|Copying .* to )/;
    } else {
-      next if $ThisLine =~ /^INFO -/ and $Detail < 5;
+      next if $ThisLine =~ /^INFO -/ and $Detail < 10;
+      next if $ThisLine =~ /^NOTICE -/ and $Detail < 5;
       $OtherList{$ThisLine}++;
    }
    $PreviousLine = $ThisLine;
