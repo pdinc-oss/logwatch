@@ -619,26 +619,27 @@ if (keys %hack_success) {
 #  List error response codes
 #
 
-if (keys %needs_exam) {
+if (keys %needs_exam and ($detail or $a5xx_resp)) {
    print "\nRequests with error response codes\n";
-   # my $count = TotalCountOrder(%needs_exam);
    for my $code (sort keys %needs_exam) {
       if (not defined $StatusCode{$code}) {
          $StatusCode{$code} = "\(undefined\)";
       }
-      if( ($ENV{"http_rc_detail_rep_$code"} || $detail) > $detail ) {
-      # only display summary for this code
-         my $t = 0;
-         my $u = 0;
-         foreach my $k ( keys %{$needs_exam{$code}}) {
-            $u += 1;
-            $t += $needs_exam{$code}{$k};
-         }
-         print "   $code $StatusCode{$code} SUMMARY - $u URLs, total: $t Time(s)\n";
-      } else {
-         print "   $code $StatusCode{$code}\n";
-         for my $url (sort { ($needs_exam{$code}{$b} <=> $needs_exam{$code}{$a}) or ($a cmp $b) } keys %{$needs_exam{$code}}) {
-            print "      $url: $needs_exam{$code}{$url} Time(s)\n";
+      if ($detail || ($code >= 500) || (($ENV{"http_rc_detail_rep_$code"} || $detail) < $detail)) {
+         if ( ($ENV{"http_rc_detail_rep_$code"} || $detail) > $detail ) {
+         # only display summary for this code
+            my $t = 0;
+            my $u = 0;
+            foreach my $k ( keys %{$needs_exam{$code}}) {
+               $u += 1;
+               $t += $needs_exam{$code}{$k};
+            }
+            print "   $code $StatusCode{$code} SUMMARY - $u URLs, total: $t Time(s)\n";
+         } else {
+            print "   $code $StatusCode{$code}\n";
+            for my $url (sort { ($needs_exam{$code}{$b} <=> $needs_exam{$code}{$a}) or ($a cmp $b) } keys %{$needs_exam{$code}}) {
+               print "      $url: $needs_exam{$code}{$url} Time(s)\n";
+            }
          }
       }
    }
