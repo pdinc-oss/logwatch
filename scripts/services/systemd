@@ -99,7 +99,10 @@ while (defined(my $ThisLine = <STDIN>)) {
        $ThisLine =~ /^Received SIGRTMIN\+24 from PID \d+ \(kill\)\.$/ or
        $ThisLine =~ /^Removed slice / or
        $ThisLine =~ /^pam_unix\(systemd-user:session\): session (?:opened|closed) for user/ or
-       $ThisLine =~ /Adding .* random time\.$/
+       $ThisLine =~ /Adding .* random time\.$/ or
+       # These happen on every shutdown - downgraded to debug message in systemd v235
+       # https://github.com/systemd/systemd/issues/6777
+       $ThisLine =~ /^Failed to propagate agent release message: (?:Connection reset by peer|Transport endpoint is not connected)/
    ) {
       # Ignore these
    } elsif (my ($service,$reason) = ($ThisLine =~ /^Configuration file ([^ ]*) is ([^.]*)\./)) {
