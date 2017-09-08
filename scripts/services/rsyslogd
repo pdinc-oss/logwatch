@@ -21,9 +21,16 @@
 #########################################################
 
 my $Detail = $ENV{'LOGWATCH_DETAIL_LEVEL'} || 0;
+my %IgnoreActions = {};
+if (defined($ENV{'rsyslogd_ignore_actions'})) {
+   foreach my $action (split(";",$ENV{'rsyslogd_ignore_actions'})) {
+      $IgnoreActions{$action} = 1;
+   }
+}
+my $Reason;
 my %IgnoreModules = {};
 if (defined($ENV{'rsyslogd_ignore_modules'})) {
-   foreach my $module (split(" ",$ENV{'rsyslogd_ignore_modules'})) {
+   foreach my $module (split(";",$ENV{'rsyslogd_ignore_modules'})) {
       $IgnoreModules{$module} = 1;
    }
 }
@@ -39,13 +46,13 @@ while (defined($ThisLine = <STDIN>)) {
    }
    elsif (my ($Action, $Module) = $ThisLine =~ /action '(.*)' suspended(?: \(module '(.*)'\))?/) {
       if (defined $Module) {
-         $ActionSuspended{"$Action ($Module)"}++ unless defined $IgnoreModules{$Module};
+         $ActionSuspended{"$Action ($Module)"}++ unless defined $IgnoreActions{$Action} or defined $IgnoreModules{$Module};
       } else {
-         $ActionSuspended{$Action}++;
+         $ActionSuspended{$Action}++ unless defined $IgnoreActions{$Action};
       }
    }
    elsif (my ($Action, $Module) = $ThisLine =~ /action '(.*)' resumed \(module '(.*)'\)/) {
-      $ActionResumed{"$Action ($Module)"}++ unless defined $IgnoreModules{$Module};
+      $ActionResumed{"$Action ($Module)"}++ unless defined $IgnoreActions{$Action} or defined $IgnoreModules{$Module};
    }
    elsif
       ($ThisLine =~ /^rsyslogd\'s (groupid|userid) changed to/
