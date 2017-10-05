@@ -87,6 +87,7 @@ while (defined(my $ThisLine = <STDIN>)) {
    } elsif ( ($user, $error, $tty, $dir, $euser, $egroup, $cmd, $args) = $ThisLine =~ m/^\s*(\S+) : (.*; )?TTY=(\S+) ; PWD=(.*?) ; USER=(\S+) ;(?: GROUP=(\S+) ;)? COMMAND=(\S+)( ?.*)/) {
       next if (defined($IgnoreCmds{$user}{$euser}) && $cmd =~ join("|",@{$IgnoreCmds{$user}{$euser}}));
       next if (defined($IgnoreCmds{'any'}{$euser}) && $cmd =~ join("|",@{$IgnoreCmds{'any'}{$euser}}));
+      next if (defined($IgnoreCmds{$user}{'any'}) && $cmd =~ join("|",@{$IgnoreCmds{$user}{'any'}}));
       if ($egroup) {
          $euser .= ":${egroup}";
       }
