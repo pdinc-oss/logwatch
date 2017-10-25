@@ -341,7 +341,7 @@ while (defined(my $ThisLine = <STDIN>)) {
    } elsif (my ($User,$MUA) = ($ThisLine =~ /imap\((.*)\): ID sent: name=(.*)/)) {
       $MUAList{$MUA}{$User}++;
    # These are failed connections with imap_id_log = * enabled
-   } elsif ($ThisLine =~ /imap-login: ID sent: name=/) {
+   } elsif ($ThisLine =~ /imap-login: ID sent: (?:name|vendor)=/) {
       # Ignore
    } else {
       # Report any unmatched entries...
