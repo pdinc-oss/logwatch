@@ -33,9 +33,9 @@ while (defined(my $ThisLine = <STDIN>)) {
       $PoolUsed{$1} = $2 if $2 >= $PoolThreshold;
    } elsif ($ThisLine =~ /^Thin metadata (\S+) is now (\d+)% full/) {
       $PoolMetadataUsed{$1} = $2 if $2 >= $PoolMetadataThreshold;
-   } elsif ($ThisLine =~ /^Monitoring thin (\S+)\./) {
+   } elsif ($ThisLine =~ /^Monitoring thin pool (\S+)\./) {
       $MonitoringOn{$1}++;
-   } elsif ($ThisLine =~ /^No longer monitoring thin (\S+)\./) {
+   } elsif ($ThisLine =~ /^No longer monitoring thin pool (\S+)\./) {
       $MonitoringOff{$1}++;
    } elsif ($ThisLine =~ /^Snapshot (\S+) is now (\d+)% full/) {
       $SnapshotUsed{$1} = $2 if $2 >= $SnapshotThreshold;
