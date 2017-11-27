@@ -73,6 +73,7 @@ while (defined(my $ThisLine = <STDIN>)) {
       ($ThisLine =~ /^Control Channel MTU parms/) or
       ($ThisLine =~ /CRL CHECK OK: \/.*\//) or
       ($ThisLine =~ /^Data Channel MTU parms/) or
+      ($ThisLine =~ /^Data Channel: using negotiated cipher/) or
       ($ThisLine =~ /^Delayed exit in \d+ seconds/) or
       ($ThisLine =~ /^Diffie-Hellman initialized/) or
       ($ThisLine =~ /^event_wait : Interrupted system call \(code=\d+\)/) or
@@ -86,7 +87,7 @@ while (defined(my $ThisLine = <STDIN>)) {
       ($ThisLine =~ /^IMPORTANT: OpenVPN's default port number is now 1194/) or
       ($ThisLine =~ /^Initialization Sequence Completed/) or
       ($ThisLine =~ /^Listening for incoming TCP connection on \S+:\d+/) or
-      ($ThisLine =~ /^LZO compression initialized/) or
+      ($ThisLine =~ /^LZO compression initializ/) or
       ($ThisLine =~ /^Local Options (hash|String)/) or
       ($ThisLine =~ /^MULTI: Learn:/) or
       ($ThisLine =~ /^MULTI: multi_init called/) or
@@ -117,6 +118,7 @@ while (defined(my $ThisLine = <STDIN>)) {
       ($ThisLine =~ /Socket Buffers: R=\[[0-9]+->[0-9]+\] S=\[[0-9]+->[0-9]+\]/) or
       ($ThisLine =~ /^TCP\/UDP: Closing socket/) or
       ($ThisLine =~ /^TCP\/UDP: Dynamic remote address changed during TCP connection establishment/) or
+      ($ThisLine =~ /^TCP\/UDP: Preserving recently used remote address: /) or
       ($ThisLine =~ /^TCP connection established with [\d.]+:\d+/) or
       ($ThisLine =~ /^TCPv\d_(CLIENT|SERVER) link (local|remote)/) or
       ($ThisLine =~ /^TLS-Auth MTU parms/) or
@@ -135,6 +137,7 @@ while (defined(my $ThisLine = <STDIN>)) {
       ($ThisLine =~ /^UDPv4 link /) or
       ($ThisLine =~ /^UID set to/) or
       ($ThisLine =~ /^VERIFY OK: nsCertType=\w+/) or
+      ($ThisLine =~ /^peer info: /) or
       ($ThisLine =~ /^chroot to /) or
       ($ThisLine =~ /^LDAP bind failed: Invalid credentials$/) or
       ($ThisLine =~ /^MANAGEMENT: Client disconnected$/) or
@@ -176,6 +179,8 @@ while (defined(my $ThisLine = <STDIN>)) {
    } elsif (my ($channel, $proto, $cipher) = ($ThisLine =~ /^(Control Channel): ([^,]+), cipher (.+)/)) {
       $Crypt{$channel}{$proto}{$cipher}++;
    } elsif (my ($channel, $dir, $algo, $bits) = ($ThisLine =~ /^(Data Channel) (Encrypt|Decrypt): Cipher '(\S+)' initialized with ([\d]+ bit) key/)) {
+      $Crypt{$channel}{$dir}{"$bits $algo"}++;
+   } elsif (my ($dir, $channel, $algo, $bits) = ($ThisLine =~ /^(Incoming|Outgoing) (Data Channel): Cipher '(\S+)' initialized with ([\d]+ bit) key/)) {
       $Crypt{$channel}{$dir}{"$bits $algo"}++;
    } elsif (my ($proto, $host, $port, $error) = ($ThisLine =~ /^(TCP|UDP): connect to ([\d.]+):(\d+) failed, will try again in \d+ seconds: (.*)/)) {
       $ConnErrors{$error}{"$proto $host:$port"}++;
