@@ -46,6 +46,11 @@ mkdir /var/cache/logwatch
 ln -s /usr/share/logwatch/scripts/logwatch.pl /etc/cron.daily/0logwatch
 ln -s /usr/share/logwatch/scripts/logwatch.pl /usr/sbin/logwatch
 
+Instead of cron you may also use systemd timer unit for scheduled runs:
+mv logwatch.service /etc/systemd/system
+mv logwatch.timer /etc/systemd/system
+systemd enable logwatch.timer
+
 This is only a suggestion and if you look at the logwatch.pl script and the
 logwatch.conf file you will see that you can configure the system layout in many
 different ways.

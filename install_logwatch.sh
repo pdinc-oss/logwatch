@@ -79,8 +79,8 @@ PERLEXE="/usr/bin/perl"
 MANDIR="/usr/share/man"
 
 #Command line options section
-#Currently only prefix is supported but now that the door is open other options should follow. -mgt
 ac_prev=
+systemd=0
 for ac_option
 do
    # If the previous option needs an argument, assign it.
@@ -97,8 +97,17 @@ do
          ac_prev=prefix ;;
       -prefix=* | --prefix=* | --prefi=* | --pref=* | --pre=* | --pr=* | --p=*)
          prefix=$ac_optarg ;;
+      --systemd)
+         systemd=1;;
       *)
          echo "Unknown option '$ac_option'"
+         echo "Valid options are --prefix and --systemd."
+	 echo "  Option --prefix takes one argument: a path name, which will"
+         echo "         be prepended to installation directory names"
+         echo "  Option --systemd installs the systemd files logwatch.service"
+         echo "         and logwatch.timer rather than the default 0logwatch"
+         echo "         file in /etc/cron.daily/"
+         exit
          ;;
    esac
 done
@@ -320,13 +329,21 @@ fi
 ln -f -s $BASEDIR/scripts/logwatch.pl /usr/sbin/logwatch
 printf "Created symlink for /usr/sbin/logwatch \n"
 
-#Cron
-if [ -d /etc/cron.daily ]; then
+#Cron or Systemd timer
+if [ $systemd ]; then
+   install -m 0644 logwatch.service /lib/systemd/system/logwatch.service
+   install -m 0644 logwatch.timer /lib/systemd/system/logwatch.timer
+   if [ ! -e /lib/systemd/system/multi-user.target.wants ]; then
+      install -m 0755 -d /lib/systemd/system/multi-user.target.wants
+   fi
+   ln -s ../logwatch.timer /lib/systemd/system/multi-user.target.wants/logwatch.timer
+   printf "Created and enabled systemd logwatch.timer"
+elif [ -d /etc/cron.daily ]; then
    rm -f /etc/cron.daily/0logwatch
-   install -m 0755 logwatch.cron /etc/cron.daily/0logwatch
+   install -m 0755 scheduler/logwatch.cron /etc/cron.daily/0logwatch
    printf "Created /etc/cron.daily/0logwatch \n" 
 else
-   install -m 0744 logwatch.cron $CONFIGDIR/logwatch.cron
+   install -m 0744 scheduler/logwatch.cron $CONFIGDIR/logwatch.cron
    printf "################ README ####################.\n"
    printf "You need to setup your cron job for logwatch.\n"
    printf "A sample script is included see $CONFIGDIR/logwatch.cron. \n"
