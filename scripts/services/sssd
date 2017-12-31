@@ -28,11 +28,22 @@ while (defined(my $ThisLine = <STDIN>)) {
    next unless $ThisLine =~ /^sssd/;
    chomp($ThisLine);
 
-   # Strip off and record the service, set to Daemon if none
-   if ($ThisLine =~ s/^sssd\[([^:]+)\]: // or $ThisLine =~ s/^sssd_([^:]+): //) {
+   # Strip off leading sssd:
+   $ThisLine =~ s/^sssd: //;
+
+   # Remove []s from debug messages if any
+   $ThisLine =~ s/^\[(\S+)\] /$1 /;
+   $ThisLine =~ s/^\[(\S+)\] /$1 /;
+
+   # Remove pids from debug messages if any
+   $ThisLine =~ s/\[\d+\]//;
+   
+   # Default service
+   $Service = "Daemon";
+
+   # Strip off and record the service if any
+   if ($ThisLine =~ s/^sssd\[(\S+)\]:? // or $ThisLine =~ s/^sssd_([^:]+): //) {
      $Service = $1;
-   } elsif ($ThisLine =~ s/^sssd: //) {
-     $Service = "Daemon";
    }
     
    if ($ThisLine =~ /^Starting up/) {

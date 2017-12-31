@@ -221,8 +221,8 @@ while (my $line = <STDIN>) {
       if ($Detail >= 3) {
          $data{'Duplicate lease'}{$line}++;
       }
-   } elsif ($line =~ /^DHCPDISCOVER from .* via \S+: (.*): no free leases/) {
-      $data{'No Free Leases'}{$1}++;
+   } elsif ($line =~ /^DHCPDISCOVER from (.*) via \S+: (.*): no free leases/) {
+      $data{'No Free Leases'}{"$2: $1"}++;
    } elsif ($line =~ /^DHCPDISCOVER from .* via (\S+): unknown network segment/) {
       $data{'Unknown Network Segments'}{$1}++;
    } elsif ($line =~ /^DHCPDISCOVER from .* via (\S+): load balance to peer/) {
