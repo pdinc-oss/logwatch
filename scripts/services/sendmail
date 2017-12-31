@@ -829,6 +829,7 @@ next unless $ThisLine;
    } elsif ( ($RelayHost,$User) = ($ThisLine =~ /^ruleset=check_(?:mail|rcpt), arg1=.*, relay=(.*), reject=553\s*[\d.]*\s*.*\.\.\. Domain of sender address (.*) does not exist/) ) {
       $User =~ s/^.+\@(.+)$/$1/ if ($Detail < 15);
       $DomainErrors{$RelayHost}{$User . " (sender does not exist)"}++;
+      $Msgs{$QueueID}{"BadRCPT"}++;
    # file: sendmail.cf
    } elsif ( ($User,$RelayHost) = ($ThisLine =~ /^ruleset=check_mail, arg1=(.*), relay=(.*), reject=553\s*[\d.]*\s*.*\.\.\. Domain name required for sender address .*/) ) {
       $DomainErrors{$RelayHost}{$User . " (sender domain missing)"}++;
