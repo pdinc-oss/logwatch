@@ -1,0 +1,78 @@
+
+#######################################################
+## Copyright (c) 2008 Sy Beamont <sbeam@attbi.com>
+## Covered under the included MIT/X-Consortium License:
+##    http://www.opensource.org/licenses/mit-license.php
+## All modifications and contributions by other persons to
+## this script are assumed to have been donated to the
+## Logwatch project and thus assume the above copyright
+## and licensing terms.  If you want to make contributions
+## under your own copyright or a different license this
+## must be explicitly stated in the contribution an the
+## Logwatch project reserves the right to not accept such
+## contributions.  If you have made significant
+## contributions to this script and want to claim
+## copyright please contact logwatch-devel@lists.sourceforge.net.
+#########################################################
+
+$Debug = $ENV{'LOGWATCH_DEBUG'} || 0;
+
+if ( $Debug >= 5 ) {
+   print STDERR "\n\nDEBUG: Inside dnf-rpm Filter \n\n";
+   $DebugCounter = 1;
+}
+
+while (defined($ThisLine = <STDIN>)) {
+   if ( $Debug >= 5 ) {
+      print STDERR "DEBUG($DebugCounter): $ThisLine";
+      $DebugCounter++;
+   }
+
+   if ( $ThisLine =~ s/^.* INFO Upgraded: ([^ ]+)/$1/ ) {
+      $PackageUpdated{$ThisLine}++;
+   } elsif ( $ThisLine =~ s/^.* INFO Installed: ([^ ]+)/$1/ ) {
+      $PackageInstalled{$ThisLine}++;
+   } elsif ( $ThisLine =~ s/^.* INFO Erased: ([^ ]+)/$1/ ) {
+      $PackageErased{$ThisLine}++;
+   } elsif ( $ThisLine =~ m/INFO --- logging initialized ---/ ) {
+      $ignoredlines++;
+   } elsif ( $ThisLine =~ m/INFO Cleanup: / ) {
+      $ignoredlines++;
+   } else {
+      # Report any unmatched entries...
+      push @OtherList,$ThisLine;
+   }
+}
+
+if (keys %PackageInstalled) {
+   print "\nPackages Installed:\n";
+   foreach $ThisOne (sort {lc($a) cmp lc($b)} keys %PackageInstalled) {
+      print "   " . $ThisOne;
+   }
+}
+if (keys %PackageUpdated) {
+   print "\nPackages Updated:\n";
+   foreach $ThisOne (sort {lc($a) cmp lc($b)} keys %PackageUpdated) {
+       print "   ". $ThisOne;
+   }
+}
+if (keys %PackageErased) {
+   print "\nPackages Erased:\n";
+   foreach $ThisOne (sort {lc($a) cmp lc($b)} keys %PackageErased) {
+       print "   ". $ThisOne;
+   }
+}
+
+if ($#OtherList >= 0) {
+   print "\n**Unmatched Entries**\n";
+   print @OtherList;
+}
+
+exit(0);
+
+# vi: shiftwidth=3 tabstop=3 syntax=perl et
+# Local Variables:
+# mode: perl
+# perl-indent-level: 3
+# indent-tabs-mode: nil
+# End:
