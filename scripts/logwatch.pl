@@ -817,6 +817,17 @@ foreach $LogFile (@LogFileList) {
    @EnvList = ();
 
    my $FilterText = " ";
+   if (-e "/usr/bin/iconv") {
+      if (defined $Config{'charencoding'}) {
+         my $from_encoding;
+         if ($Config{'charencoding'}) {
+            $from_encoding = "-f $Config{'charencoding'}";
+         } else {
+            $from_encoding = "";
+         }
+         $FilterText = " | iconv -c $from_encoding -t UTF-8 - ";
+      }
+   }
    foreach (sort keys %{$LogFileData{$LogFile}}) {
       my $cmd = $_;
       if ($cmd =~ s/^\d+-\*//) {
