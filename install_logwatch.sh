@@ -330,9 +330,9 @@ ln -f -s $BASEDIR/scripts/logwatch.pl /usr/sbin/logwatch
 printf "Created symlink for /usr/sbin/logwatch \n"
 
 #Cron or Systemd timer
-if [ $systemd ]; then
-   install -m 0644 logwatch.service /lib/systemd/system/logwatch.service
-   install -m 0644 logwatch.timer /lib/systemd/system/logwatch.timer
+if [ $systemd -eq 1 ]; then
+   install -m 0644 scheduler/logwatch.service /lib/systemd/system/logwatch.service
+   install -m 0644 scheduler/logwatch.timer /lib/systemd/system/logwatch.timer
    if [ ! -e /lib/systemd/system/multi-user.target.wants ]; then
       install -m 0755 -d /lib/systemd/system/multi-user.target.wants
    fi
