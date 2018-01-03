@@ -21,26 +21,36 @@
 #########################################################
 
 my $Detail = $ENV{'LOGWATCH_DETAIL_LEVEL'} || 0;
-my %IgnoreActions = {};
+my %IgnoreActions;
 if (defined($ENV{'rsyslogd_ignore_actions'})) {
    foreach my $action (split(";",$ENV{'rsyslogd_ignore_actions'})) {
       $IgnoreActions{$action} = 1;
    }
 }
-my $Reason;
-my %IgnoreModules = {};
+my %IgnoreMessages;
+if (defined($ENV{'rsyslogd_ignore_messages'})) {
+   foreach my $message (split(";",$ENV{'rsyslogd_ignore_messages'})) {
+      $IgnoreMessages{$message} = 1;
+   }
+}
+my %IgnoreModules;
 if (defined($ENV{'rsyslogd_ignore_modules'})) {
    foreach my $module (split(";",$ENV{'rsyslogd_ignore_modules'})) {
       $IgnoreModules{$module} = 1;
    }
 }
+my $Message;
 my $Reason;
 my %ActionResumed;
 my %ActionSuspended;
 my %DaemonActions;
 
+LINE:
 while (defined($ThisLine = <STDIN>)) {
    chomp($ThisLine);
+   foreach $Message (%IgnoreMessages) {
+      next LINE if $ThisLine =~ /$Message/i;
+   }
    if (($Reason) = ($ThisLine =~ /^ ?\[origin software=\"rsyslogd\" .*\] (.*)/)) {
       $DaemonActions{$Reason}++;
    }
