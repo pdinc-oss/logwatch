@@ -457,6 +457,8 @@ while (defined($ThisLine = <STDIN>)) {
       $UidChange{"$User: $From -> $To"}++;
    } elsif ( ($User,$From,$To) = ($ThisLine =~ /^usermod(\[\d+\])?: ?change user [`'](.*)' GID from [`'](.*)' to [`'](.*)'/)) {
       $GidChange{"$User: $From -> $To"}++;
+   } elsif ( ($User,$From,$To) = ($ThisLine =~ /^usermod(\[\d+\])?: ?change user [`'](.*)' expiration from [`'](.*)' to [`'](.*)'/)) {
+      $AccountExpiry{"$User: $From -> $To"}++;
    # checkpassword-pam
    } elsif ( ($PID) = ($ThisLine =~ /^checkpassword-pam\[(\d+)\]: Reading username and password/)) {
    } elsif ( ($PID,$Username) = ($ThisLine =~ /^checkpassword-pam\[(\d+)\]: Username '([^']+)'/)) {
@@ -782,6 +784,13 @@ if (keys %Su_User) {
 
 if ($ConsoleLock > 0) {
    print "\nConsole file lock already in place: $ConsoleLock Time(s).\n";
+}
+
+if (keys %AccountExpiry) {
+   print "\nChanged account expiry for users:\n";
+   foreach $User (sort {$a cmp $b} keys %AccountExpiry) {
+      print "   $User : $AccountExpiry{$User} Time(s)\n";
+   }
 }
 
 if (keys %PasswordExpiry) {
