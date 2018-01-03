@@ -285,6 +285,8 @@ while (defined($ThisLine = <STDIN>)) {
       ( $ThisLine =~ /systemd-logind\[\d+\]: Watching system buttons on /) or
       ( $ThisLine =~ /DIGEST-MD5 common mech free/) or
       ( $ThisLine =~ /sshguard\[\d+\]: Reloading rotated file /) or
+      ( $ThisLine =~ /sshguard\[\d+\]: Exiting on signal/) or
+      ( $ThisLine =~ /sshguard\[\d+\]: Monitoring attacks from /) or
       ( $ThisLine =~ /sshguard\[\d+\]: (?:message repeated \d+ times: \[ )?\S+: not blocking /) or
       0 # This line prevents blame shifting as lines are added above
    ) {
