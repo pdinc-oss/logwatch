@@ -261,6 +261,7 @@ while (defined($ThisLine = <STDIN>)) {
       ( $ThisLine =~ /userhelper.*: running (.*) with context (.*)/) or
       ( $ThisLine =~ /userhelper.*: pam_thinkfinger(.*): conversation failed/) or
       ( $ThisLine =~ /su: PAM [0-9] more authentication failure; .*/) or
+      ( $ThisLine =~ /su: No passwd entry for user '(.*)'/) or
       ( $ThisLine =~ /polkit-grant-helper\[\d+\]: granted authorization for [^ ]* to uid [0-9]* \[auth=.*\]/) or
       ( $ThisLine =~ /polkit-grant-helper\[\d+\]: granted authorization for [^ ]* to session .* \[uid=[0-9]*\]/) or
       ( $ThisLine =~ /polkit-grant-helper-pam\[\d+\]: pam_thinkfinger\(polkit:auth\): conversation failed/) or
