@@ -764,7 +764,7 @@ if (keys %UserLogin) {
 
 if (keys %Su_User) {
    print "\nUsers performing Su Changes:\n";
-      foreach $User ( keys %Su_User) {
+      foreach $User (sort {$a cmp $b} keys %Su_User) {
          print "    $User:\n";
             foreach $Su ( keys %{$Su_User{$User}}) {
                my $val = $Su_User{$User}{$Su};
