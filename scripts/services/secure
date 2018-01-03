@@ -404,7 +404,7 @@ while (defined($ThisLine = <STDIN>)) {
       $DeletedUsers .= "   $ThisLine\n";
    } elsif ( $ThisLine =~ s/^(?:useradd|adduser)(?:\[\d+\])?: new user: name=(.+), (?:uid|UID)=(\d+).*$/$1 ($2)/ ) {
       $NewUsers .= "   $ThisLine\n";
-   } elsif ( $ThisLine =~ s/^userdel(?:\[\d+\])?: remove(?:d)? group [`'](\S+)'( owned by \S+)?/$1/ ) {
+   } elsif ( $ThisLine =~ s/^userdel(?:\[\d+\])?: remove(?:d)? (?:shadow)? group [`'](\S+)'( owned by \S+)?/$1/ ) {
       $DeletedGroups .= "   $ThisLine\n";
    } elsif ( $ThisLine =~ s/^groupdel(?:\[\d+\])?: remove group `(.+)'/$1/ ) {
       $DeletedGroups .= "   $ThisLine\n";
