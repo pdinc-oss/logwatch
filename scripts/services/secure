@@ -451,9 +451,9 @@ while (defined($ThisLine = <STDIN>)) {
       $GroupChanged{"$ThisLine"}++;
    } elsif ( ($Pid,$User,$Home,$NewHome) = ($ThisLine =~ /^usermod(\[\d+\])?: change user [`'](.*)' home from [`'](.*)' to [`'](.*)'/)) {
       $HomeChange{$User}{"$Home -> $NewHome"}++;
-   } elsif ( ($User,$From,$To) = ($ThisLine =~ /^usermod(\[\d+\])?:change user `(.*)' UID from `(.*)' to `(.*)'/)) {
+   } elsif ( ($User,$From,$To) = ($ThisLine =~ /^usermod(\[\d+\])?: ?change user [`'](.*)' UID from [`'](.*)' to [`'](.*)'/)) {
       $UidChange{"$User: $From -> $To"}++;
-   } elsif ( ($User,$From,$To) = ($ThisLine =~ /^usermod(\[\d+\])?: change user `(.*)' GID from `(.*)' to `(.*)'/)) {
+   } elsif ( ($User,$From,$To) = ($ThisLine =~ /^usermod(\[\d+\])?: ?change user [`'](.*)' GID from [`'](.*)' to [`'](.*)'/)) {
       $GidChange{"$User: $From -> $To"}++;
    # checkpassword-pam
    } elsif ( ($PID) = ($ThisLine =~ /^checkpassword-pam\[(\d+)\]: Reading username and password/)) {
@@ -488,7 +488,7 @@ while (defined($ThisLine = <STDIN>)) {
       $Su_User{$User}{$Su}++;
    } elsif ($ThisLine =~ /^userhelper\[\d+\]: running '([^']+)' with ([^']+) privileges on behalf of '([^']+)'/) {
       $Executed_app{"$1,$2,$3"}++;
-   } elsif ( ($User) = $ThisLine =~ /change user `([^']+)' password/) {
+   } elsif ( ($User) = $ThisLine =~ /change user [`']([^']+)' password/) {
       $PwdChange{"$User"}++;
    } elsif ( ($User) = ($ThisLine =~ /^cvs: password mismatch for ([^']+): ([^']+) vs. ([^']+)/) ){
       $cvs_passwd_mismatch{$User}++;
