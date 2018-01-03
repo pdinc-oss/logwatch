@@ -112,6 +112,8 @@ my %Disconnected;
 my %DiskQuotaExceed;
 my %Deliver;
 my %DeliverUserCount;
+my %Error;
+my %Fatal;
 my %Forwarded;
 my %LimitExceeded;
 my %Login;
@@ -343,6 +345,10 @@ while (defined(my $ThisLine = <STDIN>)) {
    # These are failed connections with imap_id_log = * enabled
    } elsif ($ThisLine =~ /imap-login: ID sent: (?:name|vendor)=/) {
       # Ignore
+   } elsif (my ($Fatal) = ($ThisLine =~ /^(?:$dovecottag )?(.* Fatal:.*)/)) {
+      $Fatal{$Fatal}++;
+   } elsif (my ($Error) = ($ThisLine =~ /^(?:$dovecottag )?(.* Error:.*)/)) {
+      $Error{$Error}++;
    } else {
       # Report any unmatched entries...
       chomp($ThisLine);
@@ -354,6 +360,20 @@ while (defined(my $ThisLine = <STDIN>)) {
 
 if ( $End ) {
    print "\nDovecot was killed, and not restarted afterwards.\n";
+}
+
+if ( keys %Fatal ) {
+   print "\nDovecot Fatal Errors:\n";
+   foreach my $Fatal (sort keys %Fatal) {
+      print "   ${Fatal}: $Fatal{$Fatal} Time(s)\n";
+   }
+}
+
+if ( keys %Error ) {
+   print "\nDovecot Errors:\n";
+   foreach my $Error (sort keys %Error) {
+      print "   ${Error}: $Error{$Error} Time(s)\n";
+   }
 }
 
 if ( ( $Detail >=5 ) and $Restarts ) {
