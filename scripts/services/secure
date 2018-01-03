@@ -283,6 +283,7 @@ while (defined($ThisLine = <STDIN>)) {
       ( $ThisLine =~ /systemd-logind\[\d+\]: Removed session/) or
       ( $ThisLine =~ /systemd-logind\[\d+\]: New seat seat\d+\./) or
       ( $ThisLine =~ /systemd-logind\[\d+\]: Watching system buttons on /) or
+      ( $ThisLine =~ /systemd-logind\[\d+\]: Failed to start session scope (\S+): Transaction is destructive\./) or
       ( $ThisLine =~ /DIGEST-MD5 common mech free/) or
       ( $ThisLine =~ /sshguard\[\d+\]: Reloading rotated file /) or
       ( $ThisLine =~ /sshguard\[\d+\]: Exiting on signal/) or
