@@ -543,7 +543,7 @@ while (defined($ThisLine = <STDIN>)) {
       } elsif (my ($mins, $secs) = ($ThisLine =~ /Scanning took ([0-9]*) minutes? and ([0-9]*) seconds?/)) {
          $RootkitHunter{'time'}+= $mins*60 + $secs;
       }
-   } elsif ($ThisLine =~ /systemd-logind: New session \d+ of user (\w+)\./){
+   } elsif ($ThisLine =~ /systemd-logind(?:\[\d+\])?: New session \d+ of user (\w+)\./){
       $UserLogin{$1}++;
    } else {
       # Unmatched entries...
