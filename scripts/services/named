@@ -167,6 +167,7 @@ while (defined($ThisLine = <STDIN>)) {
       ($ThisLine =~ /reading built-in trusted keys from file/) or
       ($ThisLine =~ /all zones loaded/) or
       ($ThisLine =~ /client .* signer .* approved/) or
+      ($ThisLine =~ /stop limiting/) or
       # ignore this line because the following line describes the error
       ($ThisLine =~ /unexpected error/)
    ) {
@@ -315,6 +316,24 @@ while (defined($ThisLine = <STDIN>)) {
       $NoSOA{$Client}++;
    } elsif (($Hint) = ($ThisLine =~ /checkhints: (.*)/) ) {
       $Hints{$Hint}++;
+   } elsif (($Response,$Net,$Zone) = ($ThisLine =~/limit (.+) responses to (\S+)(?: for (.+) \()?/)) {
+      $Zone = "None" unless defined($Zone);
+      $Limit{$Zone}{$Response}{$Net}++;
+   } elsif (($Client,$Response,$Net,$Zone) = ($ThisLine =~/client ([^#]+)(?:#\d+)? \(.*\): (?:view \w+: )?rate limit drop (.+) response to (\S+)(?: for (\S+))?/)) {
+      $Zone = "None" unless defined($Zone);
+      $LimitDrop{$Zone}{$Response}{$Net}{$Client}++;
+   } elsif (($Client,$Response,$Net,$Zone) = ($ThisLine =~/client ([^#]+)(?:#\d+)? \(.*\): (?:view \w+: )?rate limit slip (.+) response to (\S+)(?: for (\S+))?/)) {
+      $Zone = "None" unless defined($Zone);
+      $LimitSlip{$Zone}{$Response}{$Net}{$Client}++;
+   } elsif (($Net,$Zone,$Response) = ($ThisLine =~/limit responses to (\S+)(?: for (\S+))? (.*) +\(/)) {
+      $Zone = "None" unless defined($Zone);
+      $Limit{$Zone}{$Response}{$Net}++;
+   } elsif (($Client,$Net,$Zone,$Response) = ($ThisLine =~/client ([^#]+)(?:#\d+)? \(.*\): (?:view \w+: )?rate limit drop response to (\S+)(?: for (\S+))? (.*) +\(/)) {
+      $Zone = "None" unless defined($Zone);
+      $LimitDrop{$Zone}{$Response}{$Net}{$Client}++;
+   } elsif (($Client,$Net,$Zone,$Response) = ($ThisLine =~/client ([^#]+)(?:#\d+)? \(.*\): (?:view \w+: )?rate limit slip response to (\S+)(?: for (\S+))? (.*) +\(/)) {
+      $Zone = "None" unless defined($Zone);
+      $LimitSlip{$Zone}{$Response}{$Net}{$Client}++;
    } elsif (($Zone,$RR) = ($ThisLine =~ /^\s*validating \@0x[[:xdigit:]]+: (.*) (\w+): got insecure response; parent indicates it should be secure/)) {
       $DNSSECInsec{'__Total__'}++;
       $DNSSECInsec{$Zone}{$RR}++;
@@ -444,6 +463,25 @@ if (keys %ErrOpenFiles) {
    print "\nPlease update your bind.\n";
    foreach $ThisOne (keys %ErrOpenFiles) {
       print "   " . $ThisOne . ": " . $ErrOpenFiles{$ThisOne} . " Time(s)\n";
+   }
+}
+
+if (keys %Limit) {
+   print "\nRate Limiting occurred for:\n";
+   foreach $Zone (keys %Limit) {
+      print "   $Zone:\n";
+      foreach $Response (keys %{$Limit{$Zone}}) {
+         print "      $Response:\n";
+         foreach $Net (keys %{$Limit{$Zone}{$Response}}) {
+            print "         $Net: $Limit{$Zone}{$Response}{$Net} Time(s)\n";
+            foreach $Client (keys %{$LimitDrop{$Zone}{$Response}{$Net}}) {
+               print "            Dropped $Client: $LimitDrop{$Zone}{$Response}{$Net}{$Client} Time(s)\n";
+            }
+            foreach $Client (keys %{$LimitSlip{$Zone}{$Response}{$Net}}) {
+               print "            Slipped $Client: $LimitSlip{$Zone}{$Response}{$Net}{$Client} Time(s)\n";
+            }
+         }
+      }
    }
 }
 
