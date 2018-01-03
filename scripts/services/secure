@@ -284,6 +284,8 @@ while (defined($ThisLine = <STDIN>)) {
       ( $ThisLine =~ /systemd-logind\[\d+\]: New seat seat\d+\./) or
       ( $ThisLine =~ /systemd-logind\[\d+\]: Watching system buttons on /) or
       ( $ThisLine =~ /DIGEST-MD5 common mech free/) or
+      ( $ThisLine =~ /sshguard\[\d+\]: Reloading rotated file /) or
+      ( $ThisLine =~ /sshguard\[\d+\]: \S+: not blocking /) or
       0 # This line prevents blame shifting as lines are added above
    ) {
       # Ignore these entries
