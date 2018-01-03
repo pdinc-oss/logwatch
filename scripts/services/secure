@@ -409,6 +409,8 @@ while (defined($ThisLine = <STDIN>)) {
       $NewGroups .= "   $ThisLine\n";
    } elsif ( (undef,$User,,undef,$Group) = ($ThisLine =~ /(usermod|useradd)(?:\[\d+\])?: add [`']([^ ]+)' to (shadow ?|)group [`']([^ ]+)'/ )) {
       $AddToGroup{$Group}{$User}++;
+   } elsif ( ($User,undef,$Group) = ($ThisLine =~ /gpasswd: user (.+) added by (.+) to group (.+)/)) {
+      $AddToGroup{$Group}{$User}++;
    } elsif ( $ThisLine =~ s/^groupadd(?:\[\d+\])?: new group: name=(.+), (?:gid|GID)=(\d+).*$/$1 ($2)/ ) {
       $NewGroups .= "   $ThisLine\n";
    } elsif ( $ThisLine =~ s/^gpasswd(?:\[\d+\])?: set members of // ) {
