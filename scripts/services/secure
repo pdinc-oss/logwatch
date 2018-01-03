@@ -282,6 +282,7 @@ while (defined($ThisLine = <STDIN>)) {
       ( $ThisLine =~ /pam_systemd\(su:session\): Cannot create session: Already (running in|occupied by) a session/) or
       ( $ThisLine =~ /systemd-logind\[\d+\]: Removed session/) or
       ( $ThisLine =~ /systemd-logind\[\d+\]: New seat seat\d+\./) or
+      ( $ThisLine =~ /systemd-logind\[\d+\]: Watching system buttons on /) or
       ( $ThisLine =~ /DIGEST-MD5 common mech free/) or
       0 # This line prevents blame shifting as lines are added above
    ) {
