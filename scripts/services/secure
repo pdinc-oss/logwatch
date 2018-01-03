@@ -496,6 +496,8 @@ while (defined($ThisLine = <STDIN>)) {
       $cvs_passwd_mismatch{$User}++;
    } elsif ( ($User,$From,$To) = ($ThisLine =~ /usermod\[[0-9]*\]: change user `([^ ]*)' shell from `([^ ]*)' to `([^ ]*)'/) ) {
       $ChangedShell{"$User,$From,$To"}++;
+   } elsif ( ($User,$To) = ($ThisLine =~ /chsh\[[0-9]*\]: change user [`']([^ ]*)' shell to [`']([^ ]*)'/) ) {
+      $ChangedShell{"$User,,$To"}++;
    } elsif ( ($Name1,$Name2) = ($ThisLine =~ /usermod\[[0-9]*\]: change user name `([^ ]*)' to `([^ ]*)'/)) {
       $ChangedUserName{"$Name1,$Name2"}++;
    } elsif (($Name,$GID) = ($ThisLine =~ /change GID for `([^ ]*)' to ([0-9]*)/)) {
@@ -888,7 +890,11 @@ if (keys %ChangedShell) {
    print "\nChanged users default login shell: \n";
    foreach (keys %ChangedShell) {
      ($User,$From,$To) = split ",";
-     print "   User " . $User . " change shell from " . $From . " to " . $To . ": " . $ChangedShell{"$User,$From,$To"} . " Time(s)\n";
+     if ($From ne '') {
+         print "   User " . $User . " change shell from " . $From . " to " . $To . ": " . $ChangedShell{"$User,$From,$To"} . " Time(s)\n";
+     } else {
+         print "   User " . $User . " change shell to " . $To . ": " . $ChangedShell{"$User,$From,$To"} . " Time(s)\n";
+     }
    }
 
 }
