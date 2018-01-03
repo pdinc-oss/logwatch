@@ -87,6 +87,7 @@ while (defined(my $ThisLine = <STDIN>)) {
         ($ThisLine =~ /restrict: error in address/) or
         ($ThisLine =~ /syntax error in .+ line \d+, column \d+$/) or
         ($ThisLine =~ /Listen normally on /) or
+        ($ThisLine =~ /the NTP socket is in use, exiting/) or
         0 # This line prevents blame shifting as lines are added above
     ) {
        # Ignore these
