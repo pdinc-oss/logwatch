@@ -229,7 +229,7 @@ my @Scanned = ();
 my %OtherList = ();
 my %ChmodErr = ();
 my %ChownErr = ();
-my %Krb_relm = ();
+my %Krb_realm = ();
 my %ConnectFailed = ();
 my %Chroot = ();
 my %CloseDir = ();
@@ -481,8 +481,8 @@ while (defined(my $ThisLine = <STDIN>)) {
       $ChmodErr{"$File,$Perm,$Why"}++;
    } elsif (my ($File,$From,$To,$Why) = ($ThisLine =~ /error: chown (.*) (.*) (.*) failed: (.*)/)) {
       $ChownErr{"$File,$From,$To,$Why"}++;
-   } elsif (my ($user,$relm) = ($ThisLine =~ /Authorized to ([^ ]+), krb5 principal \1@([^ ]+) \((?:krb5_kuserok|ssh_gssapi_krb5_cmdok)\)/)) {
-      $Krb_relm{$relm}{$user}++;  
+   } elsif (my ($user,$realm) = ($ThisLine =~ /Authorized to ([^ ]+), krb5 principal \1@([^ ]+) \((?:krb5_kuserok|ssh_gssapi_krb5_cmdok)\)/)) {
+      $Krb_realm{$realm}{$user}++;
    } elsif (my ($Action,$User) = ($ThisLine =~ /^session ((?:open|clos)ed) for local user (\S+) from /)) {
       $Session{"Action,$User"}++;
    } elsif ($ThisLine =~ /^sent status No such file$/) {
@@ -520,8 +520,8 @@ while (defined(my $ThisLine = <STDIN>)) {
 
 ###########################################################
 
-foreach my $Host (keys %PotentialIllegalUsers) {
-   foreach my $User (keys %{$PotentialIllegalUsers{$Host}}) {
+foreach my $Host (sort keys %PotentialIllegalUsers) {
+   foreach my $User (sort keys %{$PotentialIllegalUsers{$Host}}) {
       my @user_hosts = grep { $PotentialIllegalUsers{$_}{$User} } keys %PotentialIllegalUsers;
 
       if ($Host eq "undef") {
@@ -958,7 +958,7 @@ if ($sftpRequests > 0) {
 
 if (keys %ChmodErr) {
   print "\nChmod errors:\n";
-  foreach (keys %ChmodErr) {
+  foreach (sort keys %ChmodErr) {
     my ($File,$Perm,$Why)= split ",";
     print "   " . $File . " " . $Perm . " failed(" . $Why . "): ". $ChmodErr{"$File,$Perm,$Why"} . " Time(s)\n";
   }
@@ -972,23 +972,23 @@ if (keys %ChownErr) {
   }
 }
 
-if ( ($Detail == 7 && keys %Krb_relm > 1) || ($Detail > 8 && keys %Krb_relm) ){
-  print "\nSuccessful Kerberos Authentication from ",(scalar keys %Krb_relm)," relm:\n";
-  foreach my $relm (keys %Krb_relm) { 
+if ( ($Detail == 7 && keys %Krb_realm > 1) || ($Detail > 8 && keys %Krb_realm) ){
+  print "\nSuccessful Kerberos Authentication from ",(scalar keys %Krb_realm)," realm:\n";
+  foreach my $realm (sort keys %Krb_realm) {
     if($Detail > 9){
-      print "   ",$relm,":\n";
-      foreach my $user(keys %{$Krb_relm{$relm}}){
-        print "     ",$user,": ". $Krb_relm{$relm}{$user} . " Times(s)\n";
+      print "   ",$realm,":\n";
+      foreach my $user(sort keys %{$Krb_realm{$realm}}){
+        print "     ",$user,": ". $Krb_realm{$realm}{$user} . " Times(s)\n";
       }
     }else{
-      print "   ",$relm,": ". (scalar keys %{$Krb_relm{$relm}}) . " User(s)\n";
+      print "   ",$realm,": ". (scalar keys %{$Krb_realm{$realm}}) . " User(s)\n";
     }
   }
 }
 
 if (keys %OtherList) {
    print "\n**Unmatched Entries**\n";
-   print "$_ : $OtherList{$_} time(s)\n" foreach keys %OtherList;
+   print "$_ : $OtherList{$_} time(s)\n" foreach sort keys %OtherList;
 }
 
 exit(0);
