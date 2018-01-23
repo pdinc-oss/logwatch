@@ -58,6 +58,8 @@ while (defined(my $ThisLine = <STDIN>)) {
    }
    #print STDERR "ExpandedString = $ExpandedString\n";
 
+   next if ($EventLogType eq "Information" and $Detail < 10);
+
    if ($System eq "Application Popup") {
       #Ignore these
       next if $ExpandedString =~ /Initialization Failed : The application failed to initialize because the window station is shutting down/;
