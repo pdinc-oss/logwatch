@@ -142,7 +142,7 @@ while (defined(my $ThisLine = <STDIN>)) {
       ($ThisLine =~ /^LDAP bind failed: Invalid credentials$/) or
       ($ThisLine =~ /^MANAGEMENT: Client disconnected$/) or
       ($ThisLine =~ /^MANAGEMENT: .* listening /) or
-      ($ThisLine =~ /Authenticate\/Decrypt packet error: bad packet ID \(may be a replay\): \[ #.* \] -- see the man page entry for --no-replay and --replay-window for more info or silence this warning with --mute-replay-warnings/)
+      ($ThisLine =~ /(?:AEAD Decrypt|Authenticate\/Decrypt packet) error: bad packet ID \(may be a replay\): \[ #.* \] -- see the man page entry for --no-replay and --replay-window for more info or silence this warning with --mute-replay-warnings/)
    ) {
       # Don't care about these...
    }  elsif (my ($status, $depth, $dn) = ( $ThisLine =~ /^VERIFY (.*): depth=(.*), (.*)/ )) {
