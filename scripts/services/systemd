@@ -47,7 +47,6 @@ while (defined(my $ThisLine = <STDIN>)) {
        $ThisLine =~ / failed\.$/ or
        $ThisLine =~ /([Cc]ontrol|[Mm]ain|[Mm]ount) process exited, code=(exited|killed|dumped),? status=/ or
        # Informational
-       $ThisLine =~ /^Closed .* [Ss]ocket\.$/ or
        $ThisLine =~ /^Closed .* [Ss]ockets?\.$/ or
        $ThisLine =~ /^Closed .* [Ss]cheduler\.$/ or
        $ThisLine =~ /^Closed .* [Ww]atch\.$/ or
