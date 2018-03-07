@@ -317,6 +317,7 @@ while (defined(my $ThisLine = <STDIN>)) {
        ($ThisLine =~ /Nasty PTR record .* is set up for [\da-fA-F.:]+, ignoring/) or
        ($ThisLine =~ /Disconnected from [\da-fA-F.:]* port \d*/ ) or
        ($ThisLine =~ /Failed to release session: Interrupted system call/) or
+       ($ThisLine =~ /Close session: user /) or
        0 # This line prevents blame shifting as lines are added above
    ) {
       # Ignore these
