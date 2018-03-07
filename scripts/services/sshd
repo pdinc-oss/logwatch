@@ -315,7 +315,7 @@ while (defined(my $ThisLine = <STDIN>)) {
        ($ThisLine =~ /Found matching \w+ key:/ ) or
        ($ThisLine =~ /User child is on pid \d/ ) or
        ($ThisLine =~ /Nasty PTR record .* is set up for [\da-fA-F.:]+, ignoring/) or
-       ($ThisLine =~ /Disconnected from [\da-fA-F.:]* port \d*/ ) or
+       ($ThisLine =~ /Disconnected from (?:user \S+ |)[\da-fA-F.:]* port \d*/ ) or
        ($ThisLine =~ /Failed to release session: Interrupted system call/) or
        ($ThisLine =~ /Close session: user /) or
        0 # This line prevents blame shifting as lines are added above
