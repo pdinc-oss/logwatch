@@ -101,7 +101,8 @@ while (defined(my $ThisLine = <STDIN>)) {
        $ThisLine =~ /Adding .* random time\.$/ or
        # These happen on every shutdown - downgraded to debug message in systemd v235
        # https://github.com/systemd/systemd/issues/6777
-       $ThisLine =~ /^Failed to propagate agent release message: (?:Connection reset by peer|Transport endpoint is not connected)/
+       $ThisLine =~ /^Failed to propagate agent release message: (?:Connection reset by peer|Transport endpoint is not connected)/ or
+       $ThisLine =~ /^cgroup compatibility translation between legacy and unified hierarchy settings activated\. See cgroup-compat debug messages for details\.$/
    ) {
       # Ignore these
    } elsif (my ($service,$reason) = ($ThisLine =~ /^Configuration file ([^ ]*) is ([^.]*)\./)) {
