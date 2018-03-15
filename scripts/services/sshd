@@ -978,7 +978,7 @@ if ( ($Detail == 7 && keys %Krb_realm > 1) || ($Detail > 8 && keys %Krb_realm) )
     if($Detail > 9){
       print "   ",$realm,":\n";
       foreach my $user(sort keys %{$Krb_realm{$realm}}){
-        print "     ",$user,": ". $Krb_realm{$realm}{$user} . " Times(s)\n";
+        print "     ",$user,": ". $Krb_realm{$realm}{$user} . " Time(s)\n";
       }
     }else{
       print "   ",$realm,": ". (scalar keys %{$Krb_realm{$realm}}) . " User(s)\n";
