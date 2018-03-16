@@ -766,19 +766,42 @@ if (keys %Users) {
    print "\nUsers logging in through sshd:\n";
    foreach my $user (sort {$a cmp $b} keys %Users) {
       print "   $user:\n";
-      my $totalSort = TotalCountOrder(%{$Users{$user}}, \&SortIP);
-      foreach my $ip (sort $totalSort keys %{$Users{$user}}) {
-         my $name = LookupIP($ip);
-         if ($Detail >= 20) {
-            print "      $name:\n";
-            my $sort = CountOrder(%{$Users{$user}{$ip}});
-            foreach my $method (sort $sort keys %{$Users{$user}{$ip}}) {
-               my $val = $Users{$user}{$ip}{$method};
-               print "         $method: " . timesplural($val);
+      if ($Detail < 20) {
+         my $totalSort = TotalCountOrder(%{$Users{$user}}, \&SortIP);
+         foreach my $ip (sort $totalSort keys %{$Users{$user}}) {
+            my $name = LookupIP($ip);
+            my $val  = (values %{$Users{$user}{$ip}})[0];
+            print "      $name: " . timesplural($val);
+         }
+      } else {
+         my %Methods = ();
+         foreach my $ip (keys %{$Users{$user}}) {
+            foreach my $method (keys %{$Users{$user}{$ip}}) {
+               $Methods{$method}{$ip} = $Users{$user}{$ip}{$method};
+            }
+         }
+         if (scalar keys %{$Users{$user}} < scalar %Methods) {
+            my $totalSort = TotalCountOrder(%{$Users{$user}}, \&SortIP);
+            foreach my $ip (sort $totalSort keys %{$Users{$user}}) {
+               my $name = LookupIP($ip);
+               print "      $name:\n";
+               my $sort = CountOrder(%{$Users{$user}{$ip}});
+               foreach my $method (sort $sort keys %{$Users{$user}{$ip}}) {
+                  my $val = $Users{$user}{$ip}{$method};
+                  print "         $method: " . timesplural($val);
+               }
             }
          } else {
-            my $val = (values %{$Users{$user}{$ip}})[0];
-            print "      $name: " . timesplural($val);
+            my $totalSort = TotalCountOrder(%Methods);
+            foreach my $method (sort $totalSort keys %Methods) {
+               print "      $method:\n";
+               my $sort = CountOrder(%{$Methods{$method}});
+               foreach my $ip (sort $sort keys %{$Methods{$method}}) {
+                  my $name = LookupIP($ip);
+                  my $val  = (values %{$Users{$user}{$ip}})[0];
+                  print "         $name: " . timesplural($val);
+               }
+            }
          }
       }
    }
