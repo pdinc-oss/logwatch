@@ -25,6 +25,7 @@ my $SnapshotThreshold = $ENV{'snapshot_threshold'} || 0;
 my %SnapshotUsed;
 my %MonitoringOn;
 my %MonitoringOff;
+my %MonitoringSnapshot;
 my %OtherList;
 
 while (defined(my $ThisLine = <STDIN>)) {
@@ -35,6 +36,8 @@ while (defined(my $ThisLine = <STDIN>)) {
       $PoolMetadataUsed{$1} = $2 if $2 >= $PoolMetadataThreshold;
    } elsif ($ThisLine =~ /^Monitoring thin pool (\S+)\./) {
       $MonitoringOn{$1}++;
+   } elsif ($ThisLine =~ /^Monitoring snapshot (\S+)\./) {
+      $MonitoringSnapshot{$1}++;
    } elsif ($ThisLine =~ /^No longer monitoring thin pool (\S+)\./) {
       $MonitoringOff{$1}++;
    } elsif ($ThisLine =~ /^Snapshot (\S+) is now (\d+)% full/) {
@@ -94,6 +97,14 @@ if (keys %MonitoringOff and $Detail) {
    print "Monitoring stopped for:\n";
    foreach my $Pool (sort {$a cmp $b} keys %MonitoringOff) {
       print "    $Pool: $MonitoringOff{$Pool} Time(s)\n";
+   }
+   print "\n";
+}
+
+if (keys %MonitoringSnapshot and $Detail) {
+   print "Monitoring snapshot:\n";
+   foreach my $Snapshot (sort {$a cmp $b} keys %MonitoringSnapshot) {
+      print "    $Snapshot: $MonitoringSnapshot{$Snapshot} Time(s)\n";
    }
    print "\n";
 }
