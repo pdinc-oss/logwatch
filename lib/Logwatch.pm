@@ -264,7 +264,7 @@ sub SortIP {
 =item I<LookupIP($dottedQuadIPaddress)>
 
 This function performs a hostname lookup on a passed in IP address. It
-returns the hostname (with the IP in parentheses) on success and the IP
+returns the IP (with the hostname in parentheses) on success and the IP
 address on failure. Results are cached, so that many calls with the same
 argument don't tax the resolver resources.
 
