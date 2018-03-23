@@ -40,7 +40,8 @@ while (defined($ThisLine = <STDIN>)) {
       ($ThisLine =~ /loading table .*/) or
       ($ThisLine =~ /void Inotify::Remove\(InotifyWatch\*\): removing watch failed/) or
       ($ThisLine =~ /error: \(22\) Invalid argument/) or
-      ($ThisLine =~ /pam_unix\(crond:session\): session (?:opened|closed) for user/)
+      ($ThisLine =~ /pam_unix\(crond:session\): session (?:opened|closed) for user/) or
+      ($ThisLine =~ /PAM pam_end: NULL pam handle passed/)
    ) {
       # Ignore
    } elsif (
