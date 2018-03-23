@@ -16,6 +16,14 @@
 
 use strict;
 my $Detail = $ENV{'LOGWATCH_DETAIL_LEVEL'} || 0;
+my %ErrorThreshold;
+if (defined($ENV{'error_threshold'})) {
+   foreach my $entry (split(',',$ENV{'error_threshold'})) {
+      my ($regex,$limit) = split(';',$entry);
+      $ErrorThreshold{$regex} = $limit;
+   }
+}
+
 my %Errors;
 my %Warnings;
 my %Startup;
@@ -49,6 +57,9 @@ while (defined(my $ThisLine = <STDIN>)) {
    } elsif ($ThisLine =~ /^ERR - /
        or $ThisLine =~ /error/i
        or $ThisLine =~ /^Detected Disorderly Shutdown/) {
+      # Remove some items that prevent de-duplication
+      $ThisLine =~ s/:\s+\d+\s+\d+//;
+      $ThisLine =~ s/change record \d+/change record/;
       $Errors{$ThisLine}++;
    } elsif ($ThisLine =~ /^WARN - /
        or $ThisLine =~ /warning/i
@@ -84,6 +95,17 @@ while (defined(my $ThisLine = <STDIN>)) {
       $OtherList{$ThisLine}++;
    }
    $PreviousLine = $ThisLine;
+}
+
+if (keys %Errors and keys %ErrorThreshold) {
+   LINE: foreach my $line (sort {$a cmp $b} keys %Errors) {
+      foreach my $regex (keys %ErrorThreshold) {
+         if ($line =~ /$regex/i and $Errors{$line} <= $ErrorThreshold{$regex}) {
+            delete $Errors{$line};
+            next LINE;
+         }
+      }
+   }
 }
 
 if (keys %Errors) {
