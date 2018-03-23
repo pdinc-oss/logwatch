@@ -26,6 +26,8 @@
 use strict;
 
 my $Detail = $ENV{'LOGWATCH_DETAIL_LEVEL'} || 0;
+my $Ignore_messages = $ENV{'ignore_messages'} || '^$';
+
 my %Errors;
 my %RestartRequired;
 my %Systems;
@@ -34,6 +36,9 @@ my %UpdatesInstalled;
 my %UpdatesReadyForInstall;
 
 while (defined(my $ThisLine = <STDIN>)) {
+   # User specified ignore messages, lower cased
+   next if $ThisLine =~ /$Ignore_messages/i;
+
    my ($Hostname,$Criticality,$SourceName,$DateTime,$EventID,$System,$UserName,$SIDType,$EventLogType,$CategoryString,$DataString,$ExpandedString,$Extra);
    #Determine format
    if ($ThisLine =~ /MSWinEventLog\[/) {  # Snare 4
@@ -51,7 +56,17 @@ while (defined(my $ThisLine = <STDIN>)) {
    }
    #print STDERR "ExpandedString = $ExpandedString\n";
 
+   next if ($EventLogType eq "Verbose");
    next if ($EventLogType eq "Information" and $Detail < 10);
+
+   # Remove some items that prevent de-duplication
+   if ($Detail < 10) {
+      $ExpandedString =~ s/\d+ time\(s\)/XX times(s)/;
+      $ExpandedString =~ s/requested by PID\s+\S+\s+//;
+      $ExpandedString =~ s/processor \d+/processor X/;
+      $ExpandedString =~ s/for \d+ seconds/for XX seconds/;
+      $ExpandedString =~ s/(APPID|CLSID)\s+\{[0-9A-F\-]+\}/$1 {XXX}/g;
+   }
 
    if ($System eq "Application Popup") {
       #Ignore these
@@ -87,6 +102,12 @@ while (defined(my $ThisLine = <STDIN>)) {
       #Ignore these
       next if $ExpandedString =~ /^DFS has finished building all namespaces\.$/;
       next if $ExpandedString =~ /^DFS server has finished initializing\.$/;
+   }
+
+   if ($System eq "Microsoft-Windows-DNS-Client") {
+      next if $ExpandedString =~ /^Name resolution for the name .* timed out/;
+      next if $ExpandedString =~ /^The system failed to (?:register|update and remove) host .* resource records/;
+      next if $ExpandedString =~ /^The system could not remove these host .* RRs/;
    }
 
    if ($System eq "Microsoft-Windows-FilterManager") {

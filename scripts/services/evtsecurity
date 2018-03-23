@@ -21,16 +21,20 @@ use strict;
 use URI::URL;
 
 my $Detail = $ENV{'LOGWATCH_DETAIL_LEVEL'} || 0;
+my $Ignore_messages = $ENV{'ignore_messages'} || '^$';
 
 my $SuccessAudits = 0;
 my %SuccessAuditUsers;
 my %FailureAudits;
 my %SuccessAudits;
 my %ClockSkew;
+my %Errors;
+my %Information;
 my %UnknownUser;
 my %UnknownClient;
 my %BadPasswords;
 my %TicketExpired;
+my %AccessDenied;
 my %AccountChanged;
 my %AccountCreated;
 my %AccountDeleted;
@@ -48,6 +52,9 @@ my %WorkstationUnlocked;
 my %OtherList;
 
 while (defined(my $ThisLine = <STDIN>)) {
+   # User specified ignore messages, lower cased
+   next if $ThisLine =~ /$Ignore_messages/i;
+
    my ($Hostname,$Criticality,$SourceName,$DateTime,$EventID,$SourceName2,$UserName,$SIDType,$EventLogType,$CategoryString,$DataString,$ExpandedString,$Extra);
    #Determine format
    if ($ThisLine =~ /MSWinEventLog\[/) {  # Snare 4
@@ -108,8 +115,13 @@ while (defined(my $ThisLine = <STDIN>)) {
       }
    }
    elsif ($EventLogType eq "Failure Audit") {
-      if (my ($account,$domain,$reason) = ($ExpandedString =~ /^An account failed to log on\..*Account For Which Logon Failed:.*Account Name:\s+(\S+)\s+Account Domain:\s+(\S+).*Failure Reason:\s+(.+)\s+Status:.*Sub Status:/)) {
-         $FailureAudits{"$Hostname Log On Failure for $domain\\$account: $reason"}++;
+      if ($EventID == 4625) {
+         # An account failed to log on
+         if (my ($account,$domain,$reason) = ($ExpandedString =~ /Account For Which Logon Failed:.*Account Name:\s+(\S+)\s+Account Domain:\s+(\S+).*Failure Reason:\s+(.+)\s+Status:.*Sub Status:/)) {
+            $FailureAudits{"$Hostname Log On Failure for $domain\\$account: $reason"}++;
+         } elsif (my ($account,$domain,$reason,$process) = ($ExpandedString =~ /Account Name:\s+(\S+)\s+Account Domain:\s+(\S+).*Failure Reason:\s+(.+)\s+Status:.*Sub Status:.*Caller Process Name:\s+(.*)\s+Network Informaion:/)) {
+            $FailureAudits{"$Hostname Log On Failure for $domain\\$account by $process: $reason"}++;
+         }
       } elsif (my ($account,$domain,$process) = ($ExpandedString =~ /^A privileged service was called\..*Account Name:\s+(\S+)\s+Account Domain:\s+(\S+).*Process Name:\s+(.+)\sService/)) {
          $FailureAudits{"$Hostname Privileged service called for $domain\\$account: $process"}++ if $Detail;
       } elsif ($EventID == 4768) {
@@ -118,6 +130,8 @@ while (defined(my $ThisLine = <STDIN>)) {
          if ($FailureCode eq "0x6") {
             # Client not found in Kerberos database
             $UnknownClient{"$Account\\$Realm $Client"}++;
+         } elsif ($FailureCode eq "0x12") {
+            $AccountDisabled{"$Account\@$Realm $Client"}++;
          } elsif ($FailureCode eq "0x17") {
             #   Password has expired
             $ExpiredPassword{"$UserName"}++;
@@ -127,8 +141,10 @@ while (defined(my $ThisLine = <STDIN>)) {
       } elsif ($EventID == 4769) {
          # A Kerberos service ticket was requested
          my ($Client,$FailureCode) = $ExpandedString =~ /Client Address:\s+(\S+)\s.*Failure Code:\s+(\w+)/;
-#print STDERR "EventID=$EventID Client=$Client FailureCode=$FailureCode ExpandedString=$ExpandedString\n";
-         if ($FailureCode eq "0x1B") {
+#print STDER "EventID=$EventID Client=$Client FailureCode=$FailureCode ExpandedString=$ExpandedString\n";
+         if ($FailureCode eq "0x12") {
+            $AccountDisabled{"$Client"}++;
+         } elsif ($FailureCode eq "0x1B") {
             # KDC_ERR_MUST_USE_USER2USER Server principal valid for user-to-user only
             # This is an informational response and not an issue
          } elsif ($FailureCode eq "0x20") {
@@ -173,14 +189,33 @@ while (defined(my $ThisLine = <STDIN>)) {
          } else {
             $FailureAudits{"$Hostname $ExpandedString\n$url"}++;
          }
+      } elsif ($EventID == 6273) {
+         my ($account,$domain,$client) = ($ExpandedString =~ /Account Name:\s+(\S+)\s+Account Domain:\s+(\S+).*Client Friendly Name:\s+(\S+)/);
+         $AccessDenied{"$account\\$domain $client"}++;
       } else {
          $FailureAudits{"$Hostname $ExpandedString\n$url"}++;
       }
    }
+   elsif ($EventLogType eq "Error") {
+      $ExpandedString =~ s/\s+\d+\s+\d+//;
+      $Errors{"$Hostname $ExpandedString\n$url"}++;
+   }
+   elsif ($EventLogType eq "Information") {
+      next if $ExpandedString =~ /The event logging service has shut down/;
+      next if $Detail < 5;
+      $Information{"$Hostname $ExpandedString\n$url"}++;
+   }
    else {
       # Report any unmatched entries...
       chomp($ThisLine);
-      $OtherList{$ThisLine}++;
+      $OtherList{"Type=$EventLogType $ThisLine"}++;
+   }
+}
+
+if (keys %Errors) {
+   print "\nERRORS:\n";
+   foreach my $Error (sort keys %Errors) {
+      print "    $Error : $Errors{$Error} Times\n";
    }
 }
 
@@ -244,6 +279,13 @@ if (keys %ExpiredPassword) {
    print "\nPassword Expired\n";
    foreach my $Account (sort keys %ExpiredPassword) {
       print "    $Account : $ExpiredPassword{$Account} Times\n";
+   }
+}
+
+if (keys %AccessDenied) {
+   print "\nAccess Denied\n";
+   foreach my $Item (sort keys %AccessDenied) {
+      print "    $Item : $AccessDenied{$Item} Times\n";
    }
 }
 
@@ -340,6 +382,13 @@ if ($SuccessAudits and ($Detail >= 5) ) {
       foreach my $Error (sort keys %SuccessAudits) {
          print "    $Error : $SuccessAudits{$Error} Times\n";
       }
+   }
+}
+
+if (keys %Information) {
+   print "\nInformational Messages:\n";
+   foreach my $Item (sort keys %Information) {
+      print "    $Item : $Information{$Item} Times\n";
    }
 }
 
