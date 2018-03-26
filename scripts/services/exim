@@ -669,7 +669,7 @@ if ($Detail >= $LvlProtocol) {
 
       if ( %SmtpConnection ) {
          print "\n--- SMTP Connection Issues \n";
-         foreach $ThisOne (keys %SmtpConnection) {
+         foreach $ThisOne (sort keys %SmtpConnection) {
             $bb = $SmtpConnection{$ThisOne};
             print "  $ThisOne: $bb Time(s)\n";
          }
