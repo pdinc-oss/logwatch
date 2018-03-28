@@ -16,11 +16,14 @@
 
 use strict;
 my $Detail = $ENV{'LOGWATCH_DETAIL_LEVEL'} || 0;
+my $IgnoreBackendStatus = $ENV{'ignore_backend_status'} || 0;
 my %Errors;
 my $Service;
 my %Starts;
 my %Stops;
 my %OtherList;
+my $BackendStatus;
+my $BackendOffline = 0;
 
 # Lines are of the form:
 # sssd[service]: 
@@ -52,6 +55,9 @@ while (defined(my $ThisLine = <STDIN>)) {
       $Stops{$Service}++;
    } elsif ($ThisLine =~ /error/i) {
       $Errors{$Service}->{$ThisLine}++;
+   } elsif (my ($status) = ($ThisLine =~ /Backend is (.*)/)) {
+      $BackendStatus = $status;
+      $BackendOffline++ if $BackendStatus eq "offline";
    } else {
       $OtherList{"$Service: $ThisLine"}++;
    }
@@ -65,6 +71,11 @@ if (keys %Errors) {
          print "      $Error: " . $Errors{$Service}->{$Error} . " Time(s)\n";
       }
    }
+}
+
+if ($BackendOffline and not $IgnoreBackendStatus) {
+   print "\nSSSD Backend went offline $BackendOffline Time(s),";
+   print " last status was $BackendStatus\n";
 }
 
 if (keys %Starts and $Detail) {
