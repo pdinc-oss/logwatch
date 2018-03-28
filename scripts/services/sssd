@@ -46,7 +46,7 @@ while (defined(my $ThisLine = <STDIN>)) {
      $Service = $1;
    }
     
-   if ($ThisLine =~ /^Starting up/) {
+   if ($ThisLine =~ /Starting up/) {
       $Starts{$Service}++;
    } elsif ($ThisLine =~ /^Shutting down/) {
       $Stops{$Service}++;
