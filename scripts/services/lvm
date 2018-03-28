@@ -30,6 +30,8 @@ my %OtherList;
 
 while (defined(my $ThisLine = <STDIN>)) {
    chomp($ThisLine);
+   # Seeing leading space on Fedora 26
+   $ThisLine =~ s/^ *//;
    if ($ThisLine =~ /^Thin (\S+) is now (\d+)% full/) {
       $PoolUsed{$1} = $2 if $2 >= $PoolThreshold;
    } elsif ($ThisLine =~ /^Thin metadata (\S+) is now (\d+)% full/) {
