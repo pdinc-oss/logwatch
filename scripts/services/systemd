@@ -40,7 +40,7 @@ my %OtherList;
 
 while (defined(my $ThisLine = <STDIN>)) {
    chomp($ThisLine);
-   if ($ThisLine =~ /^(Activating|Deactivating|Mounting|Unmounting|Starting|Stopping) / or
+   if ($ThisLine =~ /^(Activat|Deactivat|Mount|Unmount|Reload|Start|Stopp)ing / or
        # These events will be caught with the Unit X entered failed state message
        $ThisLine =~ /^Failed to start / or
        $ThisLine =~ /: Failed with result / or
@@ -102,7 +102,8 @@ while (defined(my $ThisLine = <STDIN>)) {
        # These happen on every shutdown - downgraded to debug message in systemd v235
        # https://github.com/systemd/systemd/issues/6777
        $ThisLine =~ /^Failed to propagate agent release message: (?:Connection reset by peer|Transport endpoint is not connected)/ or
-       $ThisLine =~ /^cgroup compatibility translation between legacy and unified hierarchy settings activated\. See cgroup-compat debug messages for details\.$/
+       $ThisLine =~ /^cgroup compatibility translation between legacy and unified hierarchy settings activated\. See cgroup-compat debug messages for details\.$/ or
+       $ThisLine =~ /^.*\.socket: Socket service .* already active/
    ) {
       # Ignore these
    } elsif (my ($service,$reason) = ($ThisLine =~ /^Configuration file ([^ ]*) is ([^.]*)\./)) {
@@ -166,7 +167,7 @@ if (keys %ConfigError) {
 
 # Because we set Failed in multiple locations, cleanup once here
 foreach my $item (keys %Failed) {
-   delete $Failed{$item} if ($item =~ /^$Ignore_failed$/);
+   delete $Failed{$item} if ($item =~ /^$Ignore_failed$/i);
 }
 
 if (keys %Failed) {
