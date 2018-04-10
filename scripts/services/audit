@@ -310,7 +310,7 @@ if ( %BugLog) {
   }
 }
 
-if (keys %OtherList) {
+if (keys %OtherList and $Detail) {
    print "\n**Unmatched Entries**\n";
    foreach my $line (sort {$OtherList{$b}<=>$OtherList{$a} } keys %OtherList) {
       print "   $line: $OtherList{$line} Time(s)\n";
