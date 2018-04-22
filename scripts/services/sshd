@@ -544,14 +544,20 @@ foreach my $Host (sort keys %PotentialIllegalUsers) {
 
 ###########################################################
 
+sub timesplural {
+   my ($count) = @_;
+   my $plural = ($count > 1) ? "s" : "";
+   return "$count Time$plural\n";
+}
+
 if ($NetworkErrors) {
    print "\nNetwork Read Write Errors: " . $NetworkErrors . "\n";
 }
 if ($Kills) {
-   print "\nSSHD Killed: " . $Kills . " Time(s)\n";
+   print "\nSSHD Killed: " . timesplural($Kills);
 }
 if ($Starts) {
-   print "\nSSHD Started: " . $Starts . " Time(s)\n";
+   print "\nSSHD Started: " . timesplural($Starts);
 }
 
 if (keys %DeprecatedOption) {
@@ -565,14 +571,14 @@ if (keys %RootLogin) {
    print "\n\nWARNING!!!\n";
    print "Refused ROOT login attempt from:\n";
    foreach my $Host (sort {$a cmp $b} keys %RootLogin) {
-      print "   $Host : $RootLogin{$Host} Time(s)\n";
+      print "   $Host : " . timesplural($RootLogin{$Host});
    }
 }
 
 if (keys %BindFailed) {
    print "\nFailed to bind:\n";
    foreach my $ThisOne (sort {$a cmp $b} keys %BindFailed) {
-           print "   $ThisOne : $BindFailed{$ThisOne} Time(s)\n";
+           print "   $ThisOne : " . timesplural($BindFailed{$ThisOne});
    }
 }
 
@@ -580,7 +586,7 @@ if ($Detail >= 30 && keys %ConnectFailed) {
    # SSH Socks Forwarding
    print "\nFailed to connect to:\n";
    foreach my $ThisOne (sort {$a cmp $b} keys %ConnectFailed) {
-           print "   $ThisOne : $ConnectFailed{$ThisOne} Time(s)\n";
+           print "   $ThisOne : " . timesplural($ConnectFailed{$ThisOne});
    }
 }
 
@@ -588,19 +594,19 @@ if ($Detail >= 10) {
    if (keys %NoRevMap) {
       print "\nCouldn't resolve these IPs:\n";
       foreach my $ThisOne (sort {$a cmp $b} keys %NoRevMap) {
-         print "   $ThisOne: $NoRevMap{$ThisOne} Time(s)\n";
+         print "   $ThisOne: " . timesplural($NoRevMap{$ThisOne});
       }
    }
    if (keys %NoIdent) {
       print "\nDidn't receive an ident from these IPs:\n";
       foreach my $ThisOne (sort {$a cmp $b} keys %NoIdent) {
-         print "   $ThisOne: $NoIdent{$ThisOne} Time(s)\n";
+         print "   $ThisOne: " . timesplural($NoIdent{$ThisOne});
       }
    }
    if (keys %MisMatch) {
       print "\nMismatched host names and/or IPs:\n";
       foreach my $ThisOne (sort keys %MisMatch) {
-         print "   $ThisOne: $MisMatch{$ThisOne} Time(s)\n";
+         print "   $ThisOne: " . timesplural($MisMatch{$ThisOne});
       }
    }
 }
@@ -617,22 +623,19 @@ if (keys %NegotiationFailed) {
         }
         $Total += $HostTotal;
         if ( $Detail > 0 ) {
-           my $plural = ($HostTotal > 1) ? "s" : "";
-           print "\n      $Host: $HostTotal time$plural";
+           print "\n      $Host: " . timesplural($HostTotal);
         }
         if ( $Detail > 5 ) {
            foreach my $Offer (sort {$a cmp $b} keys %{$NegotiationFailed{$Reason}{$Host}}) {
                  my $tot = $NegotiationFailed{$Reason}{$Host}{$Offer};
-                 my $plural = ($tot > 1) ? "s" : "";
-                 print "\n        $Offer: $tot time$plural";
+                 print "\n        $Offer: " . timesplural($tot);
            }
         }
       }
       if( $Detail > 0 ) {
          print "\n";
       } else {
-         my $plural = ($Total > 1) ? "s" : "";
-         print ": $Total time$plural\n";
+         print ": " . timesplural($Total);
       }
    }
 }
@@ -640,7 +643,7 @@ if (keys %NegotiationFailed) {
 if (keys %TooManyFailures) {
    print "\nDisconnecting after too many authentication failures for user:\n";
    foreach my $User (sort {$a cmp $b} keys %TooManyFailures) {
-      print "   $User : $TooManyFailures{$User} Time(s)\n";
+      print "   $User : " . timesplural($TooManyFailures{$User});
    }
 }
 
@@ -652,14 +655,12 @@ if (keys %BadLogins) {
       foreach my $user (keys %{$BadLogins{$ip}}) {
          $totcount += $BadLogins{$ip}{$user};
       }
-      my $plural = ($totcount > 1) ? "s" : "";
-      print "   $name: $totcount time$plural\n";
+      print "   $name: ". timesplural($totcount);
       if ($Detail >= 5) {
          my $sort = CountOrder(%{$BadLogins{$ip}});
          foreach my $user (sort $sort keys %{$BadLogins{$ip}}) {
             my $val = $BadLogins{$ip}{$user};
-            my $plural = ($val > 1) ? "s" : "";
-            print "      $user: $val time$plural\n";
+            print "      $user: " . timesplural($val);
          }
       }
    }
@@ -673,14 +674,12 @@ if (keys %IllegalUsers) {
       foreach my $user (keys %{$IllegalUsers{$ip}}) {
          $totcount += $IllegalUsers{$ip}{$user};
       }
-      my $plural = ($totcount > 1) ? "s" : "";
-      print "   $name: $totcount time$plural\n";
+      print "   $name: " . timesplural($totcount);
       if ($Detail >= 5) {
          my $sort = CountOrder(%{$IllegalUsers{$ip}});
          foreach my $user (sort $sort keys %{$IllegalUsers{$ip}}) {
             my $val = $IllegalUsers{$ip}{$user};
-            my $plural = ($val > 1) ? "s" : "";
-            print "      $user: $val time$plural\n";
+            print "      $user: " . timesplural($val);
          }
       }
    }
@@ -689,70 +688,70 @@ if (keys %IllegalUsers) {
 if (keys %LockedAccount) {
    print "\nLocked account login attempts:\n";
    foreach my $User (sort {$a cmp $b} keys %LockedAccount) {
-      print "   $User : $LockedAccount{$User} Time(s)\n";
+      print "   $User : " . timesplural($LockedAccount{$User});
    }
 }
 
 if (keys %AllowUsers) {
    print "\nLogin attempted when not in AllowUsers list:\n";
    foreach my $User (sort {$a cmp $b} keys %AllowUsers) {
-      print "   $User : $AllowUsers{$User} Time(s)\n";
+      print "   $User : " . timesplural($AllowUsers{$User});
    }
 }
 
 if (keys %DenyUsers) {
    print "\nLogin attempted when in DenyUsers list:\n";
    foreach my $User (sort {$a cmp $b} keys %DenyUsers) {
-      print "   $User : $DenyUsers{$User} Time(s)\n";
+      print "   $User : . " . timesplural($DenyUsers{$User});
    }
 }
 
 if (keys %AllowGroups) {
    print "\nLogin attempted when not in AllowGroups list:\n";
    foreach my $User (sort {$a cmp $b} keys %AllowGroups) {
-      print "   $User : $AllowGroups{$User} Time(s)\n";
+      print "   $User : " . timesplural($AllowGroups{$User});
    }
 }
 
 if (keys %DenyGroups) {
    print "\nLogin attempted when in DenyGroups list:\n";
    foreach my $User (sort {$a cmp $b} keys %DenyGroups) {
-      print "   $User : $DenyGroups{$User} Time(s)\n";
+      print "   $User : " . timesplural($DenyGroups{$User});
    }
 }
 
 if (keys %PamDeny) {
    print "\nLogin attempted when denied by PAM configuration:\n";
    foreach my $User (sort {$a cmp $b} keys %PamDeny) {
-      print "   $User : $PamDeny{$User} Time(s)\n";
+      print "   $User : " . timesplural($PamDeny{$User});
    }
 }
 
 if (keys %NoGroups) {
    print "\nLogin attempted when user is in no group:\n";
    foreach my $User (sort {$a cmp $b} keys %NoGroups) {
-      print "   $User : $NoGroups{$User} Time(s)\n";
+      print "   $User : " . timesplural($NoGroups{$User});
    }
 }
 
 if (keys %NoShellUsers) {
    print "\nLogin attempted when shell does not exist:\n";
    foreach my $User (sort {$a cmp $b} keys %NoShellUsers) {
-      print "   $User : $NoShellUsers{$User} Time(s)\n";
+      print "   $User : " . timesplural($NoShellUsers{$User});
    }
 }
 
 if (keys %ShellNotExecutableUsers) {
    print "\nLogin attempted when shell is not executable:\n";
    foreach my $User (sort {$a cmp $b} keys %ShellNotExecutableUsers) {
-      print "   $User : $ShellNotExecutableUsers{$User} Time(s)\n";
+      print "   $User : " . timesplural($ShellNotExecutableUsers{$User});
    }
 }
 
 if ((keys %LoginLock) and ($Detail >= 5)) {
    print "\nUser login attempt when nologin was set:\n";
    foreach my $User (sort {$a cmp $b} keys %LoginLock) {
-      print "   $User : $LoginLock{$User} Time(s)\n";
+      print "   $User : " . timesplural($LoginLock{$User});
    }
 }
 
@@ -761,7 +760,7 @@ if (keys %PostPonedAuth) {
    foreach my $User (sort {$a cmp $b} keys %PostPonedAuth) {
       print "   $User:\n";
       foreach my $Host (sort {$a cmp $b} keys %{$PostPonedAuth{$User}}) {
-         print "      $Host: $PostPonedAuth{$User}{$Host} Time(s)\n";
+         print "      $Host: " . timesplural($PostPonedAuth{$User}{$Host});
       }
    }
 }
@@ -770,21 +769,42 @@ if (keys %Users) {
    print "\nUsers logging in through sshd:\n";
    foreach my $user (sort {$a cmp $b} keys %Users) {
       print "   $user:\n";
-      my $totalSort = TotalCountOrder(%{$Users{$user}}, \&SortIP);
-      foreach my $ip (sort $totalSort keys %{$Users{$user}}) {
-         my $name = LookupIP($ip);
-         if ($Detail >= 20) {
-            print "      $name:\n";
-            my $sort = CountOrder(%{$Users{$user}{$ip}});
-            foreach my $method (sort $sort keys %{$Users{$user}{$ip}}) {
-               my $val = $Users{$user}{$ip}{$method};
-               my $plural = ($val > 1) ? "s" : "";
-               print "         $method: $val time$plural\n";
+      if ($Detail < 20) {
+         my $totalSort = TotalCountOrder(%{$Users{$user}}, \&SortIP);
+         foreach my $ip (sort $totalSort keys %{$Users{$user}}) {
+            my $name = LookupIP($ip);
+            my $val  = (values %{$Users{$user}{$ip}})[0];
+            print "      $name: " . timesplural($val);
+         }
+      } else {
+         my %Methods = ();
+         foreach my $ip (keys %{$Users{$user}}) {
+            foreach my $method (keys %{$Users{$user}{$ip}}) {
+               $Methods{$method}{$ip} = $Users{$user}{$ip}{$method};
+            }
+         }
+         if (scalar keys %{$Users{$user}} < scalar %Methods) {
+            my $totalSort = TotalCountOrder(%{$Users{$user}}, \&SortIP);
+            foreach my $ip (sort $totalSort keys %{$Users{$user}}) {
+               my $name = LookupIP($ip);
+               print "      $name:\n";
+               my $sort = CountOrder(%{$Users{$user}{$ip}});
+               foreach my $method (sort $sort keys %{$Users{$user}{$ip}}) {
+                  my $val = $Users{$user}{$ip}{$method};
+                  print "         $method: " . timesplural($val);
+               }
             }
          } else {
-            my $val = (values %{$Users{$user}{$ip}})[0];
-            my $plural = ($val > 1) ? "s" : "";
-            print "      $name: $val time$plural\n";
+            my $totalSort = TotalCountOrder(%Methods);
+            foreach my $method (sort $totalSort keys %Methods) {
+               print "      $method:\n";
+               my $sort = CountOrder(%{$Methods{$method}});
+               foreach my $ip (sort $sort keys %{$Methods{$method}}) {
+                  my $name = LookupIP($ip);
+                  my $val  = (values %{$Users{$user}{$ip}})[0];
+                  print "         $name: " . timesplural($val);
+               }
+            }
          }
       }
    }
@@ -793,21 +813,21 @@ if (keys %Users) {
 if (keys %RefusedAuthentication) {
    print "\nAuthentication refused:\n";
    foreach my $Reason (sort {$a cmp $b} keys %RefusedAuthentication) {
-      print "   $Reason : $RefusedAuthentication{$Reason} Time(s)\n";
+      print "   $Reason : " . timesplural($RefusedAuthentication{$Reason});
    }
 }
 
 if (keys %KrbAutFail) {
    print "\n\Failed pam_krb5 authentication:\n";
    foreach my $User (sort keys %KrbAutFail) {
-      print "   $User: " .  $KrbAutFail{$User} . " Time(s)\n";
+      print "   $User: " . timesplural($KrbAutFail{$User});
    }
 }
 
 if (keys %KrbAutErr) {
    print "\n\pam_krb5 authentication errors:\n";
    foreach my $Error (sort keys %KrbAutErr) {
-      print "   $Error: " .  $KrbAutErr{$Error} . " Time(s)\n";
+      print "   $Error: " . timesplural($KrbAutErr{$Error});
    }
 }
 
@@ -815,7 +835,7 @@ if (keys %KrbAutErr) {
 if (keys %KrbErr) {
    print "\n pam_krb5 errors:\n";
    foreach my $Error (sort keys %KrbErr) {
-      print "   $Error: " . $KrbErr{$Error} . " Time(s)\n";
+      print "   $Error: " . timesplural($KrbErr{$Error});
    }
 }
 
@@ -834,7 +854,7 @@ if (keys %DisconnectReceived) {
       if( $Detail > 0 ) {
          print "\n";
       } else {
-         print " : $Total Time(s)\n";
+         print " : " . timesplural($Total);
       }
    }
 }
@@ -850,7 +870,7 @@ if (keys %RefusedConnections) {
    my $output;
    foreach my $badguy (sort {$a cmp $b} keys %RefusedConnections ) {
       if ($RefusedConnectionsThreshold == 0 || $Detail > 5 || $RefusedConnections{$badguy} >= $RefusedConnectionsThreshold) {
-        $output .= "      $badguy: " . $RefusedConnections{$badguy} . " Time(s)\n";
+        $output .= "      $badguy: " . timesplural($RefusedConnections{$badguy});
       }
    }
    if ($output ne '') {
@@ -862,35 +882,35 @@ if (keys %RefusedConnections) {
 if (keys %PamReleaseFail) {
    print "\nCannot release PAM authentication:\n";
    foreach my $Error (sort {$a cmp $b} keys %PamReleaseFail) {
-      print "   $Error : $PamReleaseFail{$Error} Time(s)\n";
+      print "   $Error : " . timesplural($PamReleaseFail{$Error});
    }
 }
 
 if (keys %ShadowInfo) {
    print "\nCould not get shadow information for:\n";
    foreach my $Error (sort {$a cmp $b} keys %ShadowInfo) {
-      print "   $Error : $ShadowInfo{$Error} Time(s)\n";
+      print "   $Error : " . timesplural($ShadowInfo{$Error});
    }
 }
 
 if (keys %PamError) {
    print "\nError in PAM authentication:\n";
    foreach my $Error (sort {$a cmp $b} keys %PamError) {
-      print "   $Error : $PamError{$Error} Time(s)\n";
+      print "   $Error : " . timesplural($PamError{$Error});
    }
 }
 
 if (keys %PamChroot) {
    print "\nPAM chroot:\n";
    foreach my $Reason (sort {$a cmp $b} keys %PamChroot) {
-      print "   $Reason : $PamChroot{$Reason} Time(s)\n";
+      print "   $Reason : " . timesplural($PamChroot{$Reason});
    }
 }
 
 if (keys %TTYModesFail) {
    print "\nSetting tty modes failed:\n";
    foreach my $Reason (sort {$a cmp $b} keys %TTYModesFail) {
-      print "   $Reason : $TTYModesFail{$Reason} Time(s)\n";
+      print "   $Reason : " . timesplural($TTYModesFail{$Reason});
    }
 }
 
@@ -898,7 +918,7 @@ if ($sftpRequests > 0) {
    print "\nSFTP subsystem requests: $sftpRequests Time(s)\n";
    if ($Detail >= 50) {
       foreach my $root (sort {$a cmp $b} keys %Chroot) {
-         print "   Chroot: $root : $Chroot{$root} Time(s)\n";
+         print "   Chroot: $root : " . timesplural($Chroot{$root});
       }
    }
    if ($Detail >= 0) {
@@ -939,12 +959,12 @@ if ($sftpRequests > 0) {
    }
    if ($Detail >= 70) {
       foreach my $path (sort {$a cmp $b} keys %Stat) {
-         print "   Stat: $path : $Stat{$path} Time(s)\n";
+         print "   Stat: $path : " . timesplural($Stat{$path});
       }
    }
    if ($Detail >= 40) {
       if ($StatusNoSuchFile) {
-         print "   Sent status No such file: $StatusNoSuchFile Time(s)\n";
+         print "   Sent status No such file: " . timesplural($StatusNoSuchFile);
       }
    }
    if ($Detail >= 0) {
@@ -954,7 +974,7 @@ if ($sftpRequests > 0) {
    }
    if ($Detail >= 50) {
       foreach my $client (sort {$a cmp $b} keys %ClientVers) {
-         print "   Client version $client connected $ClientVers{$client} Time(s)\n";
+         print "   Client version $client connected " . timesplural($ClientVers{$client});
       }
    }
 }
@@ -963,7 +983,7 @@ if (keys %ChmodErr) {
   print "\nChmod errors:\n";
   foreach (sort keys %ChmodErr) {
     my ($File,$Perm,$Why)= split ",";
-    print "   " . $File . " " . $Perm . " failed(" . $Why . "): ". $ChmodErr{"$File,$Perm,$Why"} . " Time(s)\n";
+    print "   " . $File . " " . $Perm . " failed(" . $Why . "): " . timesplural($ChmodErr{"$File,$Perm,$Why"});
   }
 }
 
@@ -971,7 +991,7 @@ if (keys %ChownErr) {
   print "\nChown errors:\n";
   foreach (keys %ChownErr) {
     my ($File,$From,$To,$Why)= split ",";
-    print "   " . $File . " " . $From . " " .$To . " failed(" . $Why . "): ". $ChmodErr{"$File,$From,$To,$Why"} . " Time(s)\n";
+    print "   " . $File . " " . $From . " " .$To . " failed(" . $Why . "): " . timesplural($ChmodErr{"$File,$From,$To,$Why"});
   }
 }
 
@@ -981,7 +1001,7 @@ if ( ($Detail == 7 && keys %Krb_realm > 1) || ($Detail > 8 && keys %Krb_realm) )
     if($Detail > 9){
       print "   ",$realm,":\n";
       foreach my $user(sort keys %{$Krb_realm{$realm}}){
-        print "     ",$user,": ". $Krb_realm{$realm}{$user} . " Times(s)\n";
+        print "     ",$user,": " . timesplural($Krb_realm{$realm}{$user});
       }
     }else{
       print "   ",$realm,": ". (scalar keys %{$Krb_realm{$realm}}) . " User(s)\n";
@@ -991,7 +1011,7 @@ if ( ($Detail == 7 && keys %Krb_realm > 1) || ($Detail > 8 && keys %Krb_realm) )
 
 if (keys %OtherList) {
    print "\n**Unmatched Entries**\n";
-   print "$_ : $OtherList{$_} time(s)\n" foreach sort keys %OtherList;
+   print "$_ : " . timesplural($OtherList{$_}) foreach sort keys %OtherList;
 }
 
 exit(0);
