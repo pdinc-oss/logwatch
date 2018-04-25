@@ -415,7 +415,7 @@ while (defined(my $ThisLine = <STDIN>)) {
       $RefusedConnections{$1}++;
    } elsif ( my ($Reason) = ($ThisLine =~ /^Authentication refused: (.*)$/ ) ) {
       $RefusedAuthentication{$Reason}++;
-   } elsif ( my ($Host,$Port,$Reason,$Offer) = ($ThisLine =~ /^fatal: Unable to negotiate with ([^ ]+)( port \d+)?: (.*)\. Their offer: (.*) \[preauth\]$/) ) {
+   } elsif ( my (undef,$Host,$Port,$Reason,$Offer) = ($ThisLine =~ /^(fatal: )?Unable to negotiate with ([^ ]+)( port \d+)?: (.*)\. Their offer: (.*) \[preauth\]$/) ) {
       $NegotiationFailed{$Reason}{$Host}{$Offer}++;
    } elsif ( my ($Reason,$Host,$Offer) = ($ThisLine =~ /^(Protocol major versions differ) for ([^ ]+)(?: port \d+): (.*)$/) ) {
       $NegotiationFailed{$Reason}{$Host}{$Offer}++;
@@ -461,7 +461,7 @@ while (defined(my $ThisLine = <STDIN>)) {
       $PamDeny{$User}++;
    } elsif ( my ($IP) = ($ThisLine =~ /^scanned from ([^ ]*)/) ) {
       push @Scanned, $IP;
-   } elsif ( my ($Line,$Option) = ($ThisLine =~ /^rexec line (\d+): Deprecated option (.*)$/)) {
+   } elsif ( my (undef,$Line,$Option) = ($ThisLine =~ /^re(xec|process config) line (\d+): Deprecated option (.*)$/)) {
       $DeprecatedOption{"$Option - line $Line"}++;
    } elsif ( my ($Pom1,$Pom2,$User) = ($ThisLine =~ /pam_krb5(\[\d*\])?: authentication fails for (`|')([^ ]*)'/)) {
       $KrbAutFail{$User}++;
