@@ -132,6 +132,7 @@ while (defined(my $ThisLine = <STDIN>)) {
       $SkipError = 1 if $ThisLine =~ /PCIe errors handled by (?:BIOS|OS)/;
       # These happen when kerberos tickets expire, which can be normal
       $SkipError = 1 if $ThisLine =~ /Error: state manager encountered RPCSEC_GSS session expired against NFSv4 server/ && $Ignore_rpcsec_expired;
+      $SkipError = 1 if $ThisLine =~ /RAS: Correctable Errors collector initialized/;
       # filter out mount options
       $SkipError = 1 if $ThisLine =~ /errors=(?:continue|remount-ro|panic)/;
       $Errors{$errormsg}++ if ( (! $SkipError) || ($Detail > 8));
