@@ -69,6 +69,8 @@ my %Errors = ();
 my %Kernel = ();
 my %EDACs = ();
 my %NFS = ();
+my %EXT4Volume = ();
+my %EXT4 = ();
 
 while (defined(my $ThisLine = <STDIN>)) {
    chomp($ThisLine);
@@ -136,6 +138,14 @@ while (defined(my $ThisLine = <STDIN>)) {
       # filter out mount options
       $SkipError = 1 if $ThisLine =~ /errors=(?:continue|remount-ro|panic)/;
       $Errors{$errormsg}++ if ( (! $SkipError) || ($Detail > 8));
+   } elsif ( ( my ($Volume, $errormsg) ) = ( $ThisLine =~ /^EXT4-fs \(([^)]+)\): (.*)/ ) ) {
+      if ($errormsg =~ /INFO: recovery required on readonly filesystem/) {
+         $EXT4Volume{$Volume} = 1;
+         push @{$EXT4{$Volume}}, $errormsg;
+      } elsif ($EXT4Volume{$Volume}) {
+         push @{$EXT4{$Volume}}, $errormsg if $EXT4{$Volume};
+         delete $EXT4Volume{$Volume} if ($errormsg =~ /recovery complete/);
+      }
    } elsif ( ( my $errormsg ) = ( $ThisLine =~ /((BUG|WARNING|INFO):.{0,40})/ ) ) {
       $Errors{$errormsg}++;
    } elsif ( ( my $host ) = ( $ThisLine =~ /^nfs: server (.*) not responding/ ) ) {
@@ -262,6 +272,16 @@ if (keys %NFS) {
    print "\nWARNING:  NFS Sever Not Responding Messages\n";
    foreach my $Thisone ( sort {$a cmp $b} keys %NFS ) {
       print "   $Thisone ...:  $NFS{$Thisone} Time(s)\n";
+   }
+}
+
+if (keys %EXT4) {
+   print "\nWARNING:  Ext4 Errors Present\n";
+   foreach my $Volume ( sort {$a cmp $b} keys %EXT4 ) {
+      print "   $Volume:\n";
+      foreach my $Msg (@{$EXT4{$Volume}}) {
+         print "      $Msg\n";
+      }
    }
 }
 
