@@ -1334,8 +1334,12 @@ sub print_summary_report (\@) {
                      $$divisor == $Totals{$keyname} ? 100.00 : $Totals{$keyname} * 100 / $$divisor;
             }
             else {
-               push @{$lines[$cur_level]}, 
-                  sprintf "$fmt  %-23s $extra\n", $total, $desc, commify ($Totals{$keyname});
+               my $out = sprintf "$fmt  %-23s", $total, $desc;
+               if ($extra) {
+                  $out .= sprintf " $extra", commify ($Totals{$keyname});
+               }
+               $out .= "\n";
+               push @{$lines[$cur_level]}, $out;
             }
          }
       }
