@@ -1360,7 +1360,7 @@ sub print_summary_report (\@) {
             my ($numfmt, $desc, $divisor) = ($sref->{FMT}, $sref->{TITLE}, $sref->{DIVISOR});
 
             my $fmt   = '%8';
-            my $extra = ' %25s';
+            my $extra = ' %11s';
             my $total = $Totals{$keyname};
 
             # Z format provides  unitized or unaltered totals, as appropriate
@@ -1383,7 +1383,7 @@ sub print_summary_report (\@) {
             }
             else {
                push @{$lines[$cur_level]}, 
-                  sprintf "$fmt  %-23s $extra\n", $total, $desc, commify ($Totals{$keyname});
+                  sprintf "$fmt  %-37s $extra\n", $total, $desc, commify ($Totals{$keyname});
             }
          }
       }
