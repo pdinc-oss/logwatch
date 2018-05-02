@@ -179,11 +179,13 @@ while (defined(my $ThisLine = <STDIN>)) {
       ($ThisLine =~ /Connection closed/) or
       ($ThisLine =~ /IMAP.*: Connection closed bytes/) or
       ($ThisLine =~ /IMAP.* failed with mbox file/) or
-      ($ThisLine =~ /discarded duplicate forward to/) or 
+      ($ThisLine =~ /discarded duplicate forward to/) or
       ($ThisLine =~ /discarding vacation response/) or
-      ($ThisLine =~ /discarded vacation reply to/) 
+      ($ThisLine =~ /discarded vacation reply to/) or
+      ($ThisLine =~ /Debug:/) or
+      0 # This line prevents blame shifting as lines are added above
       )
-   { 
+   {
        # We don't care about these
    } elsif ( $ThisLine =~ /Killed with signal /) {
        $End++;
