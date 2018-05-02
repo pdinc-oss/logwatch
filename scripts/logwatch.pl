@@ -735,7 +735,16 @@ foreach $LogFile (@LogFileList) {
 	}
 
    @FileList = $TempDir . $LogFile . "-archive";
-   push @FileList, @{$LogFileData{$LogFile}{'logfiles'}};
+
+   # Handle compressed log files using the archive codepath
+   foreach my $lf (@{$LogFileData{$LogFile}{'logfiles'}}) {
+      if ($lf =~ /\.(?:gz|bz2|xz)$/) {
+         push @{$LogFileData{$LogFile}{'archives'}}, $lf;
+      } else {
+         push @FileList, $lf;
+      }
+   }
+
    my $DestFile =  $TempDir . $LogFile . "-archive";
    my $Archive;
    foreach $Archive (@{$LogFileData{$LogFile}{'archives'}}) {
