@@ -688,7 +688,7 @@ if ($Detail >= $LvlProtocol) {
 
       if (@LookupH) {
          print "\n--- Failed Reverse Lookups \n";
-         print "--- (eg. spam try): $Lookup  Time(s)\n\n";
+         print "--- (e.g. spam try): $Lookup  Time(s)\n\n";
 
          if ($Detail >= $LvlProtocolLines) {
             foreach $ThisOne (@LookupH) {
