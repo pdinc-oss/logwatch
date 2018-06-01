@@ -19,7 +19,8 @@ use Logwatch ':dates';
 my $SearchDate = TimeFilter('%a %b %e %H:%M:%S %Y');
 
 $Detail = $ENV{'LOGWATCH_DETAIL_LEVEL'};
-$IgnoreUnmatched = $ENV{'vsftpd_ignore_unmatched'};
+$IgnoreUnmatched = $ENV{'vsftpd_ignore_unmatched'} || 0;
+$IgnoreRobots = $ENV{'vsftpd_ignore_robots'} || 0;
 $TotalBytesOut = 0;
 $TotalBytesIn = 0;
 $TotalDeleted = 0;
@@ -54,6 +55,7 @@ while (defined($ThisLine = <STDIN>)) {
       $TotalBytesIn+= $FileSize;
       push @FailedUploadedFiles,$Temp;
    } elsif ( ($User,$IP,$FileName,$FileSize) = ( $ThisLine =~ /(?:\[.*\] )?\[(.*)\] OK DOWNLOAD: Client \"(.*)\", \"(.*)\", (?:(\d+) bytes)?/ ) ) {
+      next if $FileName eq "robots.txt" and $IgnoreRobots;
       $Temp = "   " . $FileName . " -> " . $IP . " (User: " . $User . ")\n";
       $TotalBytesOut+= $FileSize;
       push @DownloadedFiles,$Temp;
@@ -151,7 +153,7 @@ if ( ( $#UploadedFiles >= 0 ) or
 
 if ( ( $#DownloadedFiles >= 0 ) or
    ( $#FailedDownloadedFiles >=0 ) ) {
-   if ( $#DownloadedFiles >= 0) {
+   if ( $Detail and $#DownloadedFiles >= 0) {
       print "\nOutgoing FTP Files:\n";
       print @DownloadedFiles;
    }
@@ -159,7 +161,9 @@ if ( ( $#DownloadedFiles >= 0 ) or
       print "\nFailed Downloads\n";
       print @FailedDownloadedFiles;
    }
-   print "\nTOTAL KB OUT: " . $TotalKBytesOut . "KB (" . $TotalMBytesOut . "MB)\n";
+   if ( $Detail or $#FailedDownloadedFiles >= 0) {
+      print "\nTOTAL KB OUT: " . $TotalKBytesOut . "KB (" . $TotalMBytesOut . "MB)\n";
+   }
 }
 
 if ( $Detail > 5 ) {
