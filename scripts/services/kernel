@@ -85,6 +85,7 @@ while (defined(my $ThisLine = <STDIN>)) {
       # following now in iptables service
       or ($ThisLine =~ /^Packet log: .*PROTO=/)
       or ($ThisLine =~ /IN=.*OUT=.*SRC=.*DST=.*PROTO=/)
+      or ($ThisLine =~ /RAS: Correctable Errors collector initialized/)
       # user specified ignore messages, lower cased
       or ($ThisLine =~ /$Ignore_messages/i)
       ) { # ignore the above strings
