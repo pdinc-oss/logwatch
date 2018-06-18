@@ -205,7 +205,6 @@ while (defined($ThisLine = <STDIN>)) {
       ( $ThisLine =~ /pam_unix\(.*:.*\)/) or
       ( $ThisLine =~ /pam_sss\(.*:.*\)/) or
       ( $ThisLine =~ m/^[^ ]+\[\d+\]: connect from localhost$/ ) or
-      ( $ThisLine =~ /^\/usr\/bin\/sudo:/) or
       ( $ThisLine =~ /^halt:/) or
       ( $ThisLine =~ /^com.apple.SecurityServer: Succeeded authorizing right system.(preferences|login.console|login.tty|login.done|privilege.admin) by process/) or
       ( $ThisLine =~ /^pam_xauth\[\d+\]: call_xauth: child returned \d/) or
@@ -213,7 +212,7 @@ while (defined($ThisLine = <STDIN>)) {
       ( $ThisLine =~ /^passwd\[\d+\]:/) or
       ( $ThisLine =~ /^passwd: gkr-pam: .*/) or
       ( $ThisLine =~ /^reboot:/) or
-      ( $ThisLine =~ /^sudo:/) or
+      ( $ThisLine =~ /^(?:\/usr\/bin\/)?sudo(?:\[\d+\])?:/) or
       ( $ThisLine =~ /^su: pam_unix2: session (started|finished) for user [^ ]+, service [^ ]+/) or
       ( $ThisLine =~ /^xinetd\[\d+\]: USERID: ([^ ]+) (.+)$/ ) or
       ( $ThisLine =~ /warning: can.t get client address: Connection refused/) or
@@ -428,12 +427,6 @@ while (defined($ThisLine = <STDIN>)) {
       push @RemoveFromGroup, "    user $1 from group $3\n";
       # This is an inetd lookup... $1 is the service (i.e. ftp), $2 is the response
       # I don't think these are important to log at this time
-   } elsif ( $ThisLine =~ /^sudo: ([^\s]+) : (command not allowed)?.+ ; COMMAND=(.*)$/ ) {
-      # sudo unauthorized commands
-      push @SudoList, "$1: $3\n" unless ($2 eq "");
-   } elsif ( $ThisLine =~ /^\/usr\/bin\/sudo: ([^\s]+) : (command not allowed)?.+ ; COMMAND=(.*)$/ ) {
-      # sudo unauthorized commands
-      push @SudoList, "$1: $3\n" unless ($2 eq "");
    } elsif ( ($service, $from) = ($ThisLine =~ /^xinetd\[\d+\]: FAIL: (.+) (?:address|libwrap|service_limit|connections per second) from=([\d.]+)/)) {
       if ($Ignore =~ /\b\Q$service\E\b/i) { next; }
       $Refused->{$service}->{$from}++;
@@ -840,11 +833,6 @@ if ($spop3d_opened > 0) {
 
 if ($spop3d_errors > 0) {
    print "spop3d connection errors:\t".$spop3d_errors."\n";
-}
-
-if ($#SudoList >= 0) {
-   print "\nUnauthorized sudo commands attempted (" . ($#SudoList + 1) . "):\n";
-   print @SudoList;
 }
 
 if (keys %ChkPasswdPam) {
