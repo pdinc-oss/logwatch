@@ -50,6 +50,7 @@ while (defined(my $ThisLine = <STDIN>)) {
        ( $ThisLine =~ /^Protecting against \d+ viruses\./ ) or
        ( $ThisLine =~ /^Reading databases from/ ) or
        ( $ThisLine =~ /file removed\./ ) or
+       ( $ThisLine =~ /detection (?:dis|en)abled\./ ) or
        ( $ThisLine =~ /support enabled\./ ) or
        ( $ThisLine =~ /support disabled\./ ) or
        ( $ThisLine =~ /^Archive/ ) or
