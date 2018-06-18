@@ -26,6 +26,7 @@ use strict;
 
 my $Detail = $ENV{'LOGWATCH_DETAIL_LEVEL'} || 0;
 my $enable_scan = $ENV{'mdadm_enable_scan'} || 0;
+my $ignore_missing = $ENV{'mdadm_ignore_missing'} || 0;
 
 my @devices = ();
 if ( -f "/etc/mdadm.conf" ) {
@@ -52,7 +53,7 @@ DEV: foreach my $dev (@devices) {
   open(MDADM,"mdadm --misc --detail $dev 2>&1 |");
   while (<MDADM>) {
     if ($_ =~ /cannot open .*: No such file or directory/) {
-      print $_;
+      print $_ unless $ignore_missing;
       close(MDADM);
       next DEV;
     }
