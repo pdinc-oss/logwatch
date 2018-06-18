@@ -73,7 +73,8 @@ if (keys %Errors) {
    }
 }
 
-if ($BackendOffline and not $IgnoreBackendStatus) {
+# sssd will generally start in offline mode, so don't alert if we've just started up
+if ($BackendOffline and (($Starts{"Daemon"} != $BackendOffline) or ($BackendStatus ne "online")) and not $IgnoreBackendStatus) {
    print "\nSSSD Backend went offline $BackendOffline Time(s),";
    print " last status was $BackendStatus\n";
 }
