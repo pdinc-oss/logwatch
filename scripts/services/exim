@@ -694,7 +694,7 @@ if ($Detail >= $LvlProtocol) {
             $bb = $TlsProblemClasses{$ThisOne};
             print "  $ThisOne: $bb Time(s)\n";
          }
-         print "\n  From these hosts:\n";
+         print "\n From these hosts:\n";
          foreach $ThisOne (sort keys %TlsProblemHosts) {
             $bb = $TlsProblemHosts{$ThisOne};
             print "  $ThisOne: $bb Time(s)\n";
