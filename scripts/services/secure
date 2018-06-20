@@ -37,6 +37,7 @@ $PwdChange = 0;
 $RequestKeyFailures = 0;
 %OtherList = ();
 %RootkitHunter = ();
+%sshguardAttackers = ();
 use Logwatch ':ip';
 
 while (defined($ThisLine = <STDIN>)) {
@@ -423,6 +424,9 @@ while (defined($ThisLine = <STDIN>)) {
       }
    } elsif ($ThisLine =~ /systemd-logind(?:\[\d+\])?: New session \d+ of user (\w+)\./){
       $UserLogin{$1}++;
+   } elsif ($ThisLine =~ /sshguard\[\d+\]: Blocking (.*) for (.*)/) {
+      my ($attacker, $details) = ($1, $2);
+      $sshguardAttackers{$attacker} = $details;
    } else {
       # Unmatched entries...
       $ThisLine =~ s/\[\d+\]:/:/;
@@ -845,6 +849,14 @@ if (keys %RootkitHunter) {
    print "   Runs: $RootkitHunter{'runs'}\n";
    print "   Suggested Inspection: $RootkitHunter{'inspect'} Time(s)\n";
    print "   Total Runtime: $mins minute(s) $secs second(s)\n";
+}
+
+if (keys %sshguardAttackers) {
+   print "\nSSHGuard blocked:\n";
+   foreach $attacker (sort {$a cmp $b} keys %sshguardAttackers) {
+      my $details = $sshguardAttackers{$attacker};
+      print "   $attacker: $details\n";
+   }
 }
 
 if (keys %OtherList) {
