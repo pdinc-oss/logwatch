@@ -17,6 +17,7 @@
 use strict;
 my $Detail = $ENV{'LOGWATCH_DETAIL_LEVEL'} || 0;
 my $IgnoreBackendStatus = $ENV{'ignore_backend_status'} || 0;
+my $IgnoreEnumerationRequested = $ENV{'ignore_enumeration_requested'} || 0;
 my %Errors;
 my $Service;
 my %Starts;
@@ -24,6 +25,7 @@ my %Stops;
 my %OtherList;
 my $BackendStatus;
 my $BackendOffline = 0;
+my $EnumerationRequested = 0;
 
 # Lines are of the form:
 # sssd[service]: 
@@ -58,6 +60,8 @@ while (defined(my $ThisLine = <STDIN>)) {
    } elsif (my ($status) = ($ThisLine =~ /Backend is (.*)/)) {
       $BackendStatus = $status;
       $BackendOffline++ if $BackendStatus eq "offline";
+   } elsif ($ThisLine =~ /^Enumeration requested but not enabled/) {
+      $EnumerationRequested++ unless $IgnoreEnumerationRequested;
    } else {
       $OtherList{"$Service: $ThisLine"}++;
    }
@@ -91,6 +95,10 @@ if (keys %Stops and $Detail) {
    foreach my $Service (sort {$a cmp $b} keys %Stops) {
       print "   $Service: " . $Stops{$Service} . " Time(s)\n";
    }
+}
+
+if ($EnumerationRequested) {
+   print "\nEnumeration requested but not enabled: $EnumerationRequested Time(s)\n";
 }
 
 if (keys %OtherList) {
