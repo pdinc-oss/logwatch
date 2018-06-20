@@ -50,6 +50,7 @@ while (defined(my $ThisLine = <STDIN>)) {
        $ThisLine =~ /^Closed .* [Ss]ockets?\.$/ or
        $ThisLine =~ /^Closed .* [Ss]cheduler\.$/ or
        $ThisLine =~ /^Closed .* [Ww]atch\.$/ or
+       $ThisLine =~ /^Closed Sound System\.$/ or
        $ThisLine =~ /^Closed udev / or
        $ThisLine =~ /^Received SIGINT\./ or
        $ThisLine =~ /^Deactivated / or
