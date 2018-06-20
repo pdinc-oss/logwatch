@@ -209,6 +209,10 @@ while (defined($ThisLine = <STDIN>)) {
       # Spammer who does not wait before sending crap
       $Proto{$ThisLine}++;
    }
+   elsif ( $ThisLine =~ /AUTH command used when not advertised/ ) {
+      # Spammer who does not read protocol
+      $Proto{$ThisLine}++;
+   }
    elsif ( $ThisLine =~ /dropped: too many nonmail commands/ ) {
       # Often someone who tries lots of transactions
       $Proto{$ThisLine}++;
@@ -613,6 +617,12 @@ if ($Detail >= $LvlProtocol) {
          }
          elsif ( $ThisOne =~ /(SMTP protocol error in \"\w+\")/ ) {
             $bb = $1;
+            $SmtpConnection{$bb}++;
+         }
+         elsif ( $ThisOne =~ /\[([^]]+)\] (AUTH command used when not advertised)/ ) {
+            my $key = $1;
+            $bb = $2;
+            $SmtpProblemHosts{$key}++;
             $SmtpConnection{$bb}++;
          }
          elsif ( $ThisOne =~ /authenticator failed for (?:\S+ |)\([^)]*\) \[($IPAddress)\](?::\d+ |)(?:I=\[$IPAddress\]:\d+|): ([^(]*)/ ) {
