@@ -542,6 +542,7 @@ if ($Detail >= $LvlProtocol) {
    if (%Proto) {
       my (%spam);
       my (%SmtpConnection);
+      my (%SmtpProblemHosts);
       my (%TlsProblemClasses);
       my (%TlsProblemHosts);
 
@@ -614,8 +615,11 @@ if ($Detail >= $LvlProtocol) {
             $bb = $1;
             $SmtpConnection{$bb}++;
          }
-         elsif ( $ThisOne =~ /authenticator failed for \([^)]*\) \[($IPAddress)\]:\d+ I=\[$IPAddress\]:\d+: (.*) \(/ ) {
-            $bb = $1;
+         elsif ( $ThisOne =~ /authenticator failed for (?:\S+ |)\([^)]*\) \[($IPAddress)\](?::\d+ |)(?:I=\[$IPAddress\]:\d+|): ([^(]*)/ ) {
+            my $key = $1;
+            $bb = $2;
+            $bb =~ s/\s+$//;
+            $SmtpProblemHosts{$key}++;
             $SmtpConnection{$bb}++;
          }
          elsif ( $ThisOne =~ /TLS error on connection from (?:(\S+) |)(?:\(([^)]*)\) |)\[($IPAddress)\](?::\d+|) (?:I=\[$IPAddress\](?::\d+|) |)\(([^)]+)\): (.*)/ ) {
@@ -705,6 +709,11 @@ if ($Detail >= $LvlProtocol) {
          print "\n--- SMTP Connection Issues \n";
          foreach $ThisOne (sort keys %SmtpConnection) {
             $bb = $SmtpConnection{$ThisOne};
+            print "  $ThisOne: $bb Time(s)\n";
+         }
+         print "\n From these hosts:\n";
+         foreach $ThisOne (sort keys %SmtpProblemHosts) {
+            $bb = $SmtpProblemHosts{$ThisOne};
             print "  $ThisOne: $bb Time(s)\n";
          }
       }
