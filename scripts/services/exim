@@ -221,8 +221,9 @@ while (defined($ThisLine = <STDIN>)) {
       # Some hosts ask for TLS even when not offered (generalised to all cmds)
       $Proto{$ThisLine}++;
    }
-   elsif ( $ThisLine =~ /TLS error on connection from (\S+) \(([^)]*)\) \[(\S+)\]:(\d+) I=\[(\S+)\]:(\d+) \(send\): Error in the push function\./ ) {
-      # Ignore this, office 365 connector early disconnect.
+   elsif ( $ThisLine =~ /TLS error on connection from/ ) {
+      # Various TLS errrors
+      $Proto{$ThisLine}++;
    }
    elsif ( $ThisLine =~ /authenticator failed for/ ) {
       $Proto{$ThisLine}++;
@@ -540,6 +541,9 @@ if ($Detail >= $LvlProtocol) {
 # Print Protocol Violations
    if (%Proto) {
       my (%spam);
+      my (%SmtpConnection);
+      my (%TlsProblemClasses);
+      my (%TlsProblemHosts);
 
       # Probable SPAM hosts...
       print "\n--- Bad Hosts ---\n";
@@ -614,6 +618,23 @@ if ($Detail >= $LvlProtocol) {
             $bb = $1;
             $SmtpConnection{$bb}++;
          }
+         elsif ( $ThisOne =~ /TLS error on connection from (?:(\S+) |)(?:\(([^)]*)\) |)\[($IPAddress)\](?::\d+|) (?:I=\[$IPAddress\](?::\d+|) |)\(([^)]+)\): (.*)/ ) {
+            my ($reverseHost, $hostLabel, $hostAddress, $action, $message) = ($1, $2, $3, $4, $5);
+            $message =~ s/\.$//;
+            my $key = "$hostAddress";
+            if ($Detail > 50) {
+                $key .= " ($hostLabel)" if ($hostLabel);
+                $key .= " $reverseHost" if ($reverseHost);
+            } elsif ($reverseHost) {
+                $key = "$reverseHost";
+                if ($hostLabel && (() = $reverseHost =~ /\./g) > 2) {
+                  my ($common) = ($reverseHost =~ /^[^.]+(\..*)$/);
+                  $key = "($hostLabel)" if ($hostLabel =~ /^[^.]+\Q$common\E$/);
+                }
+            }
+            $TlsProblemHosts{$key}++;
+            $TlsProblemClasses{"$action: $message"}++;
+         }
          elsif ( $ThisOne =~ /SMTP connection from/ ) {
             if ( $ThisOne =~ /lost while reading message data/ ) {
                $bb = "SMTP connection lost while reading message data";
@@ -664,6 +685,19 @@ if ($Detail >= $LvlProtocol) {
          else {
             @errList = split /,/, $spam{$ThisOne};
             print "  $ThisOne ".scalar @errList." times\n";
+         }
+      }
+
+      if ( %TlsProblemClasses ) {
+         print "\n--- TLS Connection Issues \n";
+         foreach $ThisOne (sort keys %TlsProblemClasses) {
+            $bb = $TlsProblemClasses{$ThisOne};
+            print "  $ThisOne: $bb Time(s)\n";
+         }
+         print "\n  From these hosts:\n";
+         foreach $ThisOne (sort keys %TlsProblemHosts) {
+            $bb = $TlsProblemHosts{$ThisOne};
+            print "  $ThisOne: $bb Time(s)\n";
          }
       }
 
