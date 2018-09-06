@@ -189,6 +189,8 @@ while (defined(my $ThisLine = <STDIN>)) {
          } else {
             $FailureAudits{"$Hostname $ExpandedString\n$url"}++;
          }
+      } elsif ($EventID == 4957 and $ExpandedString =~ /resolved to an empty set/) {
+         # Windows Firewall did not apply the following rule - because it was not applicable
       } elsif ($EventID == 6273) {
          my ($account,$domain,$client) = ($ExpandedString =~ /Account Name:\s+(\S+)\s+Account Domain:\s+(\S+).*Client Friendly Name:\s+(\S+)/);
          $AccessDenied{"$account\\$domain $client"}++;
