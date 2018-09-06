@@ -50,6 +50,7 @@ while (defined(my $ThisLine = <STDIN>)) {
       next;
    }
    next if $EventLogType eq "Information" and $ExpandedString !~ "BlueScreen";
+   next if $ExpandedString eq "N/A";
 
    # Remove some items that prevent de-duplication
    $ExpandedString =~ s/(NextScheduled\S+|PID) \d+/$1 XXX/;
@@ -77,6 +78,8 @@ while (defined(my $ThisLine = <STDIN>)) {
    } elsif ($Application eq "AutoEnrollment") {
       #Ignore these - we don't run active directory
       next if $ExpandedString =~ /Automatic certificate enrollment for local system failed to contact the active directory/;
+   } elsif ($Application =~ /Group Policy Services/) {
+      next if $ExpandedString =~ /This error was suppressed/;
    } elsif ($Application =~ /Intel Alert/) {
       #Ignore these
       next if $ExpandedString =~ /Intel Alert Originator Manager loaded without security/;
