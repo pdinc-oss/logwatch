@@ -198,7 +198,6 @@ my %StatusCode = (
 #   what to look for as an attack  USE LOWER CASE!!!!!!
 #
 my @exploits = (
-   '^null$',
    '/\.\./\.\./\.\./',
    '\.\./\.\./config\.sys',
    '/\.\./\.\./\.\./autoexec\.bat',
@@ -576,8 +575,6 @@ if (($detail >4) and $total_hack_count) {
          foreach my $j ( keys %{$hacks{$i}} ) {
             print "      $j $hacks{$i}{$j} Time(s) \n";
          }
-      } else {
-         print "\n";
       }
    }
 }
