@@ -65,6 +65,7 @@ while (defined(my $ThisLine = <STDIN>)) {
        $ThisLine =~ /^RTC configured in / or
        $ThisLine =~ /^Running in initial RAM disk\.$/ or
        $ThisLine =~ /^Set hostname to / or
+       $ThisLine =~ /^Set up automount Arbitrary Executable File Formats File System Automount Point\.$/ or
        $ThisLine =~ /^Shutting down\.$/ or
        $ThisLine =~ /^Startup finished in / or
        $ThisLine =~ /^Stopped / or
