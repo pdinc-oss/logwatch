@@ -459,11 +459,11 @@ while (defined($ThisLine = <STDIN>)) {
       $GroupChanged{"$ThisLine"}++;
    } elsif ( ($Pid,$User,$Home,$NewHome) = ($ThisLine =~ /^usermod(\[\d+\])?: change user [`'](.*)' home from [`'](.*)' to [`'](.*)'/)) {
       $HomeChange{$User}{"$Home -> $NewHome"}++;
-   } elsif ( ($User,$From,$To) = ($ThisLine =~ /^usermod(\[\d+\])?: ?change user [`'](.*)' UID from [`'](.*)' to [`'](.*)'/)) {
+   } elsif ( ($Pid,$User,$From,$To) = ($ThisLine =~ /^usermod(\[\d+\])?: ?change user [`'](.*)' UID from [`'](.*)' to [`'](.*)'/)) {
       $UidChange{"$User: $From -> $To"}++;
-   } elsif ( ($User,$From,$To) = ($ThisLine =~ /^usermod(\[\d+\])?: ?change user [`'](.*)' GID from [`'](.*)' to [`'](.*)'/)) {
+   } elsif ( ($Pid,$User,$From,$To) = ($ThisLine =~ /^usermod(\[\d+\])?: ?change user [`'](.*)' GID from [`'](.*)' to [`'](.*)'/)) {
       $GidChange{"$User: $From -> $To"}++;
-   } elsif ( ($User,$From,$To) = ($ThisLine =~ /^usermod(\[\d+\])?: ?change user [`'](.*)' expiration from [`'](.*)' to [`'](.*)'/)) {
+   } elsif ( ($Pid,$User,$From,$To) = ($ThisLine =~ /^usermod(\[\d+\])?: ?change user [`'](.*)' expiration from [`'](.*)' to [`'](.*)'/)) {
       $AccountExpiry{"$User: $From -> $To"}++;
    # checkpassword-pam
    } elsif ( ($PID) = ($ThisLine =~ /^checkpassword-pam\[(\d+)\]: Reading username and password/)) {
