@@ -312,8 +312,8 @@ while (defined($ThisLine = <STDIN>)) {
       $GroupChanged{"$ThisLine"}++;
    } elsif ( $ThisLine =~ s/^groupmod\[\d+\]: group changed in \/etc\/group \(group (.+)\/\d+, new name: (.+)\).*/$1 -> $2/) {
       $GroupChanged{"$ThisLine"}++;
-   } elsif ( ($Pid,$User,$Home,$NewHome) = ($ThisLine =~ /^usermod(\[\d+\])?: change user [`'](.*)' home from [`'](.*)' to [`'](.*)'/)) {
-      $HomeChange{$User}{"$Home -> $NewHome"}++;
+   } elsif ( ($Pid,$User,$From,$To) = ($ThisLine =~ /^usermod(\[\d+\])?: ?change user [`'](.*)' home from [`'](.*)' to [`'](.*)'/)) {
+      $HomeChange{$User}{"$From -> $To"}++;
    } elsif ( ($Pid,$User,$From,$To) = ($ThisLine =~ /^usermod(\[\d+\])?: ?change user [`'](.*)' UID from [`'](.*)' to [`'](.*)'/)) {
       $UidChange{"$User: $From -> $To"}++;
    } elsif ( ($Pid,$User,$From,$To) = ($ThisLine =~ /^usermod(\[\d+\])?: ?change user [`'](.*)' GID from [`'](.*)' to [`'](.*)'/)) {
