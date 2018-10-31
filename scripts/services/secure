@@ -314,6 +314,8 @@ while (defined($ThisLine = <STDIN>)) {
       $GroupChanged{"$ThisLine"}++;
    } elsif ( ($Pid,$User,$From,$To) = ($ThisLine =~ /^usermod(\[\d+\])?: ?change user [`'](.*)' home from [`'](.*)' to [`'](.*)'/)) {
       $HomeChange{$User}{"$From -> $To"}++;
+   } elsif ( ($Pid,$User,$From,$To) = ($ThisLine =~ /^usermod(\[\d+\])?: ?change user [`'](.*)' shell from [`'](.*)' to [`'](.*)'/)) {
+      $ShellChange{$User}{"$From -> $To"}++;
    } elsif ( ($Pid,$User,$From,$To) = ($ThisLine =~ /^usermod(\[\d+\])?: ?change user [`'](.*)' UID from [`'](.*)' to [`'](.*)'/)) {
       $UidChange{"$User: $From -> $To"}++;
    } elsif ( ($Pid,$User,$From,$To) = ($ThisLine =~ /^usermod(\[\d+\])?: ?change user [`'](.*)' GID from [`'](.*)' to [`'](.*)'/)) {
@@ -489,6 +491,16 @@ if (keys %HomeChange) {
       # No sorting here - show it by time...
       foreach $Home (keys %{$HomeChange{$User}}) {
          print "      $Home\n";
+      }
+   }
+}
+
+if (keys %ShellChange) {
+   print "\nChanged shell:\n";
+   foreach $User (sort {$a cmp $b} keys %ShellChange) {
+      # No sorting here - show it by time...
+      foreach $Shell (keys %{$ShellChange{$User}}) {
+         print "      $User: $Shell\n";
       }
    }
 }
