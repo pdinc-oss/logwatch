@@ -89,7 +89,7 @@ while (defined($ThisLine = <STDIN>)) {
       ($ThisLine =~ /stopping command channel on \S+/) or
       ($ThisLine =~ /Malformed response from/) or
       ($ThisLine =~ /client .* response from Internet for .*/) or
-      ($ThisLine =~ /client .+ query \(cache\) '.*' denied/) or
+#      ($ThisLine =~ /client .+ query \(cache\) '.*' denied/) or
       ($ThisLine =~ /client .+(?: \([^)]+\))?: query:/) or
       # Do we really want to ignore these?
       #($ThisLine =~ /unknown logging category/) or
@@ -147,8 +147,12 @@ while (defined($ThisLine = <STDIN>)) {
       ($ThisLine =~ /refresh: NODATA response from master/) or
       ($ThisLine =~ /update with no effect/) or
       ($ThisLine =~ /reading built-in trusted keys from file/) or
+      ($ThisLine =~ /reading built-in trust anchors from file/) or
       ($ThisLine =~ /using built-in trusted-keys/) or
       ($ThisLine =~ /set up managed keys zone/) or
+      ($ThisLine =~ /managed-keys-zone.*key now trusted/) or
+      ($ThisLine =~ /dhcpupdate: forwarding update for zone/) or
+      ($ThisLine =~ /forwarded dynamic update: master [^ ]* returned: (NXRRSET|YXDOMAIN)/) or
       ($ThisLine =~ /using .* as GeoIP directory/) or
       ($ThisLine =~ /GEO-.* Build/) or
       ($ThisLine =~ /initializing GeoIP /) or
@@ -164,8 +168,9 @@ while (defined($ThisLine = <STDIN>)) {
       ($ThisLine =~ /next key event: /) or
       ($ThisLine =~ /reconfiguring zone keys/) or
       ($ThisLine =~ /using built-in DLV key/) or
-      ($ThisLine =~ /reading built-in trusted keys from file/) or
+#      ($ThisLine =~ /reading built-in trusted keys from file/) or
       ($ThisLine =~ /all zones loaded/) or
+      ($ThisLine =~ /resolver priming query complete/) or
       ($ThisLine =~ /client .* signer .* approved/) or
       ($ThisLine =~ /stop limiting/) or
       # ignore this line because the following line describes the error
@@ -238,6 +243,9 @@ while (defined($ThisLine = <STDIN>)) {
    } elsif ( ($Way,$Host) = ( $ThisLine =~ /([^ ]+): sendto\(\[([^ ]+)\].+\): Network is unreachable/ ) ) {
       $FullHost = LookupIP ($Host);
       $NetworkUnreachable{$Way}{$FullHost}++;
+   } elsif ( ($Host,$Way) = ( $ThisLine =~ /client (?:\@0x[0-9a-fA-F]+ )?(.*)#\d+(?: \(.*\))?: (?:view \w+: )?error ([^ ]+) response: network unreachable/ ) ) {
+      $FullHost = LookupIP ($Host);
+      $NetworkUnreachable{$Way}{$FullHost}++;
    } elsif ( ($Zone,$Message) = ( $ThisLine =~ /client [^\#]+#[^\:]+: (?:view \w+: )?updating zone '([^\:]+)': (.*)$/ ) ) {
       $ZoneUpdates{$Zone}{$Message}++;
    } elsif ( ($Host,$Zone) = ( $ThisLine =~ /approved AXFR from \[(.+)\]\..+ for \"(.+)\"/ ) ) {
@@ -246,13 +254,13 @@ while (defined($ThisLine = <STDIN>)) {
    } elsif ( ($Client) = ( $ThisLine =~ /warning: client (.*) no more TCP clients/ ) ) {
       $FullClient = LookupIP ($Client);
       $DeniedTCPClient{$FullClient}++;
-   } elsif ( ($Client) = ( $ThisLine =~ /client (.*)#\d+: (?:view \w+: )?query \(cache\) denied/ ) ) {
+   } elsif ( ($Client) = ( $ThisLine =~ /client (?:\@0x[0-9a-fA-F]+ )?(.*)#\d+(?: \(.*\))?: (?:view \w+: )?query \(cache\) (?:'.*' )?denied/ ) ) {
       $FullClient = LookupIP ($Client);
       $DeniedQuery{$FullClient}++;
-   } elsif ( ($Client) = ( $ThisLine =~ /client (.*)(#\d+)?: query '.*' denied/ ) ) {
+   } elsif ( ($Client) = ( $ThisLine =~ /client (?:\@0x[0-9a-fA-F]+ )?([^#]*)(#\d+)?(?: \(.*\))?: query '.*' denied/ ) ) {
       $FullClient = LookupIP ($Client);
       $DeniedQueryNoCache{$FullClient}++;
-   } elsif ( ($Rhost, $ViewName, $Ldom) = ($ThisLine =~ /client ([\.0-9a-fA-F:]+)#\d+: (?:view \w+: )?update '(.*)' denied/)) {
+   } elsif ( ($Rhost, $ViewName, $Ldom) = ($ThisLine =~ /client (?:\@0x[0-9a-fA-F]+ )?([\.0-9a-fA-F:]+)#\d+: (?:view (\w+): )?update '(.*)' denied/)) {
       $ViewName = ($ViewName ? "/$ViewName" : "");
       $UpdateDenied{"$Rhost ($Ldom$ViewName)"}++;
    } elsif ( ($Rhost, $Ldom) = ($ThisLine =~ /client ([\d\.]+)#\d+: update forwarding '(.*)' denied/)) {
