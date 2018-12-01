@@ -115,9 +115,9 @@ while (defined(my $ThisLine = <STDIN>)) {
         $ReInitializations++;
     } elsif ($ThisLine =~ /..,... WARNING:  is not a valid IP address/) {
         # just ignore - this will be fixed within fail2ban and is harmless warning
-    } elsif ( my ($Service,$Host) = ($ThisLine =~ /INFO\s+\[(.*)\] Found (.*)/)) {
+    } elsif ( my ($Service,$Host) = ($ThisLine =~ /INFO\s+\[(.*)\] Found (\S+)/)) {
         $ServicesFound{$Service}{$Host}++;
-    } elsif ( my ($Service,$Host) = ($ThisLine =~ /INFO\s+\[(.*)\] Ignore (.*)/)) {
+    } elsif ( my ($Service,$Host) = ($ThisLine =~ /INFO\s+\[(.*)\] Ignore (\S+)/)) {
         $ServicesIgnored{$Service}{$Host}++;
     # Generic messages
     } elsif ( my ($Message) = ($ThisLine =~ / ERROR (.*)$/)) {
