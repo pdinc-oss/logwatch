@@ -84,7 +84,7 @@ my %units = ( 'P' => 1024 * 1024 * 1024 * 1024,
 my $unit_re = '['.join('', keys %units).']';
 
 # Discover the pools
-open POOLS, '-|', $pathto_zpool, qw(list -H -o name,size,allocated,free,dedupratio,capacity,health) or die "Error running 'zpool list': $!\n";
+open POOLS, "$pathto_zpool list -H -o name,size,allocated,free,dedupratio,capacity,health 2>/dev/null |" or die "Error running 'zpool list': $!\n";
 while(<POOLS>) {
    chomp;
    my ($name, $size, $used, $avail, $dedup, $cap, $health) = split(/\s+/);
