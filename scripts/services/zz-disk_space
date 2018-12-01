@@ -127,20 +127,23 @@ sub DiskSpace ()
 }
 
 sub DiskFull {
-	my $o = `$disk_cmd`;
-	my @rows = split('\n', $o);
-	foreach my $row (@rows) {
-		my @fields = split(' ', $row);
-		my $use = $fields[4];
-		$use =~ s/%//;
-		if (($use > $diskfull_threshold) &&
-                    ($fields[0] !~ /\/dev\/scd/ ) &&
-                    ($fields[0] !~ /\/dev\/sr/ ) &&
-                    ($fields[0] !~ /\/dev\/loop./) &&
-                    ($fields[5] !~ /^$diskfull_exclude_dirs/i)) {
-			print "$fields[5] ($fields[0]) => $fields[4] Used. Warning. Disk Filling up.\n";
-		}
-	}
+    my $o = `$disk_cmd --output='pcent,target'`;
+    my @rows = split('\n', $o);
+    my $headings = shift @rows;
+    foreach my $row (@rows) {
+        my @fields = split(' ', $row, 2);
+        my $used = $fields[0];
+        my $target = $fields[1];
+        my $source = (split(/\n/, `$disk_cmd --output='source' $target`))[-1];
+        $used =~ s/%//;
+        if (($used > $diskfull_threshhold) &&
+                    ($source !~ /\/dev\/scd/ ) &&
+                    ($source !~ /\/dev\/sr/ ) &&
+                    ($source !~ /\/dev\/loop./) &&
+                    ($target !~ /^$diskfull_exclude_dirs/)) {
+            print "Warning. Disk Filling up. $used% Used - $target\n";
+        }
+    }
 }
 
 #####################
