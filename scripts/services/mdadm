@@ -45,6 +45,10 @@ close(MDADM);
 DEV: foreach my $dev (@devices) {
   my %mdhash;
 
+  if ($dev =~ /<ignore>/) {
+    next;
+  }
+
   open(MDADM,"mdadm --misc --detail $dev 2>&1 |");
   while (<MDADM>) {
     if ($_ =~ /cannot open .*: No such file or directory/) {
