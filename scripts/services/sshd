@@ -315,7 +315,11 @@ while (defined(my $ThisLine = <STDIN>)) {
        ($ThisLine =~ /Found matching \w+ key:/ ) or
        ($ThisLine =~ /User child is on pid \d/ ) or
        ($ThisLine =~ /Nasty PTR record .* is set up for [\da-fA-F.:]+, ignoring/) or
-       ($ThisLine =~ /Disconnected from (?:user \S+ |)[\da-fA-F.:]* port \d*/ ) or
+       ($ThisLine =~ /Disconnected from [\da-fA-F.:]* port \d*/ ) or
+       ($ThisLine =~ /Disconnected from user \S+ [\da-fA-F.:]* port \d*/ ) or
+       ($ThisLine =~ /Disconnected from (authenticating|invalid) user \S+ [\da-fA-F.:]* port \d*/ ) or
+       ($ThisLine =~ /Disconnecting( (authenticating|invalid) user .* port \d+)?: Too many authentication failures \[preauth\]/ ) or
+       ($ThisLine =~ /Disconnecting( (authenticating|invalid) user .* port \d+)?: Change of username or service not allowed: .* \[preauth\]/ ) or
        ($ThisLine =~ /Failed to release session: Interrupted system call/) or
        ($ThisLine =~ /Close session: user /) or
        0 # This line prevents blame shifting as lines are added above
@@ -340,8 +344,8 @@ while (defined(my $ThisLine = <STDIN>)) {
       $TooManyFailures{$User}++;
    } elsif ( my ($User) = ( $ThisLine =~ /error: maximum authentication attempts exceeded for ([^ ]+) from [^ ]+ port \d+ ssh2 \[preauth\]/)) {
       $TooManyFailures{$User}++;
-   } elsif ( $ThisLine =~ /Disconnecting: Too many authentication failures \[preauth\]/ ) {
-      # Ignore these - should be covered by other messages
+   } elsif ( my ($User,$Host) = ( $ThisLine =~ /error: maximum authentication attempts exceeded for invalid user ([^ ]+) from ([^ ]+) port \d+ ssh2 \[preauth\]/)) {
+      $IllegalUsers{$Host}{$User}++;
    } elsif ( $ThisLine =~ m/^(fatal: )?Did not receive ident(ification)? string from (.+)/ ) { # ssh/openssh
       my $name = LookupIP($3);
       $NoIdent{$name}++;
@@ -407,7 +411,7 @@ while (defined(my $ThisLine = <STDIN>)) {
       $NoRevMap{"$Address($IP)"}++;
    } elsif ( my (undef,$Address) = ($ThisLine =~ /^warning: ([^ ]*), line \d+: can't verify hostname: getaddrinfo\(([^ ]*), AF_INET\) failed$/)) {
       $NoRevMap{$Address}++;
-   } elsif ( (undef, my $Addresses) = ($ThisLine =~ /^warning: ([^ ]*), line \d+: host [^ ]* mismatch: (.*)$/)) {
+   } elsif ( my (undef,$Addresses) = ($ThisLine =~ /^warning: ([^ ]*), line \d+: host [^ ]* mismatch: (.*)$/)) {
       $MisMatch{$Addresses}++;
    } elsif ( $ThisLine =~ m/subsystem request for sftp/ ) {
       $sftpRequests++;
@@ -421,14 +425,18 @@ while (defined(my $ThisLine = <STDIN>)) {
       $NegotiationFailed{$Reason}{$Host}{$Offer}++;
    } elsif ( my ($Prio,$Host,$Port,$Code,$Reason) = ($ThisLine =~ /^(error: )?Received disconnect from ([^ ]*)( port \d+)?: ?(\d+): (.*)$/)) {
       # Reason 11 ({SSH,SSH2}_DISCONNECT_BY_APPLICATION) is expected, and logged at severity level INFO
-      if (($Code != 11) || ($Detail >= 30)) {
+      if (($Reason =~ /preauth/) || ($Code != 11) || ($Detail >= 30)) {
 	$DisconnectReceived{$Reason}{$Host}++;
       }
    } elsif ( my ($Host) = ($ThisLine =~ /^ROOT LOGIN REFUSED FROM ([^ ]*)$/)) {
       $RootLogin{$Host}++;
    } elsif ( my ($Error) = ($ThisLine =~ /^Cannot release PAM authentication\[\d\]: (.*)$/)) {
       $PamReleaseFail{$Error}++;
+   } elsif ( my ($Error) = ($ThisLine =~ /^pam_systemd\(sshd:session\): Failed to release session: (.*)$/)) {
+      $PamReleaseFail{$Error}++;
    } elsif ( my ($Error) = ( $ThisLine =~ m/^error: PAM: (.*)$/)) {
+      $PamError{$Error}++;
+   } elsif ( my ($Error) = ( $ThisLine =~ m/pam_systemd\(sshd:session\): (Failed to create session: .*)$/)) {
       $PamError{$Error}++;
    } elsif ( my ($Reason) = ( $ThisLine =~ m/pam_chroot\(.+\):\s+([^:])/)) {
       $PamChroot{$Reason}++;
@@ -453,11 +461,11 @@ while (defined(my $ThisLine = <STDIN>)) {
       $DenyGroups{$User}++;
    } elsif ( my ($User) = ($ThisLine =~ /^User ([^ ]*) from ([^ ]*) not allowed because none of user's groups are listed in AllowGroups/)) {
       $AllowGroups{$User}++;
-   } elsif ( ($User) = ($ThisLine =~ /^User ([^ ]*) not allowed because shell (\S+) does not exist/)) {
+   } elsif ( my ($User) = ($ThisLine =~ /^User ([^ ]*) not allowed because shell (\S+) does not exist/)) {
       $NoShellUsers{$User}++;
-   } elsif ( ($User) = ($ThisLine =~ /^User ([^ ]*) not allowed because shell (\S+) is not executable/)) {
+   } elsif ( my ($User) = ($ThisLine =~ /^User ([^ ]*) not allowed because shell (\S+) is not executable/)) {
       $ShellNotExecutableUsers{$User}++;
-   } elsif ( ($User) = ($ThisLine =~ /^fatal: Access denied for user ([^ ]+) by PAM account configuration \[preauth\]/)) {
+   } elsif ( my ($User) = ($ThisLine =~ /^fatal: Access denied for user ([^ ]+) by PAM account configuration \[preauth\]/)) {
       $PamDeny{$User}++;
    } elsif ( my ($IP) = ($ThisLine =~ /^scanned from ([^ ]*)/) ) {
       push @Scanned, $IP;
@@ -616,6 +624,9 @@ if (keys %NegotiationFailed) {
    foreach my $Reason (sort {$a cmp $b} keys %NegotiationFailed) {
       my $Total = 0;
       print "   $Reason";
+      if ( $Detail > 0 ) {
+         print "\n";
+      }
       foreach my $Host (sort {$a cmp $b} keys %{$NegotiationFailed{$Reason}}) {
         my $HostTotal = 0;
         foreach my $Offer (sort {$a cmp $b} keys %{$NegotiationFailed{$Reason}{$Host}}) {
@@ -623,18 +634,16 @@ if (keys %NegotiationFailed) {
         }
         $Total += $HostTotal;
         if ( $Detail > 0 ) {
-           print "\n      $Host: " . timesplural($HostTotal);
+           print "      $Host: " . timesplural($HostTotal);
         }
         if ( $Detail > 5 ) {
            foreach my $Offer (sort {$a cmp $b} keys %{$NegotiationFailed{$Reason}{$Host}}) {
                  my $tot = $NegotiationFailed{$Reason}{$Host}{$Offer};
-                 print "\n        $Offer: " . timesplural($tot);
+                 print "        $Offer: " . timesplural($tot);
            }
         }
       }
-      if( $Detail > 0 ) {
-         print "\n";
-      } else {
+      if ( $Detail == 0 ) {
          print ": " . timesplural($Total);
       }
    }
