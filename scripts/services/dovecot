@@ -228,7 +228,7 @@ while (defined(my $ThisLine = <STDIN>)) {
       $Deliver{$User}{$Mailbox}++;
 
 # LMTP-based delivery
-   } elsif (my ($User, $Mailbox) = ( $ThisLine =~ /^$dovecottag lmtp\((?:\d+, )?(.*?)\): [^:]+:(?:\d+:)? msgid=.*: saved mail to (.*)/ ) ) {
+   } elsif (my ($User, $Mailbox) = ( $ThisLine =~ /^$dovecottag lmtp\((?:\d+, )?(.*?)\): .*msgid=.*: saved mail to (.*)/ ) ) {
     # dovecot: [ID 583609 mail.info] lmtp(12782, cloyce@headgear.org): jBt1EfjCMk3uMQAAm9eMBA: msgid=<4D32DB1F.3080707@c-dot.co.uk>: saved mail to INBOX
       $Deliver{$User}{$Mailbox}++;
 
@@ -299,7 +299,7 @@ while (defined(my $ThisLine = <STDIN>)) {
       $Aborted{$Host}++;
    } elsif (my ($Reason) = ($ThisLine =~ /Aborted login \((.*)\):/)) {
       $Aborted{$Reason}++;
-   } elsif (my ($User,$IP) = ($ThisLine =~ /auth: LOGIN\((.*),(\d+\.\d+\.\d+\.\d+)\): Request timed out waiting for client to continue authentication/) ) {
+   } elsif (my ($User,$IP) = ($ThisLine =~ /auth: (?:LOGIN|login)\((.*),(\d+\.\d+\.\d+\.\d+)\): Request timed out waiting for client to continue authentication/) ) {
       $AuthTimedOut{$User}{$IP}++;
    } elsif (my ($Reason) = ($ThisLine =~ /auth: Warning: auth client \d+ disconnected with \d+ pending requests: (.*)/) ) {
       $AuthDisconnectedWithPending{$Reason}++;
