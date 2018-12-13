@@ -136,7 +136,7 @@ sub DiskFull {
         my $target = $fields[1];
         my $source = (split(/\n/, `$disk_cmd --output='source' $target`))[-1];
         $used =~ s/%//;
-        if (($used > $diskfull_threshhold) &&
+        if (($used > $diskfull_threshold) &&
                     ($source !~ /\/dev\/scd/ ) &&
                     ($source !~ /\/dev\/sr/ ) &&
                     ($source !~ /\/dev\/loop./) &&
