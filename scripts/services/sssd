@@ -55,6 +55,10 @@ while (defined(my $ThisLine = <STDIN>)) {
      $Service = $1;
    }
     
+   # Ignore debug messages
+   my ($debuglevel) = ($ThisLine =~ /\s\((0x[0-9a-f]{4})\):\s/);
+
+   next if defined($debuglevel) && hex($debuglevel) > 16;
    if ($ThisLine =~ /Starting up/) {
       $Starts{$Service}++;
    } elsif ($ThisLine =~ /^Shutting down/) {
