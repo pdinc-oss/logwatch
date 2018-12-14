@@ -35,7 +35,7 @@ while (defined(my $ThisLine = <STDIN>)) {
    chomp($ThisLine);
 
    # Strip off leading sssd:
-   $ThisLine =~ s/^sssd: //;
+   $ThisLine =~ s/^sssd(?:\[\d+\])?: //;
 
    # Strip off duplicate timestamp if present
    $ThisLine =~ s/^\(... ... .\d \d\d:\d\d:\d\d \d\d\d\d\) //;
