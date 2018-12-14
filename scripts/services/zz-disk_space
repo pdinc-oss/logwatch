@@ -127,21 +127,17 @@ sub DiskSpace ()
 }
 
 sub DiskFull {
-    my $o = `$disk_cmd --output='pcent,target'`;
-    my @rows = split('\n', $o);
-    my $headings = shift @rows;
+    my @rows = split('\n', `$disk_cmd`);
+    # Remove header
+    shift @rows;
     foreach my $row (@rows) {
-        my @fields = split(' ', $row, 2);
-        my $used = $fields[0];
-        my $target = $fields[1];
-        my $source = (split(/\n/, `$disk_cmd --output='source' $target`))[-1];
-        $used =~ s/%//;
+        my ($source,$used,$target) = ($row =~ /^(.*?)(?:\s+\d+[KMGTP]?){3}\s+(\d+)%\s+(.*)$/);
         if (($used > $diskfull_threshold) &&
                     ($source !~ /\/dev\/scd/ ) &&
                     ($source !~ /\/dev\/sr/ ) &&
                     ($source !~ /\/dev\/loop./) &&
                     ($target !~ /^$diskfull_exclude_dirs/)) {
-            print "Warning. Disk Filling up. $used% Used - $target\n";
+            print "$target ($source) => $used% Used. Warning: Disk Filling up.\n";
         }
     }
 }
@@ -160,9 +156,6 @@ if ($OSname eq "Linux") {
 		$df_options = "-h";
 	} 
 	if ($local_disks_only) { $df_options .= " -l"; }
-} elsif ($OSname eq "HP-UX") {
-	$df_options = "";
-	if ($local_disks_only) { $df_options .= " -l"; }
 } elsif ($OSname eq "AIX") {
 	$df_options = "";
 	if ($local_disks_only) { $df_options .= " -P"; }
@@ -178,11 +171,7 @@ if ( $ENV{'df_options'} ) {
 	$df_options = $ENV{'df_options'};
 };
 
-if ($OSname eq "Linux") {
-	$disk_cmd = "df $df_options";
-} elsif ($OSname eq "Darwin") {
-	$disk_cmd = "df $df_options";
-} elsif ($OSname eq "SunOS") {
+if ($OSname eq "SunOS") {
 	$disk_cmd = "/usr/xpg4/bin/df $df_options";
 } elsif ($OSname eq "HP-UX") {
 	$disk_cmd = "bdf $df_options";
