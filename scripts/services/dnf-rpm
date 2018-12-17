@@ -32,8 +32,12 @@ while (defined($ThisLine = <STDIN>)) {
       $PackageUpdated{$ThisLine}++;
    } elsif ( $ThisLine =~ s/^.* INFO Installed: ([^ ]+)/$1/ ) {
       $PackageInstalled{$ThisLine}++;
+   } elsif ( $ThisLine =~ s/^.* INFO Reinstalled: ([^ ]+)/$1/ ) {
+      $PackageReinstalled{$ThisLine}++;
    } elsif ( $ThisLine =~ s/^.* INFO Erased: ([^ ]+)/$1/ ) {
       $PackageErased{$ThisLine}++;
+   } elsif ( $ThisLine =~ s/^.* INFO Obsoleted: ([^ ]+)/$1/ ) {
+      $PackageObsoleted{$ThisLine}++;
    } elsif ( $ThisLine =~ m/INFO --- logging initialized ---/ ) {
       $ignoredlines++;
    } elsif ( $ThisLine =~ m/INFO Cleanup: / ) {
@@ -50,6 +54,12 @@ if (keys %PackageInstalled) {
       print "   " . $ThisOne;
    }
 }
+if (keys %PackageReinstalled) {
+   print "\nPackages Reinstalled:\n";
+   foreach $ThisOne (sort {lc($a) cmp lc($b)} keys %PackageReinstalled) {
+       print "   ". $ThisOne;
+   }
+}
 if (keys %PackageUpdated) {
    print "\nPackages Updated:\n";
    foreach $ThisOne (sort {lc($a) cmp lc($b)} keys %PackageUpdated) {
@@ -59,6 +69,12 @@ if (keys %PackageUpdated) {
 if (keys %PackageErased) {
    print "\nPackages Erased:\n";
    foreach $ThisOne (sort {lc($a) cmp lc($b)} keys %PackageErased) {
+       print "   ". $ThisOne;
+   }
+}
+if (keys %PackageObsoleted) {
+   print "\nPackages Obsoleted:\n";
+   foreach $ThisOne (sort {lc($a) cmp lc($b)} keys %PackageObsoleted) {
        print "   ". $ThisOne;
    }
 }
