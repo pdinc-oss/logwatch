@@ -346,7 +346,7 @@ while (defined(my $ThisLine = <STDIN>)) {
       $TooManyFailures{$User}++;
    } elsif ( my ($User,$Host) = ( $ThisLine =~ /error: maximum authentication attempts exceeded for invalid user ([^ ]+) from ([^ ]+) port \d+ ssh2 \[preauth\]/)) {
       $IllegalUsers{$Host}{$User}++;
-   } elsif ( $ThisLine =~ m/^(fatal: )?Did not receive ident(ification)? string from (.+)/ ) { # ssh/openssh
+   } elsif ( $ThisLine =~ m/^(fatal: )?Did not receive ident(ification)? string from (\S+)/ ) { # ssh/openssh
       my $name = LookupIP($3);
       $NoIdent{$name}++;
    } elsif ( my ($Host) = ($ThisLine =~ /Could not write ident string to ([^ ]+)$/ )) {
