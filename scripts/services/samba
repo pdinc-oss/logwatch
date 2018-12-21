@@ -141,7 +141,7 @@ while (defined($ThisLine = <STDIN>)) {
       ($ThisLine =~ /smbd\/reply\.c:reply_special\(\d+\)  netbios connect: name1=.+ /) or
       ($ThisLine =~ /nmbd\/nmbd_browsesync\.c:announce_local_master_browser_to_domain_master_browser\(\d+\)  announce_local_master_browser_to_domain_master_browser:  We are both a domain and a local master browser for workgroup .+ /) or
       ($ThisLine =~ /auth\/auth\.c:check_ntlm_password\(\d+\)  check_ntlm_password:  authentication for user \[.+\] -> \[.+\] -> \[.+\] succeeded/) or
-      ($ThisLine =~ /rpc_server\/srv_samr_nt\.c:_samr_lookup_domain\(d+\)  Returning domain sid for domain ([^ ]) -> ([^ ])/) or
+      ($ThisLine =~ /rpc_server\/srv_samr_nt\.c:_samr_lookup_domain\(\d+\)  Returning domain sid for domain ([^ ]) -> ([^ ])/) or
 		($ThisLine =~ /===============================================================/)
    ) {
       #Don't care about these...
