@@ -226,9 +226,6 @@ while (defined($ThisLine = <STDIN>)) {
    elsif ( ($unmatched) = ($ThisLine =~ /%AUDIT-5-RUN_CONFIG/) ) {
       $ConfigChange{$host}++;
    }
-   elsif ( ($HASH) = ($ThisLine =~ /%AUDIT-5-STARTUP_CONFIG: Startup Configuration changed. Hash:\s(^\s)/) ) {
-      $StartConfigChange{host}++;
-   }
    elsif ( ($interface,$errortype,$withwho) = ($ThisLine =~ /duplex mismatch discovered on (.+) \(.*\), with (.*)/) ) {
       $DuplexMismatched{$host}{$interface." with ".$errortype}++;
    }
