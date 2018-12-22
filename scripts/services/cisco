@@ -409,9 +409,6 @@ while (defined($ThisLine = <STDIN>)) {
    elsif ( ($interface) = ($ThisLine =~ /DOT11-4-MAXRETRIES: Packet to client ....\.....\..... reached(.*)/) ) {
       $Dot11Retrys{$host}{$interface}++;
    }
-   elsif ( ($interface,$msg) = ($ThisLine =~ /DOT11-4-MAXRETRIES: Packet to client ....\.....\..... reached(.*)/) ) {
-      $Dot11Retrys{$host}{$interface}++;
-   }
    elsif ( ($radio,$interface) = ($ThisLine =~ /DOT11-6-ASSOC: Interface (.*), Station +(.*)/) ) {
       $Dot11Assoc{$host}{"$radio $interface"}++;
    }
