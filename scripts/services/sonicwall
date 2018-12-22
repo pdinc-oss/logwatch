@@ -325,10 +325,10 @@ if ($ThisLine =~ /sn=/ ) { #mean that we ave to deal with a sonicwall log file l
        $IllegalUsers{$host_ip}{$Temp}++;
    }
 
-    elsif ( ($Msg,$number,$src_ip,$port_src,$interface_src,$src_name,$dst_ip,$port_dst,$interface_dst,$dst_name,$pad) = ($ThisLine =~ /msg="(.*)" n=(\d+) src=(\d+\.\d+\.\d+\.\d+):(\d+):(WAN|LAN|DMZ):?(.*)? dst=(\d+\.\d+\.\d+\.\d+):(\d+):(WAN|LAN|DMZ):?(.*)?(S+)?(.*)?/) ) {
+    elsif ( ($Msg,$number,$src_ip,$port_src,$interface_src,$src_name,$dst_ip,$port_dst,$interface_dst,$dst_name,$pad) = ($ThisLine =~ /msg="(Ping of death dropped|Smurf Amplification attack dropped)" n=(\d+) src=(\d+\.\d+\.\d+\.\d+):(\d+):(WAN|LAN|DMZ):?(.*)? dst=(\d+\.\d+\.\d+\.\d+):(\d+):(WAN|LAN|DMZ):?(.*)?/) ) {
       $Msg{$host_ip}{$Msg," for ",LookupIP($src_ip)," to ",LookupIP($dst_ip)}++
    }
-    elsif ( ($Msg,$number,$src_ip,$port_src,$interface_src,$src_name,$dst_ip,$port_dst,$interface_dst,$dst_name,$pad) = ($ThisLine =~ /msg="(Ping of death dropped|Smurf Amplification attack dropped)" n=(\d+) src=(\d+\.\d+\.\d+\.\d+):(\d+):(WAN|LAN|DMZ):?(.*)? dst=(\d+\.\d+\.\d+\.\d+):(\d+):(WAN|LAN|DMZ):?(.*)?/) ) {
+    elsif ( ($Msg,$number,$src_ip,$port_src,$interface_src,$src_name,$dst_ip,$port_dst,$interface_dst,$dst_name,$pad) = ($ThisLine =~ /msg="(.*)" n=(\d+) src=(\d+\.\d+\.\d+\.\d+):(\d+):(WAN|LAN|DMZ):?(.*)? dst=(\d+\.\d+\.\d+\.\d+):(\d+):(WAN|LAN|DMZ):?(.*)?(S+)?(.*)?/) ) {
       $Msg{$host_ip}{$Msg," for ",LookupIP($src_ip)," to ",LookupIP($dst_ip)}++
    }
 
