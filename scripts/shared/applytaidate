@@ -56,6 +56,16 @@ while (defined($ThisLine = <STDIN>)) {
 			if ( $Debug > 5 ) { print STDERR "DEBUG: NewTimeStamp: " . $NewTimeStamp . " ($ThisLine)\n"; }
 		}
 	}
+	elsif ($ThisLine =~ s/^\@40{6}([0-9a-f]{9})[0-9a-f]{8}\s// ) {
+		if ( $Debug > 10 ) {
+			print STDERR "DEBUG: potential Y2038 bug $1 is greater than 2038 and your perl version is $] see http://perldoc.perl.org/5.14.1/perl5120delta.html#Y2038-compliance\n";
+		}
+		my $NewTimeStamp = scalar(localtime(hex($1)));
+		if ($NewTimeStamp =~ /^$SearchDate$/) {
+			print $ThisLine;
+			if ( $Debug > 5 ) { print STDERR "DEBUG: NewTimeStamp: " . $NewTimeStamp . " ($ThisLine)\n"; }
+		}
+	}
 }
 
 # vi: shiftwidth=3 syntax=perl tabstop=3 et
