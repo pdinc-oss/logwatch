@@ -46,6 +46,7 @@ $ThisLine = <STDIN>;
 mainloop: while ($ThisLine) {
    if ($ThisLine =~ m/^$SearchDate /o) {
       print $ThisLine;
+      $ThisLine = <STDIN>;
    }
    elsif ($ThisLine =~ m/^\[$SearchDate2/o) {
       chomp($ThisLine);
