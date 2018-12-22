@@ -298,6 +298,9 @@ while (defined($ThisLine = <STDIN>)) {
    elsif ( ($interface) = ($ThisLine =~ /UNDERFLO: (.*)/) ) {
       $Underflow{$host}{$interface}++;
    }
+   elsif ( ($interface) = ($ThisLine =~ /SYS-4-P2_WARN: (.*)/) ) {
+      $SYSWarn{$host}{$interface}++;
+   }
    elsif ( ($interface) = ($ThisLine =~ /P2_WARN: (.*)/) ) {
       $InvalidMulticast{$host}{$interface}++;
    }
@@ -360,9 +363,6 @@ while (defined($ThisLine = <STDIN>)) {
    }
    elsif ( ($interface) = ($ThisLine =~ /MLS-5-FLOWMASKCHANGE: (.*)/) ) {
       $MLSFlowmaskChanged{$host}{$interface}++;
-   }
-   elsif ( ($interface) = ($ThisLine =~ /SYS-4-P2_WARN: (.*)/) ) {
-      $SYSWarn{$host}{$interface}++;
    }
    elsif ( ($interface) = ($ThisLine =~ /SYS-3-CPUHOG: (.*)/) ) {
       $SYSCpuHog{$host}{$interface}++;
