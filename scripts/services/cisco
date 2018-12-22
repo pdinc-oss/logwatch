@@ -568,11 +568,11 @@ if (keys %Flapping) {
    }
 }
 
-if (keys %$DuplicateAddress) {
+if (keys %DuplicateAddress) {
    print "\nPort/Interface duplicate address :\n";
-   foreach $ThisOne (sort keys %$DuplicateAddress) {
+   foreach $ThisOne (sort keys %DuplicateAddress) {
       print "   " . $ThisOne . ":\n";
-      foreach $ThatOne (sort keys %{$$DuplicateAddress{$ThisOne}}) {
+      foreach $ThatOne (sort keys %{$DuplicateAddress{$ThisOne}}) {
          print "\t " .$ThatOne . "\t: " . $DuplicateAddress{$ThisOne}{$ThatOne} . " Time(s)\n";
       }
    }
