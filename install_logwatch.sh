@@ -275,8 +275,8 @@ done
 if [ -d $MANDIR/man5 ] && [ -d $MANDIR/man8 ] && [ -d $MANDIR/man1 ] && [ $HAVE_MAKEWHATIS ]; then
    install -m 0644 logwatch.8 $MANDIR/man8
    install -m 0644 logwatch.conf.5 $MANDIR/man5
-   install -m 0644 override.conf.5 $MANDIR/man5
-   install -m 0644 ignore.conf.5 $MANDIR/man5
+   ln -s $MANDIR/man5/logwatch.conf.5  $MANDIR/man5/ignore.conf.5
+   ln -s $MANDIR/man5/logwatch.conf.5  $MANDIR/man5/override.conf.5
    install -m 0644 postfix-logwatch.1 $MANDIR/man1
    install -m 0644 amavis-logwatch.1 $MANDIR/man1
    #OpenBSD no -s
@@ -298,12 +298,12 @@ if [ -d $MANDIR/man5 ] && [ -d $MANDIR/man8 ] && [ -d $MANDIR/man1 ] && [ $HAVE_
    fi
 else
    if [ $OS = "SunOS" ]; then
-      #Go for the safe install rather then editing man.cf
+      #Go for the safe install rather than editing man.cf
       mkdir -p $MANDIR/man1m > /dev/null 2>&1
       install -m 0644 logwatch.8 $MANDIR/man1m
       install -m 0644 logwatch.conf.5 $MANDIR/man1m
-      install -m 0644 override.conf.5 $MANDIR/man1m
-      install -m 0644 ignore.conf.5 $MANDIR/man1m
+      ln -s $MANDIR/man1m/logwatch.conf.5  $MANDIR/man1m/ignore.conf.5
+      ln -s $MANDIR/man1m/logwatch.conf.5  $MANDIR/man1m/override.conf.5
       install -m 0644 postfix-logwatch.1 $MANDIR/man1
       install -m 0644 amavis-logwatch.1 $MANDIR/man1
       catman -w -M $MANDIR/man1m
@@ -314,8 +314,8 @@ else
 
       install -m 0755 -d $MANDIR/man5
       install -m 0644 logwatch.conf.5 $MANDIR/man5
-      install -m 0644 override.conf.5 $MANDIR/man5
-      install -m 0644 ignore.conf.5 $MANDIR/man5
+      ln -s $MANDIR/man5/logwatch.conf.5  $MANDIR/man5/ignore.conf.5
+      ln -s $MANDIR/man5/logwatch.conf.5  $MANDIR/man5/override.conf.5
 
       install -m 0755 -d $MANDIR/man8
       install -m 0644 logwatch.8 $MANDIR/man8
