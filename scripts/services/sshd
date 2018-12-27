@@ -315,6 +315,7 @@ while (defined(my $ThisLine = <STDIN>)) {
        ($ThisLine =~ /Found matching \w+ key:/ ) or
        ($ThisLine =~ /User child is on pid \d/ ) or
        ($ThisLine =~ /Nasty PTR record .* is set up for [\da-fA-F.:]+, ignoring/) or
+       ($ThisLine =~ /Exiting on signal / ) or
        ($ThisLine =~ /Disconnected from [\da-fA-F.:]* port \d*/ ) or
        ($ThisLine =~ /Disconnected from user \S+ [\da-fA-F.:]* port \d*/ ) or
        ($ThisLine =~ /Disconnected from (authenticating|invalid) user \S+ [\da-fA-F.:]* port \d*/ ) or
