@@ -226,9 +226,6 @@ while (defined($ThisLine = <STDIN>)) {
    elsif ( ($unmatched) = ($ThisLine =~ /%AUDIT-5-RUN_CONFIG/) ) {
       $ConfigChange{$host}++;
    }
-   elsif ( ($HASH) = ($ThisLine =~ /%AUDIT-5-STARTUP_CONFIG: Startup Configuration changed. Hash:\s(^\s)/) ) {
-      $StartConfigChange{host}++;
-   }
    elsif ( ($interface,$errortype,$withwho) = ($ThisLine =~ /duplex mismatch discovered on (.+) \(.*\), with (.*)/) ) {
       $DuplexMismatched{$host}{$interface." with ".$errortype}++;
    }
@@ -298,6 +295,9 @@ while (defined($ThisLine = <STDIN>)) {
    elsif ( ($interface) = ($ThisLine =~ /UNDERFLO: (.*)/) ) {
       $Underflow{$host}{$interface}++;
    }
+   elsif ( ($interface) = ($ThisLine =~ /SYS-4-P2_WARN: (.*)/) ) {
+      $SYSWarn{$host}{$interface}++;
+   }
    elsif ( ($interface) = ($ThisLine =~ /P2_WARN: (.*)/) ) {
       $InvalidMulticast{$host}{$interface}++;
    }
@@ -361,9 +361,6 @@ while (defined($ThisLine = <STDIN>)) {
    elsif ( ($interface) = ($ThisLine =~ /MLS-5-FLOWMASKCHANGE: (.*)/) ) {
       $MLSFlowmaskChanged{$host}{$interface}++;
    }
-   elsif ( ($interface) = ($ThisLine =~ /SYS-4-P2_WARN: (.*)/) ) {
-      $SYSWarn{$host}{$interface}++;
-   }
    elsif ( ($interface) = ($ThisLine =~ /SYS-3-CPUHOG: (.*)/) ) {
       $SYSCpuHog{$host}{$interface}++;
    }
@@ -410,9 +407,6 @@ while (defined($ThisLine = <STDIN>)) {
       $CountersMsg{$host}{$interface}++;
    }
    elsif ( ($interface) = ($ThisLine =~ /DOT11-4-MAXRETRIES: Packet to client ....\.....\..... reached(.*)/) ) {
-      $Dot11Retrys{$host}{$interface}++;
-   }
-   elsif ( ($interface,$msg) = ($ThisLine =~ /DOT11-4-MAXRETRIES: Packet to client ....\.....\..... reached(.*)/) ) {
       $Dot11Retrys{$host}{$interface}++;
    }
    elsif ( ($radio,$interface) = ($ThisLine =~ /DOT11-6-ASSOC: Interface (.*), Station +(.*)/) ) {
@@ -574,11 +568,11 @@ if (keys %Flapping) {
    }
 }
 
-if (keys %$DuplicateAddress) {
+if (keys %DuplicateAddress) {
    print "\nPort/Interface duplicate address :\n";
-   foreach $ThisOne (sort keys %$DuplicateAddress) {
+   foreach $ThisOne (sort keys %DuplicateAddress) {
       print "   " . $ThisOne . ":\n";
-      foreach $ThatOne (sort keys %{$$DuplicateAddress{$ThisOne}}) {
+      foreach $ThatOne (sort keys %{$DuplicateAddress{$ThisOne}}) {
          print "\t " .$ThatOne . "\t: " . $DuplicateAddress{$ThisOne}{$ThatOne} . " Time(s)\n";
       }
    }
