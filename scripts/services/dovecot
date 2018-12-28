@@ -232,13 +232,30 @@ while (defined(my $ThisLine = <STDIN>)) {
     # dovecot: [ID 583609 mail.info] lmtp(12782, cloyce@headgear.org): jBt1EfjCMk3uMQAAm9eMBA: msgid=<4D32DB1F.3080707@c-dot.co.uk>: saved mail to INBOX
       $Deliver{$User}{$Mailbox}++;
 
+# LMTP-based delivery Dovecot 2.2.33
+    } elsif ( ($User, $Mailbox) = ( $ThisLine =~ /^$dovecottag lmtp\((.*)\): msgid=.*: saved mail to (.*)/ ) ) {
+    # dovecot: lmtp(user@domain.com): msgid=<0.0.B.B83.1D385668207AF06.0@b12.mta01.sendsmaily.info>: saved mail to INBOX
+      $Deliver{$User}{$Mailbox}++;
+
 # LMTP-based Sieve delivery
    } elsif (my ($User, $Mailbox) = ( $ThisLine =~ /^$dovecottag lmtp\((?:\d+, )?(.*?)\): .*: sieve: msgid=.*: stored mail into mailbox '(.*)'/ ) ) {
+      $Deliver{$User}{$Mailbox}++;
+
+# LMTP-based Sieve delivery Dovecot 2.3
+   } elsif (my ($User, $Mailbox) = ( $ThisLine =~ /^$dovecottag lmtp\((.*)\): sieve: msgid=.*: stored mail into mailbox '(.*)'/ ) ) {
       $Deliver{$User}{$Mailbox}++;
 
 # sieve forward
    } elsif (my ($User, $Recip) = ($ThisLine =~ /^$dovecottag (?:lda|deliver|lmtp)\((?:\d+, )?(.*?)\):(?: [^:]+:)? sieve: msgid=.* forwarded to \<(.*)\>/)) {
       $Forwarded{$User}{$Recip}++;
+
+# sieve pipe
+   } elsif (my ($User, $Recip) = ($ThisLine =~ /^$dovecottag (?:imap|lmtp)\((.*?)\): sieve: (?:msgid=.*: )?pipe action: piped message to program `.*'/) or
+            my ($User, $Recip) = ($ThisLine =~ /^$dovecottag (?:imap|lmtp)\((.*?)\): sieve: (?:msgid=.*: )?left message in mailbox '.*'/) ) {
+      # dovecot: imap(user@domain.com): sieve: pipe action: piped message to program `sa-learn-sieve.sh'
+      # dovecot: imap(user@domain.com): sieve: left message in mailbox 'INBOX.Spam'
+      # dovecot: lmtp(spam@domain.com): sieve: msgid=<6e3eb3f436fdca54@host.domain.com>: pipe action: piped message to program `sa-learn-sieve.sh'
+      # IGNORE
 
 # sieve vacation
    } elsif (my ($User, $Recip) = ($ThisLine =~ /^$dovecottag (?:lda|deliver|lmtp)\((?:\d+, )?(.*)\):(?: .*:)? sieve: msgid=.* sent vacation response to \<(.*)\>/)) {
