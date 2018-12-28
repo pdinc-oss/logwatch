@@ -190,7 +190,7 @@ while (defined($ThisLine = <STDIN>)) {
    $ThisLine =~ s/\[ID [0-9]+ [a-z]+\.[a-z]+\] //;
    my $temp = $ThisLine;
    $temp =~ s/^([^[:]+).*/$1/;
-   if ($Ignore =~ /\b\Q$temp\E\b/i) { next; }
+   if ($Ignore =~ /(\s|^)\Q$temp\E(\s|$)/i) { next; }
 
    #current sarge
    if ($ThisLine =~ /^[^ :]*:( [0-9:\[\]\.]+|) \(pam_(unix|securetty)\)/i ) {next; }
@@ -285,6 +285,7 @@ while (defined($ThisLine = <STDIN>)) {
       ( $ThisLine =~ /systemd-logind\[\d+\]: Failed to start session scope (\S+): Transaction is destructive\./) or
       ( $ThisLine =~ /DIGEST-MD5 common mech free/) or
       ( $ThisLine =~ /sshguard\[\d+\]: Reloading rotated file /) or
+      ( $ThisLine =~ /sshguard\[\d+\]: Session \d+ logged out/) or
       ( $ThisLine =~ /sshguard\[\d+\]: Exiting on signal/) or
       ( $ThisLine =~ /sshguard\[\d+\]: Monitoring attacks from /) or
       ( $ThisLine =~ /sshguard\[\d+\]: (?:message repeated \d+ times: \[ )?\S+: not blocking /) or
