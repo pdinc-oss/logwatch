@@ -327,7 +327,7 @@ if (($Detail >= 5) and (keys %Connect)) {
                print "         $Ho : $Connect{$Serv}{$Us}{$Ho} Time(s)\n";
             }
          } else {
-            foreach $Ho (sort {$a cmp $b} keys %{$Connect{$Serv}{$Us}}) {
+            foreach $Ho (keys %{$Connect{$Serv}{$Us}}) {
                print " $Ho " . (" " x (25 - length($Ho))) . ":
                $Connect{$Serv}{$Us}{$Ho} Time(s)\n";
             }
