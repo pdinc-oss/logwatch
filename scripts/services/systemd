@@ -17,10 +17,12 @@
 use strict;
 my $Detail = $ENV{'LOGWATCH_DETAIL_LEVEL'} || 0;
 my $Ignore_failed = $ENV{'ignore_failed'} || "";
+my $Ignore_leftover = $ENV{'ignore_leftover'} || "";
 my %ConfigError;
 my %Activated;
 my %Failed;
 my %Deactivated;
+my %LeftOver;
 my $Reexecuted = 0;
 my %Reloaded;
 my %Slice;
@@ -173,6 +175,8 @@ while (defined(my $ThisLine = <STDIN>)) {
       $Slow{$pidfile}++;
    } elsif (my ($pidfile) = ($ThisLine =~ /: Can't open PID file (.*) \(yet\?\) after start:/)) {
       $Slow{$pidfile}++;
+   } elsif (my ($Service, $Exe) = ($ThisLine =~ /^(.*): Found left-over process \d+ \((.*)\) in control group while starting unit\. Ignoring\.$/)) {
+      $LeftOver{"$Service:$Exe"}++ unless "$Service:$Exe" =~/^$Ignore_leftover$/i;
    } else {
       $OtherList{$ThisLine}++;
    }
@@ -212,6 +216,15 @@ if (keys %Failed) {
 
 if ($Reexecuted && $Detail) {
    print "Reexecuted systemd: $Reexecuted Time(s)\n\n";
+}
+
+if (keys %LeftOver) {
+   print "Warning: Found left-over process in control group while starting unit:\n";
+   foreach my $item (sort {$a cmp $b} keys %LeftOver) {
+      my ($service, $exe) = split(":", $item);
+      print "        $service($exe): $LeftOver{$item} Time(s)\n";
+   }
+   print "\n";
 }
 
 if (keys %Target && $Detail > 3) {
