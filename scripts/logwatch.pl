@@ -3,8 +3,10 @@ use strict;
 ##########################################################################
 ##########################################################################
 # Most current version can always be found at:
-# ftp://ftp.logwatch.org/pub/linux (tarball)
-# ftp://ftp.logwatch.org/pub/redhat/RPMS (RPMs)
+#	https://sourceforge.net/p/logwatch/git/ci/master/tree/
+# A tarball, perhaps not as current as the version listed above, can be
+# found at (after a slight delay):
+#	https://sourceforge.net/projects/logwatch/files/latest/download
 
 ########################################################
 # Specify version and build-date:
@@ -12,15 +14,17 @@ my $Version = '7.5.1';
 my $VDate = '12/30/18';
 
 #######################################################
-# Logwatch was written and is maintained by:
+# Logwatch was originally written by:
 #    Kirk Bauer <kirk@kaybee.org>
 #
 # Unless otherwise specified, Logwatch and all bundled filter scripts
 # are Copyright (c) Kirk Bauer and covered under the included MIT/X
 # Consortium license.
 #
-# Please send all comments, suggestions, bug reports,
-#    etc, to logwatch@logwatch.org.
+# Please file all bug reports, patches, and feature requests under:
+#	https://sourceforge.net/p/logwatch/_list/tickets
+# Help requests and disccusion can be filed under:
+#	https://sourceforge.net/p/logwatch/discussion/
 #
 ########################################################
 
