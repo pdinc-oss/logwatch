@@ -62,7 +62,7 @@ while (defined($ThisLine = <STDIN>)) {
 
    # TD: Login OK: [user@example.com] (from client radius port 0)
    # TD: Login OK: [user@example.com] (from client radius port 9 cli 00-11-22-33-44-AA;eduroam via TLS tunnel)
-   elsif ( my ($user) = ($ThisLine =~ m/^(?:Auth: )?Login OK: \[(.+)\] \(from client [^ ]* port \d{1,10}(?: cli [-0-9a-fA-F.:]+)?(?:;\w+)?(?: via TLS tunnel)?\)/) ) {
+   elsif ( my ($user) = ($ThisLine =~ m/^(?:Auth:|\(\d{1,10}\))? Login OK: \[(.+)\] \(from client [^ ]* port \d{1,10}(?: cli [-0-9a-fA-F.:]+)?(?:;\w+)?(?: via TLS tunnel)?\)/) ) {
       $loginsOk{$user}++;
 
    }
@@ -71,7 +71,7 @@ while (defined($ThisLine = <STDIN>)) {
    # TD: Login incorrect (mschap: External script says Logon failure (0xc000006d)): [user@example.com] (from client radius port 13 cli aa-bb-cc-11-22-33 via TLS tunnel)
    # TD: Login incorrect (TLS Alert write:fatal:handshake failure): [user@example.com] (from client radius port 13 cli aa-bb-cc-11-22-33)
    # TD: 
-   elsif ( my ($user, $ip) = ( $ThisLine =~ m/^(?:Auth: )?Login incorrect(?: \(.+\))?: \[(.*)\] \(from client [^ ]* port \d{1,10}(?: cli ([-0-9a-fA-F.:]+)(?:;\w+)?)?(?: via TLS tunnel)?\)/) ) {
+   elsif ( my ($user, $ip) = ( $ThisLine =~ m/^(?:Auth:|\(\d{1,10}\))? Login incorrect(?: \(.+\))?: \[(.*)\] \(from client [^ ]* port \d{1,10}(?: cli ([-0-9a-fA-F.:]+)(?:;\w+)?)?(?: via TLS tunnel)?\)/) ) {
       if (! $ip) { $ip = "*not named*"; }
       $wrongUser{$ip}{$user}++;
       $wrong_ip{$ip}++;
