@@ -183,6 +183,10 @@ while (defined(my $ThisLine = <STDIN>)) {
       ($ThisLine =~ /discarding vacation response/) or
       ($ThisLine =~ /discarded vacation reply to/) or
       ($ThisLine =~ /Debug:/) or
+      ($ThisLine =~ /^$dovecottag imap\(\w+\): Mailbox renamed:/) or
+      ($ThisLine =~ /^$dovecottag imap\(\w+\): copy from /) or
+      ($ThisLine =~ /^$dovecottag imap\(\w+\): delete: /) or
+      ($ThisLine =~ /^$dovecottag imap\(\w+\): expunge: /) or
       0 # This line prevents blame shifting as lines are added above
       )
    {
