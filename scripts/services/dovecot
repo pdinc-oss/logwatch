@@ -224,7 +224,7 @@ while (defined(my $ThisLine = <STDIN>)) {
    } elsif ( ($User, $Mailbox) = ( $ThisLine =~ /^$dovecottag service=lda, user=(.*), .* msgid=.*: saved mail to (.*)/ ) ) {
       $Deliver{$User}{$Mailbox}++;
 # For Sieve-based delivery
-   } elsif (my ($User, $Mailbox) = ( $ThisLine =~ /^$dovecottag (?:lda|deliver)\((.*)\): sieve: msgid=.*: stored mail into mailbox '(.*)'/ ) ) {
+   } elsif (my ($User, $Mailbox) = ( $ThisLine =~ /^$dovecottag (?:lda|deliver)\((.*)\)(?:<[^>]+><[^>]+>)?: sieve: msgid=.*: stored mail into mailbox '(.*)'/ ) ) {
       $Deliver{$User}{$Mailbox}++;
 
 # LMTP-based delivery
@@ -238,7 +238,7 @@ while (defined(my $ThisLine = <STDIN>)) {
       $Deliver{$User}{$Mailbox}++;
 
 # LMTP-based Sieve delivery
-   } elsif (my ($User, $Mailbox) = ( $ThisLine =~ /^$dovecottag lmtp\((?:\d+, )?(.*?)\): .*: sieve: msgid=.*: stored mail into mailbox '(.*)'/ ) ) {
+   } elsif (my ($User, $Mailbox) = ( $ThisLine =~ /^$dovecottag lmtp\((?:\d+, )?(.*?)\)(?:<[^>]+><[^>]+>)?: .*: sieve: msgid=.*: stored mail into mailbox '(.*)'/ ) ) {
       $Deliver{$User}{$Mailbox}++;
 
 # LMTP-based Sieve delivery Dovecot 2.3
@@ -246,7 +246,7 @@ while (defined(my $ThisLine = <STDIN>)) {
       $Deliver{$User}{$Mailbox}++;
 
 # sieve forward
-   } elsif (my ($User, $Recip) = ($ThisLine =~ /^$dovecottag (?:lda|deliver|lmtp)\((?:\d+, )?(.*?)\):(?: [^:]+:)? sieve: msgid=.* forwarded to \<(.*)\>/)) {
+   } elsif (my ($User, $Recip) = ($ThisLine =~ /^$dovecottag (?:lda|deliver|lmtp)\((?:\d+, )?(.*?)\)(?:<[^>]+><[^>]+>)?:(?: [^:]+:)? sieve: msgid=.* forwarded to \<(.*)\>/)) {
       $Forwarded{$User}{$Recip}++;
 
 # sieve pipe
@@ -258,10 +258,10 @@ while (defined(my $ThisLine = <STDIN>)) {
       # IGNORE
 
 # sieve vacation
-   } elsif (my ($User, $Recip) = ($ThisLine =~ /^$dovecottag (?:lda|deliver|lmtp)\((?:\d+, )?(.*)\):(?: .*:)? sieve: msgid=.* sent vacation response to \<(.*)\>/)) {
+   } elsif (my ($User, $Recip) = ($ThisLine =~ /^$dovecottag (?:lda|deliver|lmtp)\((?:\d+, )?(.*)\)(?:<[^>]+><[^>]+>)?:(?: .*:)? sieve: msgid=.* sent vacation response to \<(.*)\>/)) {
       $VacationResponse{$User}{$Recip}++;
 
-   } elsif (my ($User, $Recip) = ($ThisLine =~ /^$dovecottag (?:lda|deliver|lmtp)\((?:\d+, )?(.*)\):(?: .*:)? sieve: msgid=.* discarded duplicate vacation response to \<(.*)\>/ )) {
+   } elsif (my ($User, $Recip) = ($ThisLine =~ /^$dovecottag (?:lda|deliver|lmtp)\((?:\d+, )?(.*)\)(?:<[^>]+><[^>]+>)?:(?: .*:)? sieve: msgid=.* discarded duplicate vacation response to \<(.*)\>/ )) {
       $VacationDup{$User}{$Recip}++;
 
    } elsif ( $ThisLine =~ /^$dovecottag (?:lda|deliver|lmtp)\(.*\): .*sieve: msgid=.* marked message to be discarded if not explicitly delivered/ ) {
