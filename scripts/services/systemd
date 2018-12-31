@@ -46,7 +46,7 @@ while (defined(my $ThisLine = <STDIN>)) {
        # These events will be caught with the Unit X entered failed state message
        $ThisLine =~ /^Failed to start / or
        $ThisLine =~ /: Failed with result / or
-       $ThisLine =~ /: Failed at step / or
+       $ThisLine =~ /Failed at step / or
        $ThisLine =~ / failed\.$/ or
        $ThisLine =~ /([Cc]ontrol|[Mm]ain|[Mm]ount) process exited, code=(exited|killed|dumped),? status=/ or
        # Informational
