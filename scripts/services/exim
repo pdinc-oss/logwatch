@@ -215,7 +215,7 @@ while (defined($ThisLine = <STDIN>)) {
       # Often someone who tries lots of transactions
       $Proto{$ThisLine}++;
    }
-   elsif ( $ThisLine =~ /SMTP protocol error in \"\w+\"/ ) {
+   elsif ( $ThisLine =~ /SMTP protocol error in \"[^\"]+\"/ ) {
       # Some hosts ask for TLS even when not offered (generalised to all cmds)
       $Proto{$ThisLine}++;
    }
