@@ -269,9 +269,12 @@ while (defined($ThisLine = <STDIN>)) {
       ( $ThisLine =~ /polkitd(\(authority=.*\)|\[\d+\])?: Acquired the name [^ ]* on the system bus$/) or
       ( $ThisLine =~ /polkitd(\(authority=.*\)|\[\d+\])?: Lost the name [^ ]* - exiting$/) or
       ( $ThisLine =~ /polkitd(\(authority=.*\)|\[\d+\])?: Loading rules from directory /) or
+      ( $ThisLine =~ /polkitd(\(authority=.*\)|\[\d+\])?: Reloading rules/) or
       ( $ThisLine =~ /polkitd(\(authority=.*\)|\[\d+\])?: Finished loading, compiling and executing \d+ rules$/) or
+      ( $ThisLine =~ /polkitd(\(authority=.*\)|\[\d+\])?: Collecting garbage unconditionally/) or
       ( $ThisLine =~ /(gdm-session-worker|gdm-password|gnome-screensaver-dialog)\[\d+\]: gkr-pam: no password is available for user/) or
       ( $ThisLine =~ /gkr-pam: the password for the login keyring was invalid/) or
+      ( $ThisLine =~ /gkr-pam: unlocked login keyring/) or
       ( $ThisLine =~ /groupadd\[\d+\]: group added to /) or    # Details in other messages
       ( $ThisLine =~ /groupmod\[\d+\]: group changed in \/etc\/gshadow /) or    # Details in other messages
       ( $ThisLine =~ /gdm-session-worker\[\d+\]: pam_namespace\(gdm:session\): Unmount of [^ ]* failed, Device or resource busy/) or
@@ -279,10 +282,12 @@ while (defined($ThisLine = <STDIN>)) {
       ( $ThisLine =~ /pkexec(?:\[\d+\])?: \S+: Executing command /) or
       ( $ThisLine =~ /su: pam_systemd(.*): Failed to parse message: /) or
       ( $ThisLine =~ /pam_systemd\(su:session\): Cannot create session: Already (running in|occupied by) a session/) or
-      ( $ThisLine =~ /systemd-logind\[\d+\]: Removed session/) or
+      ( $ThisLine =~ /pam_systemd\(su.*:session\): Failed to release session:/) or
+      ( $ThisLine =~ /systemd-logind\[\d+\]: (New|Removed) session/) or
       ( $ThisLine =~ /systemd-logind\[\d+\]: New seat seat\d+\./) or
       ( $ThisLine =~ /systemd-logind\[\d+\]: Watching system buttons on /) or
       ( $ThisLine =~ /systemd-logind\[\d+\]: Failed to start session scope (\S+): Transaction is destructive\./) or
+      ( $ThisLine =~ /systemd-logind\[\d+\]: Session \d+ logged out/) or
       ( $ThisLine =~ /DIGEST-MD5 common mech free/) or
       ( $ThisLine =~ /sshguard\[\d+\]: Reloading rotated file /) or
       ( $ThisLine =~ /sshguard\[\d+\]: Session \d+ logged out/) or
@@ -402,7 +407,7 @@ while (defined($ThisLine = <STDIN>)) {
       $RootLoginXVC++
    } elsif ( $ThisLine =~ /^com.apple.SecurityServer: authinternal authenticated user root .*/) {
       $RootLoginTTY++
-   } elsif ( (undef,$User) = ($ThisLine =~ /^login: LOGIN ON (tty|pts\/)[0-9]+ BY ([^ ]+)/ )) {
+   } elsif ( (undef,undef,$User) = ($ThisLine =~ /^login(\[\d+\])*: LOGIN ON (tty|pts\/)[0-9]+ BY ([^ ]+)/ )) {
       $UserLogin{$User}++;
    } elsif ( ($User,undef) = ($ThisLine =~ /^com.apple.SecurityServer: authinternal authenticated user ([^ ]+) .*/ )) {
       $UserLogin{$User}++;
@@ -410,7 +415,7 @@ while (defined($ThisLine = <STDIN>)) {
       $DeletedUsers .= "   $ThisLine\n";
    } elsif ( $ThisLine =~ s/^(?:useradd|adduser)(?:\[\d+\])?: new user: name=(.+), (?:uid|UID)=(\d+).*$/$1 ($2)/ ) {
       $NewUsers .= "   $ThisLine\n";
-   } elsif ( $ThisLine =~ s/^userdel(?:\[\d+\])?: remove(?:d)? (?:shadow)? group [`'](\S+)'( owned by \S+)?/$1/ ) {
+   } elsif ( $ThisLine =~ s/^userdel(?:\[\d+\])?: remove(?:d)? (?:shadow )?group [`'](\S+)'( owned by \S+)?/$1/ ) {
       $DeletedGroups .= "   $ThisLine\n";
    } elsif ( $ThisLine =~ s/^groupdel(?:\[\d+\])?: remove group `(.+)'/$1/ ) {
       $DeletedGroups .= "   $ThisLine\n";
@@ -492,6 +497,8 @@ while (defined($ThisLine = <STDIN>)) {
       $Su_User{$User}{$Su}++;
    } elsif ($ThisLine =~ /^userhelper\[\d+\]: running '([^']+)' with ([^']+) privileges on behalf of '([^']+)'/) {
       $Executed_app{"$1,$2,$3"}++;
+   } elsif ($ThisLine =~ /^polkitd\[\d+\]: Operator of unix-process:\d+:\d+ successfully authenticated as unix-user:([^ ]+) to gain ONE-SHOT authorization for action org\.freedesktop\..* for system-bus-name::[\d.]+ \[([^\]]*)\] \(owned by unix-user:(\w+)\)/) {
+      $Executed_app{"$2,$1,$3"}++;
    } elsif ( ($User) = $ThisLine =~ /change user [`']([^']+)' password/) {
       $PwdChange{"$User"}++;
    } elsif ( ($User) = ($ThisLine =~ /^cvs: password mismatch for ([^']+): ([^']+) vs. ([^']+)/) ){
@@ -544,7 +551,7 @@ while (defined($ThisLine = <STDIN>)) {
         $e='';
      }
      $KerbList{$response}{$type}{$from}{$service}{$client}{$e}++;
-   } elsif ($ThisLine =~ /Rootkit Hunter:/ ) {
+   } elsif ($ThisLine =~ /(Rootkit Hunter|rkhunter)(\[\d+\])?:/ ) {
       if ($ThisLine =~ /Please inspect this machine/) {
          $RootkitHunter{'inspect'}++;
       } elsif ($ThisLine =~ /check started/) {
@@ -961,6 +968,7 @@ if (keys %KerbList) {
 if (keys %RootkitHunter) {
    use integer;
    my ($mins, $secs) = ($RootkitHunter{'time'} / 60, $RootkitHunter{'time'} % 60);
+   $RootkitHunter{'inspect'} = 0 unless $RootkitHunter{'inspect'};
    print "\nRootkitHunter:\n";
    print "   Runs: $RootkitHunter{'runs'}\n";
    print "   Suggested Inspection: $RootkitHunter{'inspect'} Time(s)\n";
