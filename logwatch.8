@@ -33,6 +33,8 @@ logwatch \- system log analyzer and reporter
 .I output-type
 .B ] [--format
 .I report format
+.B ] [--subject
+.I email subject
 .B ] [--encode
 .I encoding to use
 .B ] [--numeric] [--version] [--help|--usage]
@@ -121,6 +123,9 @@ Report using
 Format report using
 .I format
 - text [default], html.
+.IP "\fB--subject\fR email-subject"
+Customize the email subject sent by Logwatch.  Option \fB--output\fR
+must be set to mail.
 .IP "\fB--encode\fR encoding"
 Encode report using
 .I encoding
