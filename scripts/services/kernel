@@ -268,7 +268,7 @@ if (keys %EDACs) {
 }
 
 if (keys %NFS) {
-   print "\nWARNING:  NFS Sever Not Responding Messages\n";
+   print "\nWARNING:  NFS Server Not Responding Messages\n";
    foreach my $Thisone ( sort {$a cmp $b} keys %NFS ) {
       print "   $Thisone ...:  $NFS{$Thisone} Time(s)\n";
    }
