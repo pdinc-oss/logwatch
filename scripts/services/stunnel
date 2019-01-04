@@ -42,6 +42,7 @@ my %errors = ();
 my %notices = ();
 my $sockdata = 0;
 my $ssldata = 0;
+my $stops = 0;
 
 sub other {
    my $msg = shift;
@@ -69,6 +70,8 @@ while (defined($ThisLine = <STDIN>)) {
         $connections{$service}{$ip} = 0;
       }
       ++$connections{$service}{$ip};
+   } elsif ($ThisLine =~ m/^Configuration successful/) {
+      # ignore
    } elsif ($ThisLine =~ m/^Connection (reset|closed): (\d+) bytes sent to SSL, (\d+) bytes sent to socket/) {
       $ssldata += $2;
       $sockdata += $3;
@@ -82,9 +85,11 @@ while (defined($ThisLine = <STDIN>)) {
       $errors{"$1: increase the maximum number of open file descriptors"}++;
    } elsif ($ThisLine =~ m/^Log file reopened$/) {
       # ignore
+   } elsif ($ThisLine =~ m/^Reading configuration from /) {
+      # ignore
    } elsif ($ThisLine =~ m/^SSL socket closed on SSL_read with \d+ byte\(s\) in buffer$/) {
       # ignore
-   } elsif ($ThisLine =~ m/^stunnel [\d\.]+ on [\w\-]+ [\w\+]+ with OpenSSL [\w\.]+ \d+ \w+ \d+/) {
+   } elsif ($ThisLine =~ m/^(stunnel [\d\.]+ on |Compiled|Threading:|FIPS)/) {
       $versioninfo{$ThisLine} = 1;
    } elsif ($ThisLine =~ m/^Service (\S+) accepted connection from ([0-9a-fA-F.:]+):\d{1,5}/) {
       $connections{$1}{$2}++;
@@ -94,6 +99,8 @@ while (defined($ThisLine = <STDIN>)) {
       $errors{"$1 $2 file descriptor: $3"}++;
    } elsif ($ThisLine =~ m/^(SSL_write: (?:Broken pipe|Connection reset by peer)) \(\d+\)$/) {
       $errors{"$1"}++;
+   } elsif ($ThisLine =~ m/^Terminated/) {
+      $stops++;
    } elsif ($ThisLine =~ m/^transfer: s_poll_wait: TIMEOUTclose exceeded: closing$/) {
       $notices{"TIMEOUTclose exceeded: closing connection"}++;
    } elsif ($ThisLine =~ m/^(SSL_(?:accept|read|shutdown): .*|getpeerbyname: .*)(?: \(\d+\))?$/) {
@@ -107,18 +114,18 @@ while (defined($ThisLine = <STDIN>)) {
 if (keys %errors) {
    print "\nErrors:\n";
    foreach my $e (sort keys %errors) {
-      printf "  %-50s  %6d time(s)\n", $e, $errors{$e};
+      printf "    %-50s  %6d time(s)\n", $e, $errors{$e};
    }
 }
 
 if (keys %notices) {
    print "\nNotices:\n";
    foreach my $n (sort keys %notices) {
-      printf "  %-50s  %6d time(s)\n", $n, $notices{$n};
+      printf "    %-50s  %6d time(s)\n", $n, $notices{$n};
    }
 }
 
-if (keys %connections) {
+if ($Detail && keys %connections) {
    print "\nconnections:\n";
    foreach my $service (sort keys %connections) {
      print "  $service\n";
@@ -136,7 +143,11 @@ if (keys %connections) {
    }
 }
 
-if ($sockdata > 0) {
+if ($Detail && $stops > 0) {
+   print "\nService stopped $stops Time(s)\n";
+}
+
+if ($Detail && $sockdata > 0) {
    if ($sockdata > 1024*1024) {
       printf "\n%-48s  %10.2f MB\n", "amount of socket data transferred:", $sockdata / 1024 / 1024;
    } else {
@@ -144,7 +155,7 @@ if ($sockdata > 0) {
    }
 }
 
-if ($ssldata > 0) {
+if ($Detail && $ssldata > 0) {
    if ($ssldata > 1024*1024) {
       printf "\n%-48s  %10.2f MB\n", "amount of SSL data transferred:", $ssldata / 1024 / 1024;
    } else {
@@ -152,10 +163,10 @@ if ($ssldata > 0) {
    }
 }
 
-if (keys %versioninfo) {
+if ($Detail > 5 && keys %versioninfo) {
    print "\nversion information:\n";
    foreach my $v (sort keys %versioninfo) {
-      print "  $v\n";
+      print "    $v\n";
    }
 }
 
@@ -163,7 +174,7 @@ if (@OtherList) {
    print "\n**Unmatched Entries**\n";
    for (@OtherList) {
      my $count = $OtherList{$_};
-     print "($count) $_\n";
+     print "    $_: $count Time(s)\n";
    }
 }
 
