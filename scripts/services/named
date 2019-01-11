@@ -73,7 +73,7 @@ while (defined($ThisLine = <STDIN>)) {
       ($ThisLine =~ /recvfrom: No route to host/) or
       # Be sure to catch: transfer of 'zone' from IP#53: failed to connect: timed out
       # not exact just triggers a full transfer
-      ($ThisLine =~ /transfer of .*: (IXFR|AXFR(|-style IXFR) (started|ended)|connected using|Transfer completed|failed while receiving responses: not exact)/) or
+      ($ThisLine =~ /transfer of .*: (IXFR|AXFR(|-style IXFR) (started|ended)|connected using|failed while receiving responses: not exact)/) or
       ($ThisLine =~ /Transfer status: success/) or
       ($ThisLine =~ /using \d+ CPU/) or
       ($ThisLine =~ /loading configuration/) or
@@ -131,9 +131,6 @@ while (defined($ThisLine = <STDIN>)) {
       ($ThisLine =~ /adjusted limit on open files from [0-9]* to [0-9]*/) or
       ($ThisLine =~ /using up to [0-9]* sockets/) or
       ($ThisLine =~ /built with/) or
-      ($ThisLine =~ /compiled (by|with)/) or
-      ($ThisLine =~ /linked to/) or
-      ($ThisLine =~ /threads support is /) or
       ($ThisLine =~ /TTL differs in rdataset, adjusting [0-9]* -> [0-9]*/) or
       ($ThisLine =~ /max open files \([0-9]*\) is smaller than max sockets \([0-9]*\)/) or
       ($ThisLine =~ /clients-per-query (?:de|in)creased to .*/) or
@@ -251,6 +248,8 @@ while (defined($ThisLine = <STDIN>)) {
       $NetworkUnreachable{$Way}{$FullHost}++;
    } elsif ( ($Zone,$Message) = ( $ThisLine =~ /client [^\#]+#[^\:]+: (?:view \w+: )?updating zone '([^\:]+)': (.*)$/ ) ) {
       $ZoneUpdates{$Zone}{$Message}++;
+   } elsif ( ($Zone,$Source) = ( $ThisLine =~ /transfer of '([^\']+)' from ([^\#]+)#[^\:]+:/ ) ) {
+      $ZoneUpdates{$Zone}{"from $Source"}++;
    } elsif ( ($Host,$Zone) = ( $ThisLine =~ /approved AXFR from \[(.+)\]\..+ for \"(.+)\"/ ) ) {
       $FullHost = LookupIP ($Host);
       $AXFR{$Zone}{$FullHost}++;
@@ -714,7 +713,7 @@ if ( ( $Detail >= 10 ) and (keys %HUR) ) {
    }
 }
 
-if ( ( $Detail >= 5 ) and (keys %ZoneUpdates) ) {
+if ( ( $Detail >= 10 ) and (keys %ZoneUpdates) ) {
    print "\nZone Updates:\n";
    foreach $ThisOne (sort {$a cmp $b} keys %ZoneUpdates) {
       print "   $ThisOne:\n";
