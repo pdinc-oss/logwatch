@@ -68,7 +68,7 @@ $ListByService = $ENV{'iptables_list_by_service'} || 0;
 # Keep old behaviour if nothing is configured
 $ListByHost = 1 unless ($ListByService);
 $MaxFlood = 10;
-$MaxNum =0;
+$MaxNum = 0;
 
 sub lookupService {
    my ($port, $proto, $service);
@@ -349,21 +349,22 @@ if ((keys %ipt) and $ListByHost) {
             }
             $interfaceCount += $fromHostCount;
             if ($fromHostCount >= $MinFilter) {
-               if ($Detail > 0 ) {
-                  $outputMain .= "   From $from - $fromHostCount " . ( ( $fromHostCount > 1 ) ? "packets\n" : "packet\n" );
+               if ($Detail > 0) {
+                  $outputMain .= "  From $from - $fromHostCount " . ( ( $fromHostCount > 1 ) ? "packets\n" : "packet\n" );
                } else {
                   $outputMain .= "  From $from - $fromHostCount " .  ( ($fromHostCount > 1) ? "packets" : "packet" ) .  " to " ;
                   foreach $protocol ( keys %port_list ) {
-                     if ( $#{ keys %{$port_list { $protocol } } } > 10 ) {
-                        $outputMain .= $#{ $port_list{ $protocol } } ." $protocol ports";
+                     my $num_ports = keys %{$port_list { $protocol } };
+                     if ($num_ports > 10) {
+                        $outputMain .= "$num_ports $protocol ports ";
                      } else {
                         $outputMain .= "$protocol(" . join(",", sort compNum keys %{ $port_list{ $protocol } } ) . ") " ;
                      }
                   }
                   $outputMain .="\n";
                }
+               $outputMain .= $outputSection;
             }
-            $outputMain .= $outputSection;
          }
          print "\nListed by source hosts:";
          print "\n$actionType $interfaceCount " . ( ( $interfaceCount > 1 ) ? "packets" : "packet" ) . " on interface $interface\n";
