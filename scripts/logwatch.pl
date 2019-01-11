@@ -983,7 +983,8 @@ sub getInt {
 ######################################################################
 sub CleanVars {
    foreach (keys %Config) {
-      unless (defined $Config{$_} and ($_ eq "hostname" or $_ eq "filename")) {
+      unless (defined $Config{$_} and
+	($_ =~ /^(hostname|filename|mailto|logdir|hostlimit)$/ )) {
          $Config{$_} = getInt($Config{$_});
       }
    }
