@@ -32,6 +32,7 @@ my $show_disk_usage = $ENV{'show_disk_usage'} || 0;
 my $diskfull_threshold = $ENV{'diskfull_threshold'} || 90;
 my $diskfull_exclude_dirs = $ENV{'diskfull_exclude_dirs'} || '$';
 my $local_disks_only = $ENV{'local_disks_only'} || 0;
+my $suppress_listing = $ENV{'suppress_listing'} || 0;
 
 my $df_options;
 my $disk_cmd;
@@ -184,7 +185,7 @@ if ( $ENV{'disk_cmd'} ) {
 };
 
 #Only show disk space "df" by default -mgt
-DiskSpace() if (($ENV{PRINTING} eq 'y') or $Detail);
+DiskSpace() if ( !$suppress_listing and (($ENV{PRINTING} eq 'y') or $Detail));
 
 if ( $show_disk_usage == 1 ) { DiskUsage(); }; #Turn on in zz-disk_space.conf
 
