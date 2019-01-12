@@ -1,6 +1,8 @@
 [Unit]
-Description=Run logwatch
+Description=Log analyzer and reporter
+Documentation=man:logwatch(8) man:logwatch.conf(5)
+Before=logrotate.service
 
 [Service]
 Type=oneshot
-ExecStart=/usr/bin/logwatch
+ExecStart=/usr/sbin/logwatch
