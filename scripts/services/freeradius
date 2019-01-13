@@ -46,16 +46,16 @@ while (defined($ThisLine = <STDIN>)) {
    }
    chomp($ThisLine);
 
-   if ( ( $ThisLine =~ /^F-TICKS/ ) ||
-        ( $ThisLine =~ /^Access-Request from/ ) ||
-        ( $ThisLine =~ /^ \.\.\. (?:closing|adding new) socket/ ) ||
-        ( $ThisLine =~ /^(?:SSL|TLS|rlm_(?:unix|eap|sql|radutmp)|    TLS_accept|  \[ldap\])/ ) ||
-        ( $ThisLine =~ /^Ready to process requests\.$/ ) ||
-        ( $ThisLine =~ /^Exiting normally\.$/ ) ||
-        ( $ThisLine =~ /^Loaded virtual server/ ) ||
-        ( $ThisLine =~ /^HUP - / ) ||
-        ( $ThisLine =~ /^Received HUP signal\.$/ ) ||
-        ( $ThisLine =~ /^ ?Module: Reloaded module/ ) 
+   if ( ( $ThisLine =~ /^(?:Info: )?F-TICKS/ ) ||
+        ( $ThisLine =~ /^(?:Info: )?Access-Request from/ ) ||
+        ( $ThisLine =~ /^(?:Info: )? \.\.\. (?:closing|adding new) socket/ ) ||
+        ( $ThisLine =~ /^(?:Info: )?(?:SSL|TLS|rlm_(?:unix|eap|sql|radutmp)|    TLS_accept|  \[ldap\])/ ) ||
+        ( $ThisLine =~ /^(?:Info: )?Ready to process requests\.$/ ) ||
+        ( $ThisLine =~ /^(?:Info: )?Exiting normally\.$/ ) ||
+        ( $ThisLine =~ /^(?:Info: )?Loaded virtual server/ ) ||
+        ( $ThisLine =~ /^(?:Info: )?HUP - / ) ||
+        ( $ThisLine =~ /^(?:Info: )?Received HUP signal\.$/ ) ||
+        ( $ThisLine =~ /^(?:Info: )? ?Module: Reloaded module/ ) 
       ) {
       # ignore
    }
