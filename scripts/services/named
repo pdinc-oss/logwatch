@@ -251,7 +251,7 @@ while (defined($ThisLine = <STDIN>)) {
       $NetworkUnreachable{$Way}{$FullHost}++;
    } elsif ( ($Zone,$Message) = ( $ThisLine =~ /client [^\#]+#[^\:]+: (?:view \w+: )?updating zone '([^\:]+)': (.*)$/ ) ) {
       $ZoneUpdates{$Zone}{$Message}++;
-   } elsif ( ($Zone,$Source) = ( $ThisLine =~ /transfer of '([^\']+)' (from [^\#]+)#[^\:]+:/ ) ) {
+   } elsif ( ($Zone,$Source) = ( $ThisLine =~ /transfer of '([^\']+)' (from [^\#]+)#[^\:]+: Transfer completed: / ) ) {
       $ZoneUpdates{$Zone}{$Source}++;
    } elsif ( ($Host,$Zone) = ( $ThisLine =~ /approved AXFR from \[(.+)\]\..+ for \"(.+)\"/ ) ) {
       $FullHost = LookupIP ($Host);
