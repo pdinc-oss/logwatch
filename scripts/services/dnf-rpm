@@ -38,6 +38,8 @@ while (defined($ThisLine = <STDIN>)) {
       $PackageErased{$ThisLine}++;
    } elsif ( $ThisLine =~ s/^.* INFO Obsoleted: ([^ ]+)/$1/ ) {
       $PackageObsoleted{$ThisLine}++;
+   } elsif ( $ThisLine =~ s/^.* INFO Downgraded: ([^ ]+)/$1/ ) {
+      $PackageDowngraded{$ThisLine}++;
    } elsif ( $ThisLine =~ m/INFO --- logging initialized ---/ ) {
       $ignoredlines++;
    } elsif ( $ThisLine =~ m/INFO Cleanup: / ) {
@@ -63,6 +65,12 @@ if (keys %PackageReinstalled) {
 if (keys %PackageUpdated) {
    print "\nPackages Updated:\n";
    foreach $ThisOne (sort {lc($a) cmp lc($b)} keys %PackageUpdated) {
+       print "   ". $ThisOne;
+   }
+}
+if (keys %PackageDowngraded) {
+   print "\nPackages Downgraded:\n";
+   foreach $ThisOne (sort {lc($a) cmp lc($b)} keys %PackageDowngraded) {
        print "   ". $ThisOne;
    }
 }
