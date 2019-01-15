@@ -132,7 +132,7 @@ sub DiskFull {
     # Remove header
     shift @rows;
     foreach my $row (@rows) {
-        my ($source,$used,$target) = ($row =~ /^(.*?)(?:\s+\d+[KMGTP]?){3}\s+(\d+)%\s+(.*)$/);
+        my ($source,$used,$target) = ($row =~ /^(.*?)(?:\s+[\d\.]+[KMGTP]?){3}\s+(\d+)%\s+(.*)$/);
         if (($used > $diskfull_threshold) &&
                     ($source !~ /\/dev\/scd/ ) &&
                     ($source !~ /\/dev\/sr/ ) &&
