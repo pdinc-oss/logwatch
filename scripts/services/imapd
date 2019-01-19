@@ -1,14 +1,19 @@
-##########################################################################
-# $Id$
-##########################################################################
+
+########################################################
+# Please file all bug reports, patches, and feature
+# requests under:
+#      https://sourceforge.net/p/logwatch/_list/tickets
+# Help requests and discusion can be filed under:
+#      https://sourceforge.net/p/logwatch/discussion/
+########################################################
 
 ########################################################
 # The imap script was written by:
-#    Pawe≥ Go≥aszewski <blues@gda.pl>
+#    Pawe≈Ç Go≈Çaszewski <blues@gda.pl>
 ########################################################
 
 #####################################################
-## Copyright (c) 2008 Pawe≥ Go≥aszewski
+## Copyright (c) 2008 Pawe≈Ç Go≈Çaszewski
 ## Covered under the included MIT/X-Consortium License:
 ##    http://www.opensource.org/licenses/mit-license.php
 ## All modifications and contributions by other persons to

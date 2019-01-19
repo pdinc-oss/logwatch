@@ -1,17 +1,11 @@
-##########################################################################
-# $Id$
-##########################################################################
-# $Log: qmail-pop3ds,v $
-# Revision 1.3  2008/06/30 23:07:51  kirk
-# fixed copyright holders for files where I know who they should be
-#
-# Revision 1.2  2008/03/24 23:31:26  kirk
-# added copyright/license notice to each script
-#
-# Revision 1.1  2005/09/07 00:37:59  bjorn
-# New qmail multilog files written by Bob Hutchinson
-#
-##########################################################################
+
+########################################################
+# Please file all bug reports, patches, and feature
+# requests under:
+#      https://sourceforge.net/p/logwatch/_list/tickets
+# Help requests and discusion can be filed under:
+#      https://sourceforge.net/p/logwatch/discussion/
+########################################################
 
 #######################################################
 ## Copyright (c) 2008 Bob Hutchinson

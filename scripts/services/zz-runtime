@@ -1,18 +1,11 @@
-##########################################################################
-# $Id$
-##########################################################################
-# $Log: zz-runtime,v $
-# Revision 1.3  2008/03/24 23:31:27  kirk
-# added copyright/license notice to each script
-#
-# Revision 1.2  2007/04/28 23:47:13  bjorn
-# Added show_runtime variable.
-#
-# Revision 1.1  2007/03/17 19:28:42  bjorn
-# Added zz-runtime for runtime statistics.  Currently prints uptime,
-# per Jason Sjobeck's proposal.
-#
-##########################################################################
+
+########################################################
+# Please file all bug reports, patches, and feature
+# requests under:
+#      https://sourceforge.net/p/logwatch/_list/tickets
+# Help requests and discusion can be filed under:
+#      https://sourceforge.net/p/logwatch/discussion/
+########################################################
 
 #######################################################
 ## Copyright (c) 2008 Kirk Bauer

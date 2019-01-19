@@ -1,5 +1,15 @@
 #!/usr/bin/perl
 
+########################################################
+# Please file all bug reports, patches, and feature
+# requests under:
+#      https://sourceforge.net/p/logwatch/_list/tickets
+# and copy:
+#    Mike "MrC" Cappella <mike (at) cappella (dot) us>
+# Help requests and discusion can be filed under:
+#      https://sourceforge.net/p/logwatch/discussion/
+########################################################
+
 ##########################################################################
 # Postfix-logwatch: written and maintained by:
 #
@@ -9,11 +19,6 @@
 # Please send all comments, suggestions, bug reports regarding this
 # program/module to the email address above.  I will respond as quickly
 # as possible. [MrC]
-#
-# Questions regarding the logwatch program itself should be directed to
-# the logwatch project at:
-#   http://sourceforge.net/projects/logwatch/support
-#
 #######################################################
 ### All work since Dec 12, 2006 (logwatch CVS revision 1.28)
 ### Copyright (c) 2006-2012  Mike Cappella

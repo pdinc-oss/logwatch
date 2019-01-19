@@ -1,4 +1,18 @@
-#!/usr/bin/perl
+
+########################################################
+# Covered under the included MIT/X-Consortium License:
+#    http://www.opensource.org/licenses/mit-license.php
+# All modifications and contributions by other persons to
+# this script are assumed to have been donated to the
+# Logwatch project and thus assume the above copyright
+# and licensing terms.  If you want to make contributions
+# under your own copyright or a different license this
+# must be explicitly stated in the contribution an the
+# Logwatch project reserves the right to not accept such
+# contributions.  If you have made significant
+# contributions to this script and want to claim
+# copyright please contact logwatch-devel@lists.sourceforge.net.
+########################################################
 #
 # The purpose of this script is to pass the output of the journalctl
 # command to the logwatch parsers.  The corresponding conf/logfile 

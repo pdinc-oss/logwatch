@@ -1,8 +1,11 @@
 
-use strict;
-##########################################################################
-# $Id$
-##########################################################################
+########################################################
+# Please file all bug reports, patches, and feature
+# requests under:
+#      https://sourceforge.net/p/logwatch/_list/tickets
+# Help requests and discusion can be filed under:
+#      https://sourceforge.net/p/logwatch/discussion/
+########################################################
 
 ########################################################
 ## Copyright (c) 2008 Kirk Bauer
@@ -19,6 +22,8 @@ use strict;
 ## contributions to this script and want to claim
 ## copyright please contact logwatch-devel@lists.sourceforge.net.
 #########################################################
+
+use strict;
 
 my $Detail = $ENV{'LOGWATCH_DETAIL_LEVEL'} || 0;
 

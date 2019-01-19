@@ -1,35 +1,11 @@
-# Copyright 2003-2006 by Willi Mann <willi@wm1.at>
-###########################################################################
-# $Id$
-###########################################################################
-# $Log: courier,v $
-# Revision 1.18  2008/06/30 20:47:20  kirk
-# fixed copyright holders for files where I know who they should be
-#
-# Revision 1.17  2008/05/06 22:30:50  mike
-# Fix for port= in login count -mgt
-#
-# Revision 1.16  2008/05/04 23:24:10  mike
-# Dos2unixed -mgt
-#
-# Revision 1.15  2007/02/16 04:15:52  bjorn
-# Using default license for Logwatch, per Willi Mann.
-#
-###########################################################################
-#
-# Please don't change the formatting:
-#
-# if (...) {
-#    ...
-# }
-#
-# but
-#
-# (while|foreach) ..
-# {
-#    ...
-# }
-#
+
+########################################################
+# Please file all bug reports, patches, and feature
+# requests under:
+#      https://sourceforge.net/p/logwatch/_list/tickets
+# Help requests and discusion can be filed under:
+#      https://sourceforge.net/p/logwatch/discussion/
+########################################################
 
 #######################################################
 ### Copyright 2003-2006 by Willi Mann <willi@wm1.at>
@@ -45,7 +21,25 @@
 ### contributions.  If you have made significant
 ### contributions to this script and want to claim
 ### copyright please contact logwatch-devel@lists.sourceforge.net.
-##########################################################
+#######################################################
+
+#######################################################
+#
+# Please don't change the formatting:
+#
+# if (...) {
+#    ...
+# }
+#
+# but
+#
+# (while|foreach) ..
+# {
+#    ...
+# }
+#
+#######################################################
+
 
 use strict;
 

@@ -1,5 +1,13 @@
 
-##########################################################################
+########################################################
+# Please file all bug reports, patches, and feature
+# requests under:
+#      https://sourceforge.net/p/logwatch/_list/tickets
+# Help requests and discusion can be filed under:
+#      https://sourceforge.net/p/logwatch/discussion/
+########################################################
+
+########################################################
 # freeradius logwatch filter
 #	written by Jonas Marczona 28.12.2011 
 #
@@ -8,8 +16,14 @@
 ## All modifications and contributions by other persons to
 ## this script are assumed to have been donated to the
 ## Logwatch project and thus assume the above copyright
-## and licensing terms.
-##########################################################################
+## and licensing terms.  If you want to make contributions
+## under your own copyright or a different license this
+## must be explicitly stated in the contribution an the
+## Logwatch project reserves the right to not accept such
+## contributions.  If you have made significant
+## contributions to this script and want to claim
+## copyright please contact logwatch-devel@lists.sourceforge.net.
+########################################################
 
 $^W=1;
 use strict;

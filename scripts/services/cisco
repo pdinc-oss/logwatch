@@ -1,18 +1,13 @@
-#!/usr/bin/perl
-##########################################################################
-# $Id$
-##########################################################################
-# $Log: cisco,v $
-# Revision 1.13  2008/06/30 23:07:51  kirk
-# fixed copyright holders for files where I know who they should be
-#
-# Revision 1.12  2008/03/24 23:31:26  kirk
-# added copyright/license notice to each script
-#
-# Revision 1.11  2007/11/27 18:43:05  bjorn
-# Processing of additional statements (NTP, ACL), by Hugo van der Kooij.
-#
-##########################################################################
+
+########################################################
+# Please file all bug reports, patches, and feature
+# requests under:
+#      https://sourceforge.net/p/logwatch/_list/tickets
+# and copy:
+#    Laurent DUFOUR <laurent.dufour@havas.com>,<dufour_l@hotmail.com>
+# Help requests and discusion can be filed under:
+#      https://sourceforge.net/p/logwatch/discussion/
+########################################################
 
 ########################################################
 # This was written and is maintained by:

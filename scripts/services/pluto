@@ -1,29 +1,12 @@
-##########################################################################
-# $Id$
-##########################################################################
-# $Log: pluto,v $
-# Revision 1.18  2009/06/05 13:50:26  mike
-# Patch from Geert Janssens -mgt
-#
-# Revision 1.17  2008/06/30 23:07:51  kirk
-# fixed copyright holders for files where I know who they should be
-#
-# Revision 1.16  2008/03/24 23:31:26  kirk
-# added copyright/license notice to each script
-#
-# Revision 1.15  2006/10/20 17:08:02  bjorn
-# Additional filtering, by Marcus Better.
-#
-# Revision 1.14  2005/12/05 23:40:13  bjorn
-#
-# Corrected attribution in log.
-#
-# Revision 1.13  2005/12/02 16:42:37  bjorn
-# Additional filtering of STATE changes, by Markus Better.
-#
-# Revision 1.12  2005/09/26 10:58:04  bjorn
-# Additional filtering contributed by Marcus Better
-#
+
+########################################################
+# Please file all bug reports, patches, and feature
+# requests under:
+#      https://sourceforge.net/p/logwatch/_list/tickets
+# Help requests and discusion can be filed under:
+#      https://sourceforge.net/p/logwatch/discussion/
+########################################################
+
 ##########################################################################
 # Note (8/28/2005, BL):
 #

@@ -1,7 +1,15 @@
-#
+
+########################################################
+# Please file all bug reports, patches, and feature
+# requests under:
+#      https://sourceforge.net/p/logwatch/_list/tickets
+# Help requests and discusion can be filed under:
+#      https://sourceforge.net/p/logwatch/discussion/
+########################################################
+
+########################################################
 # Processes all messages and summarizes them
 # Each message is given with a timestamp and RMS
-#
 ########################################################
 ## Copyright (c) 2006 by Jeremias Reith <jr@terragate.net>
 ## Modified 2009 by Michael Baierl

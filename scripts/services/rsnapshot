@@ -1,9 +1,30 @@
-# rsnapshot backup tool log parsing script
 
-###########################################################################
+########################################################
+# Please file all bug reports, patches, and feature
+# requests under:
+#      https://sourceforge.net/p/logwatch/_list/tickets
+# Help requests and discusion can be filed under:
+#      https://sourceforge.net/p/logwatch/discussion/
+########################################################
+#
+# rsnapshot backup tool log parsing script
+#
+########################################################
 ## Copyright (c) 2016 Hayden Lau
 ## Covered under the included MIT/X-Consortium License:
 ##    http://www.opensource.org/licenses/mit-license.php
+## All modifications and contributions by other persons to
+## this script are assumed to have been donated to the
+## Logwatch project and thus assume the above copyright
+## and licensing terms.  If you want to make contributions
+## under your own copyright or a different license this
+## must be explicitly stated in the contribution an the
+## Logwatch project reserves the right to not accept such
+## contributions.  If you have made significant
+## contributions to this script and want to claim
+## copyright please contact logwatch-devel@lists.sourceforge.net.
+########################################################
+
 ## Permission is hereby granted, free of charge, to any person obtaining a
 ## copy of this software and associated documentation files (the "Software"),
 ## to deal in the Software without restriction, including without limitation

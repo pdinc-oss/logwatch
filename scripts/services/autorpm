@@ -1,8 +1,11 @@
 
-use strict;
-##########################################################################
-# $Id$
-##########################################################################
+########################################################
+# Please file all bug reports, patches, and feature
+# requests under:
+#      https://sourceforge.net/p/logwatch/_list/tickets
+# Help requests and discusion can be filed under:
+#      https://sourceforge.net/p/logwatch/discussion/
+########################################################
 
 ########################################################
 ## Copyright (c) 2008 Kirk Bauer
@@ -20,9 +23,7 @@ use strict;
 ## copyright please contact logwatch-devel@lists.sourceforge.net.
 #########################################################
 
-#Mon Sep 23 16:40:26 EDT 2002 - Uninstalled XXX
-#Mon Sep 23 22:13:50 EDT 2002 - XXX-1.0-1 -> XXX-1.1-2
-#Tue Sep 24 12:32:09 EDT 2002 - Installed XXX-1.0-1
+use strict;
 
 my (@Unmatched, $line, %Actions);
 while (defined($line = <STDIN>)) {

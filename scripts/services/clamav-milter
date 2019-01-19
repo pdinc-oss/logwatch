@@ -1,10 +1,19 @@
-##################################################################
+
+########################################################
+# Please file all bug reports, patches, and feature
+# requests under:
+#      https://sourceforge.net/p/logwatch/_list/tickets
+# Help requests and discusion can be filed under:
+#      https://sourceforge.net/p/logwatch/discussion/
+########################################################
+
+########################################################
 #
 # Written by S. Schimkat <www.schimkat.dk>.
 #
 # Find latest version here: www.schimkat.dk/clamav
 #
-##################################################################
+########################################################
 
 ########################################################
 ## Copyright (c) 2008 S. Schimkat

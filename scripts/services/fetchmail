@@ -1,6 +1,13 @@
-##########################################################################
-# $Id$
-##########################################################################
+
+########################################################
+# Please file all bug reports, patches, and feature
+# requests under:
+#      https://sourceforge.net/p/logwatch/_list/tickets
+# and copy:
+#    Oron Peled <oron \@\ actcom.net.il>
+# Help requests and discusion can be filed under:
+#      https://sourceforge.net/p/logwatch/discussion/
+########################################################
 
 ########################################################
 # This was written and is maintained by:

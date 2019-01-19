@@ -1,11 +1,16 @@
-##########################################################################
-# $Id$
+
+########################################################
+# Please file all bug reports, patches, and feature
+# requests under:
+#      https://sourceforge.net/p/logwatch/_list/tickets
+# and copy:
+#      jeff.frost@frostconsultingllc.com 
+# Help requests and discusion can be filed under:
+#      https://sourceforge.net/p/logwatch/discussion/
+########################################################
+
 ##########################################################################
 # This is a wrapper for the eximstats program
-#
-# Please send all comments, suggestions, bug reports,
-#    etc, to jeff.frost@frostconsultingllc.com and
-#    logwatch-devel@lists.sourceforge.net
 ########################################################
 
 ########################################################

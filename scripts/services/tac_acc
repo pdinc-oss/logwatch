@@ -1,12 +1,12 @@
 
-use strict;
 ########################################################
-# $Id$
-########################################################
-
-########################################################
-# Please send all comments, suggestions, bug reports,
-#    etc, to frank@fam-breedijk.com.
+# Please file all bug reports, patches, and feature
+# requests under:
+#      https://sourceforge.net/p/logwatch/_list/tickets
+# and copy:
+#      frank@fam-breedijk.com.
+# Help requests and discusion can be filed under:
+#      https://sourceforge.net/p/logwatch/discussion/
 ########################################################
 
 #######################################################
@@ -21,9 +21,9 @@ use strict;
 ## must be explicitly stated in the contribution an the
 ## Logwatch project reserves the right to not accept such
 ## contributions.  If you have made significant
-## contributions to this script and want to claim
-## copyright please contact logwatch-devel@lists.sourceforge.net.
-#########################################################
+########################################################
+
+use strict;
 
 my ($ThisLine, @fields, %activity, %isdn, @OtherList);
 

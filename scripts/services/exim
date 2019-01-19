@@ -1,13 +1,15 @@
-##########################################################################
-# $Id$
-##########################################################################
+
+########################################################
+# Please file all bug reports, patches, and feature
+# requests under:
+#      https://sourceforge.net/p/logwatch/_list/tickets
+# Help requests and discusion can be filed under:
+#      https://sourceforge.net/p/logwatch/discussion/
+########################################################
 
 ########################################################
 # Originally written by:
 #    Dariusz Nierada <dnierada@kat.supermedia.pl>
-########################################################
-# Please send all comments, suggestions, bug reports,
-#    etc, to logwatch-devel@lists.sourceforge.net
 ########################################################
 
 ########################################################

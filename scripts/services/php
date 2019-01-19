@@ -1,13 +1,12 @@
-###############################################################################
-# $Id$
-###############################################################################
-# $Log: php,v $
-# Revision 1.2  2008/03/24 23:31:26  kirk
-# added copyright/license notice to each script
-#
-# Revision 1.1  2006/11/12 18:28:31  bjorn
-# New php service, by Jeremias Reith.
-#
+
+########################################################
+# Please file all bug reports, patches, and feature
+# requests under:
+#      https://sourceforge.net/p/logwatch/_list/tickets
+# Help requests and discusion can be filed under:
+#      https://sourceforge.net/p/logwatch/discussion/
+########################################################
+
 ###############################################################################
 #
 # Logwatch service for php error logs
