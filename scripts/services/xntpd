@@ -73,12 +73,15 @@ while (defined(my $ThisLine = <STDIN>)) {
         ($ThisLine =~ m/tickadj = /) or # startup
         ($ThisLine =~ m/precision = /) or # startup
         ($ThisLine =~ m/ (succeeded|failed)/) or # startup
+        ($ThisLine =~ m/failed to init interface/) or # startup
         ($ThisLine =~ m/sendto\(\S+\): Success/) or # startup
         ($ThisLine =~ m/kernel time (discipline|sync) status/) or # startup
         ($ThisLine =~ m/kernel time sync (dis|en)abled /) or # startup
         ($ThisLine =~ m/frequency initialized/) or # startup
         ($ThisLine =~ m/using kernel phase-lock loop/) or # startup
         ($ThisLine =~ m/0\.0\.0\.0 [[:xdigit:]]{4} [[:xdigit:]]{2} /) or # startup
+        ($ThisLine =~ m/Soliciting .*server/) or # startup
+        ($ThisLine =~ m/kernel reports .*: Clock Unsynchronized/) or # startup
         ($ThisLine =~ m/select([^\)]) error: Interrupted system call/) or
         ($ThisLine =~ m/signal_no_reset: signal \d+ had flags \d+/) or
         ($ThisLine =~ /Deleting interface \#[0-9]+ [^,]*, [^,]*, interface stats: received=.*, sent=.*, dropped=.*, active_time=.* secs/) or
@@ -87,13 +90,15 @@ while (defined(my $ThisLine = <STDIN>)) {
         ($ThisLine =~ /Listen and drop on /) or
         ($ThisLine =~ /Listening on routing socket on/) or
         ($ThisLine =~ /.* interface .* -> .*/) or
+        ($ThisLine =~ /.* local addr .* -> .*/) or
         ($ThisLine =~ /Deferring DNS for/) or
         ($ThisLine =~ /ntp_io: estimated max descriptors: \d*, initial socket boundary: \d*/) or
         ($ThisLine =~ /peers refreshed$/) or
         ($ThisLine =~ /restrict: error in address/) or
         ($ThisLine =~ /syntax error in .+ line \d+, column \d+$/) or
-        ($ThisLine =~ /Listen normally on /) or
+        #($ThisLine =~ /Listen normally on /) or
         ($ThisLine =~ /the NTP socket is in use, exiting/) or
+        ($ThisLine =~ /Command line:/) or
         0 # This line prevents blame shifting as lines are added above
     ) {
        # Ignore these
@@ -131,6 +136,8 @@ while (defined(my $ThisLine = <STDIN>)) {
        }
        my $name = LookupIP($Host);
        $TwoInst{$name}++;
+    } elsif ( my ($Error) = ($ThisLine =~ /(unable to create .*)/ )) {
+       $Errors{$Error}++;
     } elsif ( my ($Error) = ($ThisLine =~ /(no server(s reachable| suitable for synchronization found))/ )) {
        $Errors{$Error}++;
     } elsif ( my ($Error) = ($ThisLine =~ /([Cc]an't find host \S+|no servers can be used, exiting)/ )) {
@@ -138,6 +145,8 @@ while (defined(my $ThisLine = <STDIN>)) {
     } elsif ( my ($Error) = ($ThisLine =~ /(sendto\(\S+\): Network is unreachable)/ )) {
        $Errors{$Error}++;
     } elsif ( my ($Error) = ($ThisLine =~ /(getaddrinfo: "\S+" invalid host address, ignored)/ )) {
+       $Errors{$Error}++;
+    } elsif ( my ($Error) = ($ThisLine =~ /(error resolving .*)/ )) {
        $Errors{$Error}++;
     } elsif ( my ($Error) = ($ThisLine =~ /(frequency error \d+ PPM exceeds tolerance \d+ PPM)/ )) {
        $Errors{$Error}++;
