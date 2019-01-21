@@ -29,6 +29,7 @@ use Logwatch ':all';
 my $Debug = $ENV{'LOGWATCH_DEBUG'} || 0;
 my $Detail = $ENV{'LOGWATCH_DETAIL_LEVEL'} || 0;
 my $IgnoreHost = $ENV{'sshd_ignore_host'} || "";
+my $ErrLen = $ENV{'fail2ban_error_length'} || 80;
 my $DebugCounter = 0;
 my $ReInitializations = 0;
 my @IptablesErrors = ();
@@ -107,7 +108,12 @@ while (defined(my $ThisLine = <STDIN>)) {
         $ServicesIgnored{$Service}{$Host}++;
     # Generic messages
     } elsif ( my ($Message) = ($ThisLine =~ / ERROR (.*)$/)) {
-        $ErrorList{$Message}++;
+	# Fail2ban can dump huge error messages in its logs
+	if ($ErrLen > 3 && length($Message) > $ErrLen) {
+            $ErrorList{substr($Message,0,$ErrLen-3).'...'}++;
+	} else {
+            $ErrorList{$Message}++;
+        }
     } elsif ( my ($Message) = ($ThisLine =~ / WARNING (.*)$/)) {
         $WarningList{$Message}++;
     } elsif ( my ($Message) = ($ThisLine =~ / INFO (.*)$/)) {
