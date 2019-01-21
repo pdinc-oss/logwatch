@@ -36,21 +36,21 @@ while (defined($ThisLine = <STDIN>)) {
       $DebugCounter++;
    }
 
-   if ( $ThisLine =~ s/^.* INFO Upgraded: ([^ ]+)/$1/ ) {
+   if ( $ThisLine =~ s/^.* (?:INFO|SUBDEBUG) Upgraded: ([^ ]+)/$1/ ) {
       $PackageUpdated{$ThisLine}++;
-   } elsif ( $ThisLine =~ s/^.* INFO Installed: ([^ ]+)/$1/ ) {
+   } elsif ( $ThisLine =~ s/^.* (?:INFO|SUBDEBUG) Installed: ([^ ]+)/$1/ ) {
       $PackageInstalled{$ThisLine}++;
-   } elsif ( $ThisLine =~ s/^.* INFO Reinstalled: ([^ ]+)/$1/ ) {
+   } elsif ( $ThisLine =~ s/^.* (?:INFO|SUBDEBUG) Reinstalled: ([^ ]+)/$1/ ) {
       $PackageReinstalled{$ThisLine}++;
-   } elsif ( $ThisLine =~ s/^.* INFO Erased: ([^ ]+)/$1/ ) {
+   } elsif ( $ThisLine =~ s/^.* (?:INFO|SUBDEBUG) Erased?: ([^ ]+)/$1/ ) {
       $PackageErased{$ThisLine}++;
-   } elsif ( $ThisLine =~ s/^.* INFO Obsoleted: ([^ ]+)/$1/ ) {
+   } elsif ( $ThisLine =~ s/^.* (?:INFO|SUBDEBUG) Obsoleted: ([^ ]+)/$1/ ) {
       $PackageObsoleted{$ThisLine}++;
-   } elsif ( $ThisLine =~ s/^.* INFO Downgraded: ([^ ]+)/$1/ ) {
+   } elsif ( $ThisLine =~ s/^.* (?:INFO|SUBDEBUG) Downgraded: ([^ ]+)/$1/ ) {
       $PackageDowngraded{$ThisLine}++;
    } elsif ( $ThisLine =~ m/INFO --- logging initialized ---/ ) {
       $ignoredlines++;
-   } elsif ( $ThisLine =~ m/INFO Cleanup: / ) {
+   } elsif ( $ThisLine =~ m/(?:INFO|SUBDEBUG) (Downgrade|Obsolete|Reinstall|Upgrade|Cleanup): / ) {
       $ignoredlines++;
    } else {
       # Report any unmatched entries...
