@@ -168,7 +168,7 @@ while (defined(my $ThisLine = <STDIN>)) {
       }
 
 # 'lda' for dovecot 2.0, 'deliver' for earlier versions
-   } elsif (my ($User, $Mailbox) = ( $ThisLine =~ /^$dovecottag (?:lda|deliver)\((.*)\): msgid=.*: saved mail to (.*)/ ) ) {
+   } elsif (my ($User, $Mailbox) = ( $ThisLine =~ /^$dovecottag (?:lda|deliver)\((.*)\)(?:<[^>]+><[^>]+>)?: msgid=.*: saved mail to (.*)/ ) ) {
       $Deliver{$User}{$Mailbox}++;
    } elsif ( ($User, $Mailbox) = ( $ThisLine =~ /^$dovecottag service=lda, user=(.*), .* msgid=.*: saved mail to (.*)/ ) ) {
       $Deliver{$User}{$Mailbox}++;
