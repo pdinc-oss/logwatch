@@ -70,6 +70,7 @@ while (defined($ThisLine = <STDIN>)) {
    elsif (
       $ThisLine =~ /^rsyslogd\'s (groupid|userid) changed to/ or
       $ThisLine =~ /^imjournal: journal reloaded/ or
+      $ThisLine =~ /^imuxsock: Acquired UNIX socket .* from systemd/ or
       $ThisLine =~ /^message repeated \d+ times:/ or
       0 # This line prevents blame shifting as lines are added above
       ) {
