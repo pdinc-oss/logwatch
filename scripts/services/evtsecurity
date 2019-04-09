@@ -64,12 +64,15 @@ while (defined(my $ThisLine = <STDIN>)) {
       next;
    }
    my $url = URI::URL->new("https://www.ultimatewindowssecurity.com/securitylog/encyclopedia/event.aspx?eventID=$EventID");
-   if ($EventLogType eq "Success Audit") {
+   if ($EventID == 4673
+       or $EventID == 4674) {
+      # An operation was attempted on a privileged object.
+      # These are basically noise 
+      # https://www.ultimatewindowssecurity.com/securitylog/encyclopedia/event.aspx?eventID=4673
+      # https://www.ultimatewindowssecurity.com/securitylog/encyclopedia/event.aspx?eventID=4674
+      # Ignore
+   } elsif ($EventLogType eq "Success Audit") {
       if ($EventID == 4608    # Windows is starting up. (startups logged by evtsystem)
-          or $EventID == 4673 # An operation was attempted on a privileged object.
-          or $EventID == 4674 # An operation was attempted on a privileged object.
-                              # These are basically noise 
-                              # https://www.ultimatewindowssecurity.com/securitylog/encyclopedia/event.aspx?eventID=4674
           or $EventID == 4688 # A new process has been created.
           or $EventID == 4689 # A process has exited.
          ) {
@@ -109,10 +112,6 @@ while (defined(my $ThisLine = <STDIN>)) {
          $FailureAudits{"$Hostname Log On Failure for $domain\\$account: $reason"}++;
       } elsif (my ($account,$domain,$process) = ($ExpandedString =~ /^A privileged service was called\..*Account Name:\s+(\S+)\s+Account Domain:\s+(\S+).*Process Name:\s+(.+)\sService/)) {
          $FailureAudits{"$Hostname Privileged service called for $domain\\$account: $process"}++ if $Detail;
-      } elsif ($EventID == 4674) {
-         # These are basically noise 
-         # https://www.ultimatewindowssecurity.com/securitylog/encyclopedia/event.aspx?eventID=4674
-         # An operation was attempted on a privileged object.
       } elsif ($EventID == 4768) {
          # A Kerberos authentication ticket (TGT) was requested
          my ($Account,$Realm,$Client,$FailureCode) = $ExpandedString =~ /Account Name:\s+(\S*)\s.*Supplied Realm Name:\s+(\S*)\s.*Client Address:\s+(\S+)\s.*Result Code:\s+(\w+)/;
@@ -129,7 +128,10 @@ while (defined(my $ThisLine = <STDIN>)) {
          # A Kerberos service ticket was requested
          my ($Client,$FailureCode) = $ExpandedString =~ /Client Address:\s+(\S+)\s.*Failure Code:\s+(\w+)/;
 #print STDERR "EventID=$EventID Client=$Client FailureCode=$FailureCode ExpandedString=$ExpandedString\n";
-         if ($FailureCode eq "0x20") {
+         if ($FailureCode eq "0x1B") {
+            # KDC_ERR_MUST_USE_USER2USER Server principal valid for user-to-user only
+            # This is an informational response and not an issue
+         } elsif ($FailureCode eq "0x20") {
             # Ticket expired
             $TicketExpired{$Client}++;
          } elsif ($FailureCode eq "0x25") {
