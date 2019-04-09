@@ -78,11 +78,11 @@ while (defined(my $ThisLine = <STDIN>)) {
          ) {
          # Ignore
       } elsif ($EventID == 4624 or $EventID == 4648) {
-         $Logon{"$Hostname $UserName"}++;
+         $Logon{"$Hostname $UserName"}++ if $Detail >= 5;
       } elsif ($EventID == 4634 or $EventID == 4647) {
-         $Logoff{"$Hostname $UserName"}++;
+         $Logoff{"$Hostname $UserName"}++ if $Detail >= 5;
       } elsif ($EventID == 4672) {
-         $PrivilegedLogon{"$Hostname $UserName"}++;
+         $PrivilegedLogon{"$Hostname $UserName"}++ if $Detail > 0;
       } elsif ($EventID == 4719) {
          $AuditPolicyChanged{$Hostname}++;
       } elsif ($EventID == 4720) {
@@ -98,13 +98,13 @@ while (defined(my $ThisLine = <STDIN>)) {
       } elsif ($EventID == 4738 or $EventID == 4742) {
          $AccountChanged{$UserName}++;
       } elsif ($EventID == 4800) {
-         $WorkstationLocked{"$Hostname $UserName"}++;
+         $WorkstationLocked{"$Hostname $UserName"}++ if $Detail >= 10;
       } elsif ($EventID == 4801) {
-         $WorkstationUnlocked{"$Hostname $UserName"}++;
+         $WorkstationUnlocked{"$Hostname $UserName"}++ if $Detail >= 10;
       } else {
          $SuccessAudits++;
          $SuccessAuditUsers{$UserName}++;
-         $SuccessAudits{"$Hostname $ExpandedString\n$url"}++;
+         $SuccessAudits{"$Hostname $ExpandedString\n$url"}++ if $Detail >= 10;
       }
    }
    elsif ($EventLogType eq "Failure Audit") {
@@ -289,41 +289,47 @@ if (keys %AuditPolicyChanged) {
    }
 }
 
-if ((keys %PrivilegedLogon) and ($Detail > 0)) {
+# Detail > 0
+if (keys %PrivilegedLogon) {
    print "\nPrivileged Logons\n";
    foreach my $User (sort keys %PrivilegedLogon) {
       print "    $User : $PrivilegedLogon{$User} Times\n";
    }
 }
 
-if (keys %Logon and ($Detail >= 5)) {
+# Detail >= 5
+if (keys %Logon) {
    print "\nLogons\n";
    foreach my $User (sort keys %Logon) {
       print "    $User : $Logon{$User} Times\n";
    }
 }
 
-if (keys %Logoff and ($Detail >= 5)) {
+# Detail >= 5
+if (keys %Logoff) {
    print "\nLogoffs\n";
    foreach my $User (sort keys %Logoff) {
       print "    $User : $Logoff{$User} Times\n";
    }
 }
 
-if (keys %WorkstationLocked and ($Detail >= 10)) {
+# Detail >= 10
+if (keys %WorkstationLocked) {
    print "\nWorkstation Locked\n";
    foreach my $User (sort keys %WorkstationLocked) {
       print "    $User : $WorkstationLocked{$User} Times\n";
    }
 }
 
-if (keys %WorkstationUnlocked and ($Detail >= 10)) {
+# Detail >= 10
+if (keys %WorkstationUnlocked) {
    print "\nWorkstation Unlocked\n";
    foreach my $User (sort keys %WorkstationUnlocked) {
       print "    $User : $WorkstationUnlocked{$User} Times\n";
    }
 }
 
+# Detail >= 5
 if ($SuccessAudits and ($Detail >= 5) ) {
    print "\nSuccess Audits " . $SuccessAudits . " Time(s)\n";
    foreach my $User (keys %SuccessAuditUsers) {
