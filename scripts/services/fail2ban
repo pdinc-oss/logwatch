@@ -76,6 +76,8 @@ while (defined(my $ThisLine = <STDIN>)) {
         if ( $Debug >= 6 ) {
             print STDERR "DEBUG($DebugCounter): line ignored\n";
         }
+    } elsif ( my ($Service,$Action,$Host) = ($ThisLine =~ m/NOTICE:?\s+\[?(.*?)[]:]?\s(Restore Ban)[^\.]* (\S+)/)) {
+        $ServicesBans{$Service}{$Host}{'ReBan'}++;
     } elsif ( my ($Service,$Action,$Host) = ($ThisLine =~ m/(?:WARNING|NOTICE):?\s+\[?(.*?)[]:]?\s(Ban|Unban)[^\.]* (\S+)/)) {
         if ( $Debug >= 6 ) {
             print STDERR "DEBUG($DebugCounter): Found $Action for $Service from $Host\n";
