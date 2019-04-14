@@ -700,7 +700,9 @@ next unless $ThisLine;
    # file=srvrsmtp.c
    } elsif ( ($Temp) = ($ThisLine=~ /\-\-\- 500 5\.5\.1 Command unrecognized: \"(.*)\"/) ) {
       # first we try to delete it from the list of Unmatched Entries
-      $Temp1 = "<-- " . $Temp;
+      $Temp1 = "<--";
+      # this also accounts for an empty command
+      if ($Temp) {$Temp1 .= " $Temp";}
       if (defined $OtherList{$Temp1}) {
          if ($OtherList{$Temp1} == 1) {
             delete ($OtherList{$Temp1});
