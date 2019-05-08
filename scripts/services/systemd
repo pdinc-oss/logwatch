@@ -34,6 +34,7 @@ my %Deactivated;
 my %LeftOver;
 my $Reexecuted = 0;
 my %Reloaded;
+my %Skipped;
 my %Slice;
 my %Slow;
 my %Started;
@@ -84,6 +85,7 @@ while (defined(my $ThisLine = <STDIN>)) {
        $ThisLine =~ /^Startup finished in / or
        $ThisLine =~ /^Stopped / or
        $ThisLine =~ /^Switching root\.$/ or
+       $ThisLine =~ /: Succeeded\.$/ or
        $ThisLine =~ /^Successfully loaded SELinux policy in / or
        $ThisLine =~ /already active, refusing\./ or
        $ThisLine =~ /^Failed to propagate agent release message:/ or
@@ -91,7 +93,7 @@ while (defined(my $ThisLine = <STDIN>)) {
        $ThisLine =~ /: Got notification message from PID \d+, but reception is disabled\./ or
        $ThisLine =~ /: Got notification message from PID \d+, but reception only permitted for main PID \d+/ or
        $ThisLine =~ /Cannot find unit for notify message of PID \d+/ or
-       $ThisLine =~ /^systemd (\d+) running in system mode/ or
+       $ThisLine =~ /^systemd .* running in system mode/ or
        # This is preceeded by a more descriptive message
        $ThisLine =~ /^This usually indicates unclean termination of a previous run, or service implementation deficiencies\.$/ or
        $ThisLine =~ /Transaction is destructive\./ or
@@ -174,12 +176,14 @@ while (defined(my $ThisLine = <STDIN>)) {
       $Reloaded{$service}++;
    } elsif (my ($service) = ($ThisLine =~ /^Deactivated (.*)\.$/)) {
       $Deactivated{$service}++;
-   } elsif ($ThisLine eq "Reexecuting.") {
+   } elsif ($ThisLine eq "Reexecuting." and $Detail) {
       $Reexecuted++;
    } elsif ($ThisLine =~ /^Time has been changed$/) {
       $TimeChanged++;
    } elsif (my ($slice) = ($ThisLine =~ /^Created slice (.*)\.$/)) {
       $Slice{$slice}++;
+   } elsif (my ($name) = ($ThisLine =~ /^Condition check resulted in (.*) being skipped\.$/) and $Detail) {
+      $Skipped{$name}++;
    } elsif (my ($pidfile) = ($ThisLine =~ /^PID file (.*) not readable \(yet\?\) after start\.$/)) {
       $Slow{$pidfile}++;
    } elsif (my ($pidfile) = ($ThisLine =~ /: Can't open PID file (.*) \(yet\?\) after start:/)) {
@@ -223,8 +227,17 @@ if (keys %Failed) {
    print "\n";
 }
 
-if ($Reexecuted && $Detail) {
+# Detail >= 1
+if ($Reexecuted) {
    print "Reexecuted systemd: $Reexecuted Time(s)\n\n";
+}
+
+if (keys %Skipped) {
+   print "Condition check resulted in the following being skipped:\n";
+   foreach my $item (sort {$a cmp $b} keys %Skipped) {
+      print "        $item: $Skipped{$item} Time(s)\n";
+   }
+   print "\n";
 }
 
 if (keys %LeftOver) {
