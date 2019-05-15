@@ -55,9 +55,12 @@
 # will be output.
 #########################################################################
 
+use strict;
+use warnings;
 use Logwatch ':dates';
 
 my $Detail = $ENV{'LOGWATCH_DETAIL_LEVEL'};
+my $Ignore_Outdated = $ENV{'ignore_outdated'} || 0;
 
 my $time          = time;
 my $Date;
@@ -69,6 +72,7 @@ my $Version       = "";
 
 my %Starts;
 my %Errors;
+my %Outdated;
 my %Warnings;
 
 
@@ -111,6 +115,7 @@ while (defined(my $ThisLine = <STDIN>)) {
          }
       } else {
          $InRange = 0;
+         %Warnings = ();
       }
       # $Version was already logged if necessary, so now we clear it
       $Version = "";
@@ -120,7 +125,12 @@ while (defined(my $ThisLine = <STDIN>)) {
       if ((my $Text) = ($ThisLine =~ /^ERROR: (.*)/)) {
          $Errors{$Text}++;
       } elsif (($Text) = ($ThisLine =~ /^WARNING: (.*)/)) {
-         $Warnings{$Text}++;
+         if ($Text =~ /OUTDATED|Local version/) {
+            next if $Ignore_Outdated;
+            $Outdated{$Text}++;
+         } else {
+            $Warnings{$Text}++;
+         }
       }
    }
 }
@@ -157,6 +167,14 @@ else {
 if ($Status and (($Detail > 0) or (keys %Errors) or (keys %Warnings))) {
    print "\n" . $Status;
 };
+
+
+if (keys %Outdated) {
+   print "\n";
+   foreach my $Text (keys %Outdated) {
+      print "$Text\n";
+   }
+}
 
 if ($Detail >= 10) {
    if ((keys %Errors) or (keys %Warnings)) {
