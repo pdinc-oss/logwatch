@@ -8,7 +8,7 @@
 ########################################################
 
 ########################################################
-## Copyright (c) 2014 Orion Poplawski
+## Copyright (c) 2014-2019 Orion Poplawski
 ## Covered under the included MIT/X-Consortium License:
 ##    http://www.opensource.org/licenses/mit-license.php
 ## All modifications and contributions by other persons to
@@ -60,7 +60,10 @@ while (defined(my $ThisLine = <STDIN>)) {
        or $ThisLine =~ /^ldbm_back_.* - conn=/
        or $ThisLine =~ /^ldbm_usn_init - backend: /
        # https://pagure.io/389-ds-base/issue/48973
-       or $ThisLine =~ /^default_mr_indexer_create: warning - plugin \[caseIgnoreIA5Match\] does not handle caseExactIA5Match/
+       or $ThisLine =~ /default_mr_indexer_create.*- [Pp]lugin \[caseIgnoreIA5Match\] does not handle caseExactIA5Match/
+       or $ThisLine =~ /^WARN - Security Initialization - SSL alert: Sending pin request to SVRCore. You may need to run systemd-tty-ask-password-agent to provide the password/
+       or $ThisLine =~ /^ERR - NSACLPlugin - acl_parse - The ACL target .* does not exist/
+       or $ThisLine =~ /^ERR - cos-plugin - cos_dn_defs_cb - Skipping CoS Definition .*no CoS Templates found, which should be added before the CoS Definition/
       ) {
       #Ignore
    } elsif ($ThisLine =~ /^ERR - /
@@ -107,10 +110,21 @@ while (defined(my $ThisLine = <STDIN>)) {
 }
 
 if (keys %Errors and keys %ErrorThreshold) {
-   LINE: foreach my $line (sort {$a cmp $b} keys %Errors) {
+   LINE: foreach my $line (keys %Errors) {
       foreach my $regex (keys %ErrorThreshold) {
          if ($line =~ /$regex/i and $Errors{$line} <= $ErrorThreshold{$regex}) {
             delete $Errors{$line};
+            next LINE;
+         }
+      }
+   }
+}
+
+if (keys %Warnings and keys %ErrorThreshold) {
+   LINE: foreach my $line (keys %Warnings) {
+      foreach my $regex (keys %ErrorThreshold) {
+         if ($line =~ /$regex/i and $Warnings{$line} <= $ErrorThreshold{$regex}) {
+            delete $Warnings{$line};
             next LINE;
          }
       }
