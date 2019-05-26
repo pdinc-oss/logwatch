@@ -177,8 +177,10 @@ while (defined(my $ThisLine = <STDIN>)) {
       $Deliver{$User}{$Mailbox}++;
 
 # LMTP-based delivery
-   } elsif (my ($User, $Mailbox) = ( $ThisLine =~ /^$dovecottag lmtp\((?:\d+, )?(.*?)\): .*msgid=.*: saved mail to (.*)/ ) ) {
+   } elsif (my ($User, $Mailbox) = ( $ThisLine =~ /^$dovecottag lmtp\((?:\d+, )?(.*?)\)(?:<[^>]+><[^>]+>)?: .*msgid=.*: saved mail to (.*)/ ) ) {
     # dovecot: [ID 583609 mail.info] lmtp(12782, cloyce@headgear.org): jBt1EfjCMk3uMQAAm9eMBA: msgid=<4D32DB1F.3080707@c-dot.co.uk>: saved mail to INBOX
+    # dovecot: lmtp(some@domain.tld): msgid=<20190506012701.DBE073122C3@domain.tld>: saved mail to INBOX
+    # dovecot: lmtp(some@domain.tld)<21947><Zi6SJJae1Fy7VQAA+Uzxeg>: msgid=<20190506012701.DBE073122C3@domain.tld>: saved mail to INBOX
       $Deliver{$User}{$Mailbox}++;
 
 # LMTP-based delivery Dovecot 2.2.33
@@ -191,7 +193,7 @@ while (defined(my $ThisLine = <STDIN>)) {
       $Deliver{$User}{$Mailbox}++;
 
 # LMTP-based Sieve delivery Dovecot 2.3
-   } elsif (my ($User, $Mailbox) = ( $ThisLine =~ /^$dovecottag lmtp\((.*)\): sieve: msgid=.*: stored mail into mailbox '(.*)'/ ) ) {
+   } elsif (my ($User, $Mailbox) = ( $ThisLine =~ /^$dovecottag lmtp\((.*)\)(?:<[^>]+><[^>]+>)?: sieve: msgid=.*: stored mail into mailbox '?(.*)'?/ ) ) {
       $Deliver{$User}{$Mailbox}++;
 
 # sieve forward
