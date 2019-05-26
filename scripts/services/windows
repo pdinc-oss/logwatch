@@ -34,7 +34,6 @@
 ## copyright please contact logwatch-devel@lists.sourceforge.net.
 #########################################################
 
-use lib "/usr/share/logwatch/lib";
 use Logwatch ':all';
 
 my $detail = $ENV{'LOGWATCH_DETAIL_LEVEL'} || 0;
