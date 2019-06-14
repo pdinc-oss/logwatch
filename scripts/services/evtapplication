@@ -24,10 +24,13 @@
 #########################################################
 
 use strict;
+use warnings;
 use URI::URL;
 
 my $Detail = $ENV{'LOGWATCH_DETAIL_LEVEL'} || 0;
 my $Ignore_messages = $ENV{'ignore_messages'} || '^$';
+my $Ignore_profile_program = $ENV{'ignore_profile_program'} || '^$';
+my $Laptops = $ENV{'laptops'} || '^$';
 my %Applications;
 
 while (defined(my $ThisLine = <STDIN>)) {
@@ -78,8 +81,9 @@ while (defined(my $ThisLine = <STDIN>)) {
    } elsif ($Application eq "AutoEnrollment") {
       #Ignore these - we don't run active directory
       next if $ExpandedString =~ /Automatic certificate enrollment for local system failed to contact the active directory/;
-   } elsif ($Application =~ /Group Policy Services/) {
+   } elsif ($Application =~ /^Group Policy/) {
       next if $ExpandedString =~ /This error was suppressed/;
+      next if $ExpandedString =~ /could not apply .* The network path was not found/ and $Hostname =~ /$Laptops/i;
    } elsif ($Application =~ /Intel Alert/) {
       #Ignore these
       next if $ExpandedString =~ /Intel Alert Originator Manager loaded without security/;
@@ -91,18 +95,33 @@ while (defined(my $ThisLine = <STDIN>)) {
    } elsif ($Application =~ /NSCTOP/) {
       #Ignore these
       next if $ExpandedString =~ /Service started/;
+   } elsif ($Application eq "Microsoft-Windows-CertificationAuthority") {
+      next if $ExpandedString =~ /The Active Directory connection to .* has been reestablished to/;
+   } elsif ($Application eq "Microsoft-Windows-Search") {
+      next if $ExpandedString =~ /The content source .* cannot be accessed.  Context:  Application, SystemIndex Catalog  Details:  The object was not found/;
+   } elsif ($Application eq "Microsoft-Windows-User Profiles Service") {
+      if ( my ($program) = ($ExpandedString =~ /^Windows detected your registry file is still in use by other applications or services. The file will be unloaded now\..* Process \d+ \(\\Device\\.*\\(.*)\) has opened key .*/)) {
+         next if $program =~ /$Ignore_profile_program/;
+      }
    } elsif ($Application =~ /Norton Ghost/) {
       #Ignore these
       next if $ExpandedString =~ /Norton Ghost service started successfully/;
       next if $ExpandedString =~ /A scheduled baseline backup of .* completed successfully/;
       next if $ExpandedString =~ /A scheduled incremental backup of .* completed successfully/;
+   } elsif ($Application =~ /SecurityCenter/) {
+      #Ignore these - appears to be normal http://www.eventid.net/display.asp?eventid=1807&eventno=4468&source=SecurityCenter&phase=1
+      next if $ExpandedString =~ /The Security Center service has been stopped.  It was prevented from running by a software group policy/;
+   } elsif ($Application eq "SceCli") {
+      next if $ExpandedString =~ /^Security policy cannot be propagated\. Cannot access the template\. Error code = 3\./ and $Hostname =~ /$Laptops/i;
+   } elsif ($Application eq "ShadowProtectSPX") {
+      next if $ExpandedString =~ /^Backup Finished/;
+      next if $ExpandedString =~ /^Backup Failed .*\(\\\\.*The backup destination is not accessible/ and $Hostname =~ /$Laptops/i;
    } elsif ($Application =~ /SNARE/) {
       #Ignore these
       next if $ExpandedString =~ /The service was started/;
       next if $ExpandedString =~ /The service was stopped/;
-   } elsif ($Application =~ /SecurityCenter/) {
-      #Ignore these - appears to be normal http://www.eventid.net/display.asp?eventid=1807&eventno=4468&source=SecurityCenter&phase=1
-      next if $ExpandedString =~ /The Security Center service has been stopped.  It was prevented from running by a software group policy/;
+   } elsif ($Application eq "SpeechRuntime") {
+      next if $ExpandedString =~ /^Audio Orchestrator Power Event: Battery Saver Turned On, Voice Activation Disabled/;
    } elsif ($Application =~ /Symantec AntiVirus/) {
       #Ignore these
       next if $ExpandedString =~ /Symantec AntiVirus services startup was successful/;
