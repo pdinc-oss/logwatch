@@ -8,7 +8,7 @@
 ########################################################
 
 ########################################################
-## Copyright (c) 2014 Orion Poplawski
+## Copyright (c) 2014-2019 Orion Poplawski
 ## Covered under the included MIT/X-Consortium License:
 ##    http://www.opensource.org/licenses/mit-license.php
 ## All modifications and contributions by other persons to
@@ -24,6 +24,7 @@
 #########################################################
 
 use strict;
+use warnings;
 my $Detail = $ENV{'LOGWATCH_DETAIL_LEVEL'} || 0;
 my $PoolThreshold = $ENV{'pool_threshold'} || 0;
 my $PoolMetadataThreshold = $ENV{'pool_metadata_threshold'} || 0;
@@ -44,6 +45,8 @@ while (defined(my $ThisLine = <STDIN>)) {
    $ThisLine =~ s/^ *//;
    if ($ThisLine =~ /^pvscan\[\d+\] PV .* online(?:|, VG .* is complete)\.$/ 
        or $ThisLine =~ /pvscan\[\d+\] VG .* run autoactivation/
+       # This happens often at startup
+       or $ThisLine =~ /^WARNING: lvmetad is being updated, retrying/
       ) {
       # Ignore
    } elsif ($ThisLine =~ /^Thin (\S+) is now (\d+)% full/) {
