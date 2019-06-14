@@ -24,7 +24,9 @@
 #########################################################
 
 use strict;
+use warnings;
 my $Detail = $ENV{'LOGWATCH_DETAIL_LEVEL'} || 0;
+my $IgnoreNonCertifiedDrives = $ENV{'omsa_ignore_non_certified_drives'} || 0;
 my %ServiceError;
 my %ServiceMessage;
 my %OtherList;
@@ -36,11 +38,36 @@ while (defined(my $ThisLine = <STDIN>)) {
    chomp($ThisLine);
    my ($Service,$Message) = ($ThisLine =~ /^\d+ \d+ - (\w+) Service  (.*)$/);
    if ($Message =~ /fail|disable|replace/i) {
+      # Service erroneously detects failure on service startup
+      next if (($Service eq "Instrumentation") and $Message =~ /^Power supply detected a failure.*Previous state was: Unknown/);
       $ServiceError{$Service}->{$Message}++;
    } elsif (defined($Service)) {
       # Skip informational messages if needed
-      next if (($Service == "Storage Service") and ($Message =~ /^The Patrol Read has (started|stopped)/) and ($Detail < 5));
-      next if (($Service == "Storage Service") and ($Message =~ /^The controller battery Learn cycle will start in (?:\d+) days\./) and ($Detail < 5));
+      if ($Service eq "Instrumentation") {
+         # Service erroneously detects absence on service startup
+         next if ($Message =~ /^Battery sensor detected absence value/);
+         next if (($Message =~ /^IPMI status.*Interface:/) and ($Detail < 10));
+         next if (($Message =~ /^Server Administrator start.*/) and ($Detail < 10));
+         next if (($Message =~ /^Systems Management Data Manager (?:Started|Stopped)/) and ($Detail < 10));
+      } elsif ($Service eq "Storage") {
+         next if (($Message =~ /^Controller event log: Battery (?:Present|charge complete|started charging|temperature is normal)/) and ($Detail < 5));
+         next if (($Message =~ /^Controller event log: (Board Revision|Controller hardware revision ID)/) and ($Detail < 10));
+         next if (($Message =~ /^Controller event log: Current capacity of the battery is above threshold/) and ($Detail < 5));
+         next if (($Message =~ /^Controller event log: Enclosure .* (:?communication restored|discovered)/) and ($Detail < 10));
+         next if (($Message =~ /^Controller event log: Firmware initialization started/) and ($Detail < 10));
+         next if (($Message =~ /^Controller event log: Inserted:/) and ($Detail < 5));
+         next if (($Message =~ /^Controller event log: PD .* is not a certified drive/) and ($IgnoreNonCertifiedDrives));
+         next if (($Message =~ /^Controller event log: Package version/) and ($Detail < 10));
+         next if (($Message =~ /^Controller event log: Patrol Read (started|stopped|resumed)/) and ($Detail < 5));
+         next if (($Message =~ /^Controller event log: Shutdown command received from host/) and ($Detail < 1));
+         next if (($Message =~ /^Controller event log: Time established as/) and ($Detail < 10));
+         next if (($Message =~ /^Controller event log: Unexpected sense: Encl PD .* CDB: 12 00 00 00 (:?04|20) 00, Sense: 5\/24\/00/) and ($IgnoreNonCertifiedDrives));
+         next if (($Message =~ /^Controller event log: Unexpected sense: PD .* CDB: 12 01 dc 01 1d 00, Sense: (4\/cf|5\/24)\/00/) and ($IgnoreNonCertifiedDrives));
+         next if (($Message =~ /^Disk found is not supplied by an authorized hardware provider/) and ($IgnoreNonCertifiedDrives));
+         next if (($Message =~ /^The battery charge cycle is complete\./) and ($Detail < 5));
+         next if (($Message =~ /^The controller battery Learn cycle will start in (?:\d+) days\./) and ($Detail < 5));
+         next if (($Message =~ /^The Patrol Read has (started|stopped|resumed)/) and ($Detail < 5));
+      }
       $ServiceMessage{$Service}->{$Message}++;
    } else {
       $OtherList{$ThisLine}++;
