@@ -9,6 +9,7 @@
 
 #######################################################
 ## Copyright (c) 2013 Teemu Ikonen
+## Copyright (c) 2019 Orion Poplawski
 ## Covered under the included MIT/X-Consortium License:
 ##    http://www.opensource.org/licenses/mit-license.php
 ## All modifications and contributions by other persons to
@@ -47,11 +48,12 @@ my $Reason;
 my %ActionResumed;
 my %ActionSuspended;
 my %DaemonActions;
+my %InvalidCerts;
 
 LINE:
 while (defined($ThisLine = <STDIN>)) {
    chomp($ThisLine);
-   foreach $Message (%IgnoreMessages) {
+   foreach $Message (keys %IgnoreMessages) {
       next LINE if $ThisLine =~ /$Message/i;
    }
    if (($Reason) = ($ThisLine =~ /^ ?\[origin software=\"rsyslogd\" .*\] (.*)/)) {
@@ -67,7 +69,12 @@ while (defined($ThisLine = <STDIN>)) {
    elsif (my ($Action, $Module) = $ThisLine =~ /action '(.*)' resumed \(module '(.*)'\)/) {
       $ActionResumed{"$Action ($Module)"}++ unless defined $IgnoreActions{$Action} or defined $IgnoreModules{$Module};
    }
+   elsif (my ($Certificate) = $ThisLine =~ /invalid cert info: peer provided \d+ certificate\(s\)\. Certificate \d+ info: (.*);  \[/) {
+      $InvalidCertificate{$Certificate}++;
+   }
    elsif (
+      # More detail for this in the invalid cert info line above
+      $ThisLine =~ /^not permitted to talk to peer, certificate invalid:/ or
       $ThisLine =~ /^rsyslogd\'s (groupid|userid) changed to/ or
       $ThisLine =~ /^imjournal: journal reloaded/ or
       $ThisLine =~ /^imuxsock: Acquired UNIX socket .* from systemd/ or
@@ -95,6 +102,14 @@ if (keys %ActionResumed) {
     print "Rsyslogd actions resumed\n";
     foreach my $Action (sort keys %ActionResumed) {
         print "   $Action: $ActionResumed{$Action} Times\n";
+    }
+    print "\n";
+}
+
+if (keys %InvalidCertificate) {
+    print "Invalid certificates:\n";
+    foreach my $Certificate (sort keys %InvalidCertificate) {
+        print "   $Certificate: $InvalidCertificate{$Certificate} Times\n";
     }
     print "\n";
 }
