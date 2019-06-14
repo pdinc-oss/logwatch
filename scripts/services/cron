@@ -206,106 +206,6 @@ if (keys %Errors) {
    }
 }
 
-if (keys %{$Runs} and ($Detail >= 5)) {
-   print "\n\nCommands Run:\n";
-   foreach $i (sort {$a cmp $b} keys %{$Runs}) {
-      print "   User $i:\n";
-      foreach $j (sort {$a cmp $b} keys %{$Runs->{$i}}) {
-         print "      $j: " . $Runs->{$i}->{$j} . " Time(s)\n";
-      }
-   }
-}
-
-if ($Orphans) {
-   print "   ORPHAN entries: $Orphans\n";
-}
-
-if ($MailErrors > 0) {
-   print "\nMAIL sending errors $MailErrors Time(s)\n";
-}
-
-if (keys %BFMFile) {
-   print "\nFiles with bad mode:\n";
-   foreach $i (keys %BFMFile) {
-      print "   $i\n";
-   }
-}
-
-if ($Detail >= 10) {
-   if (keys %UserReloads) {
-      print "   User crontabs reloaded:\n";
-      foreach $i (keys %UserReloads) {
-         print "      $i $UserReloads{$i} Time(s)\n";
-      }
-   }
-
-   if ($Startups > 0) {
-      print "\nCRON Started $Startups Time(s)\n";
-   }
-
-   if ($Shutdowns > 0) {
-      print "\nCRON Shutdown $Shutdowns Time(s)\n";
-   }
-
-   if ($Reloads > 0) {
-      print "\nCRON Reloaded system crontab $Reloads Time(s)\n";
-   }
-}
-
-if (keys %WFO) {
-  foreach $i (keys %WFO) {
-     printf "\n Wrong file owner (". $i ."): " . $WFO{$i}. " Time(s)\n";
-  }
-}
-
-if ($Ntpdate) {
-   print "\nNtpdate: adjusted $Ntpdate times\n";
-   print "\tMinimum offset $ntpdateminoffset\n";
-   print "\tMaximum offset $ntpdatemaxoffset\n";
-}
-
-if($ntpdatenosync) {
-   print "\nNtpDate could not sync: $ntpdatenosync times\n";
-}
-
-if ($INCRONDSS) {
-  printf "\n  service incrond started " . $INCRONDSS . ": time(s)\n";
-}
-
-if ($INCRONDStS) {
-  printf "\n  service incrond stoped " . $INCRONDStS . ": time(s)\n";
-}
-
-if ((%INCRONDSTCr) || (%INCRONDUTCr)) {
-  printf "\n  created tables \n";
-  for $key (keys %INCRONDSTCr) {
-    print "    system table " . $key . " created " . $INCRONDSTCr{$key} . ": time(s)\n";
-  }
-  for $key (keys %INCRONDUTCr) {
-    print "    table for user " . $key . " created " . $INCRONDUTCr{$key}. ": time(s)\n";
-  }
-}
-
-if ((%INCRONDSTCh) || (%INCRONDUTCh)) {
-  printf "\n  changes of tables \n";
-  for $key (keys %INCRONDSTCh) {
-    print "    system table " . $key . " changed " . $INCRONDSTCh{$key} . ": time(s)\n";
-  }
-  for $key (keys %INCRONDUTCh) {
-    print "    table for user " . $key . "changed " . $INCRONDUTCh{$key} . ": time(s)\n";
-  }
-}
-
-if ((%INCRONDSTDe) || (%INCRONDUTDe)) {
-  printf "\n  destroyed tables \n";
-  for $key (keys %INCRONDSTDe) {
-     print "    system table " . $key . " destroyed " . $INCRONDSTDe{$key} . ": time(s)\n";
-  }
-  for $key (keys %INCRONDUTDe) {
-     print "    table for user ". $key ." destroyed " .$INCRONDUTDe{$key} . ": time(s)\n";
-  }
-}
-
 if (%CRONDErr) {
   printf "\n  crond daemon errors \n";
   for $key (keys %CRONDErr) {
@@ -341,6 +241,106 @@ if (%CHDIRErr) {
 
 if ($CHUSERHErr) {
    printf "\nUser change error: " . $CHUSERHErr . " time(s)\n";
+}
+
+if (keys %{$Runs} and ($Detail >= 5)) {
+   print "\n\nCommands Run:\n";
+   foreach $i (sort {$a cmp $b} keys %{$Runs}) {
+      print "   User $i:\n";
+      foreach $j (sort {$a cmp $b} keys %{$Runs->{$i}}) {
+         print "      $j: " . $Runs->{$i}->{$j} . " Time(s)\n";
+      }
+   }
+}
+
+if ($Orphans) {
+   print "   ORPHAN entries: $Orphans\n";
+}
+
+if ($MailErrors > 0) {
+   print "\nMAIL sending errors $MailErrors Time(s)\n";
+}
+
+if (keys %BFMFile) {
+   print "\nFiles with bad mode:\n";
+   foreach $i (keys %BFMFile) {
+      print "   $i\n";
+   }
+}
+
+if (keys %WFO) {
+  foreach $i (keys %WFO) {
+     printf "\n Wrong file owner (". $i ."): " . $WFO{$i}. " Time(s)\n";
+  }
+}
+
+if ($Ntpdate) {
+   print "\nNtpdate: adjusted $Ntpdate times\n";
+   print "\tMinimum offset $ntpdateminoffset\n";
+   print "\tMaximum offset $ntpdatemaxoffset\n";
+}
+
+if($ntpdatenosync) {
+   print "\nNtpDate could not sync: $ntpdatenosync times\n";
+}
+
+if ($Detail >= 10) {
+   if (keys %UserReloads) {
+      print "   User crontabs reloaded:\n";
+      foreach $i (keys %UserReloads) {
+         print "      $i $UserReloads{$i} Time(s)\n";
+      }
+   }
+
+   if ($Startups > 0) {
+      print "\nCRON Started $Startups Time(s)\n";
+   }
+
+   if ($Shutdowns > 0) {
+      print "\nCRON Shutdown $Shutdowns Time(s)\n";
+   }
+
+   if ($Reloads > 0) {
+      print "\nCRON Reloaded system crontab $Reloads Time(s)\n";
+   }
+
+  if ($INCRONDSS) {
+    printf "\n  service incrond started " . $INCRONDSS . ": time(s)\n";
+  }
+
+  if ($INCRONDStS) {
+    printf "\n  service incrond stoped " . $INCRONDStS . ": time(s)\n";
+  }
+
+  if ((%INCRONDSTCr) || (%INCRONDUTCr)) {
+    printf "\n  created tables \n";
+    for $key (keys %INCRONDSTCr) {
+      print "    system table " . $key . " created " . $INCRONDSTCr{$key} . ": time(s)\n";
+    }
+    for $key (keys %INCRONDUTCr) {
+      print "    table for user " . $key . " created " . $INCRONDUTCr{$key}. ": time(s)\n";
+    }
+  }
+
+  if ((%INCRONDSTCh) || (%INCRONDUTCh)) {
+    printf "\n  changes of tables \n";
+    for $key (keys %INCRONDSTCh) {
+      print "    system table " . $key . " changed " . $INCRONDSTCh{$key} . ": time(s)\n";
+    }
+    for $key (keys %INCRONDUTCh) {
+      print "    table for user " . $key . "changed " . $INCRONDUTCh{$key} . ": time(s)\n";
+    }
+  }
+
+  if ((%INCRONDSTDe) || (%INCRONDUTDe)) {
+    printf "\n  destroyed tables \n";
+    for $key (keys %INCRONDSTDe) {
+       print "    system table " . $key . " destroyed " . $INCRONDSTDe{$key} . ": time(s)\n";
+    }
+    for $key (keys %INCRONDUTDe) {
+       print "    table for user ". $key ." destroyed " .$INCRONDUTDe{$key} . ": time(s)\n";
+    }
+  }
 }
 
 if ($#OtherList >= 0) {
