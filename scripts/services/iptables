@@ -40,10 +40,19 @@ $MinFilter = $ENV{'iptables_host_min_count'} || 0;
 $DoLookup = $ENV{'iptables_ip_lookup'}; $DoLookup = $DoLookup; # keep -w happy
 $ListByHost = $ENV{'iptables_list_by_host'} || 0;
 $ListByService = $ENV{'iptables_list_by_service'} || 0;
+$ListByCidrBits = $ENV{'iptables_list_by_cidr_mask'} || 0;
 # Keep old behaviour if nothing is configured
-$ListByHost = 1 unless ($ListByService);
+$ListByHost = 1 unless ($ListByService || $ListByCidrBits );
 $MaxFlood = 10;
 $MaxNum = 0;
+
+# this happens at runtime, not compile time - so we don't need the module
+# unless we need the module.  :)
+if ($ListByCidrBits) {
+   require Net::CIDR;
+}
+
+
 
 sub lookupService {
    my ($port, $proto, $service);
@@ -148,7 +157,13 @@ while (defined($ThisLine = <STDIN>)) {
 
       # add the packet
 #      $ipt{$actionType}{$interface}{$fromip}{$toip}{$toport}{$proto}{"$chain,$ifin,$ifout"}++;
-      $ipt{$actionType}{$interface}{$fromip}{$toip}{$toport}{$proto}{$chain_info}++;
+
+      if ( $ListByCidrBits ) {
+         my $cidrblock=( reverse( Net::CIDR::addr2cidr($fromip) ) )[$ListByCidrBits];
+         $ipt{$actionType}{$interface}{$cidrblock}{$toip}{$toport}{$proto}{$chain_info}++;
+      } else {
+         $ipt{$actionType}{$interface}{$fromip}{$toip}{$toport}{$proto}{$chain_info}++;
+      }
       $ipt2{$actionType}{$interface}{$toport}{$proto}{$fromip}{$toip}{$chain_info}++;
    }
    # IPF
