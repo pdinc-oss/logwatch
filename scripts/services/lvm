@@ -35,6 +35,7 @@ my %SnapshotUsed;
 my %MonitoringOn;
 my %MonitoringOff;
 my %MonitoringSnapshot;
+my %MonitoringSnapshotOff;
 my %OtherList;
 
 while (defined(my $ThisLine = <STDIN>)) {
@@ -51,6 +52,8 @@ while (defined(my $ThisLine = <STDIN>)) {
       $MonitoringSnapshot{$1}++;
    } elsif ($ThisLine =~ /^No longer monitoring thin pool (\S+)\./) {
       $MonitoringOff{$1}++;
+   } elsif ($ThisLine =~ /^No longer monitoring snapshot (\S+)\./) {
+      $MonitoringSnapshotOff{$1}++;
    } elsif ($ThisLine =~ /^Snapshot (\S+) is now (\d+)% full/) {
       $SnapshotUsed{$1} = $2 if $2 >= $SnapshotThreshold;
    } elsif ($ThisLine =~ /^(\d+) logical volume\(s\) in volume group "(\S+)" monitored/) {
@@ -116,6 +119,14 @@ if (keys %MonitoringSnapshot and $Detail) {
    print "Monitoring snapshot:\n";
    foreach my $Snapshot (sort {$a cmp $b} keys %MonitoringSnapshot) {
       print "    $Snapshot: $MonitoringSnapshot{$Snapshot} Time(s)\n";
+   }
+   print "\n";
+}
+
+if (keys %MonitoringSnapshotOff and $Detail) {
+   print "Monitoring stopped for snapshot:\n";
+   foreach my $Snapshot (sort {$a cmp $b} keys %MonitoringSnapshotOff) {
+      print "    $Snapshot: $MonitoringSnapshotOff{$Snapshot} Time(s)\n";
    }
    print "\n";
 }
