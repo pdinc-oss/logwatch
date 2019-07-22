@@ -1,6 +1,6 @@
 Summary: Analyzes and Reports on system logs
 Name: logwatch
-Version: 7.5.1
+Version: 7.5.2
 Release: 1
 License: MIT
 Group: Applications/System
@@ -98,7 +98,7 @@ rm -rf %{buildroot}
 %files
 %defattr(-,root,root)
 %license LICENSE
-%doc README HOWTO-Customize-LogWatch
+%doc README HOWTO-Customize-LogWatch LICENSE
 %dir %{_var}/cache/logwatch
 %dir %{_sysconfdir}/logwatch
 %dir %{_sysconfdir}/logwatch/*
@@ -112,6 +112,8 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Tue Jul 22 2019 Bjorn <bjorn1@users.sourceforge.net> 7.5.2-1
+
 * Tue Jan 22 2019 Bjorn <bjorn1@users.sourceforge.net> 7.5.1-1
 
 * Fri Dec 28 2018 Bjorn <bjorn1@users.sourceforge.net> 7.5.0
