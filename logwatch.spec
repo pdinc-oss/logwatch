@@ -112,7 +112,8 @@ rm -rf %{buildroot}
 
 
 %changelog
-* Tue Jul 22 2019 Bjorn <bjorn1@users.sourceforge.net> 7.5.2-1
+* Mon Jul 22 2019 Bjorn <bjorn1@users.sourceforge.net> 7.5.2-1
+- Copying LICENSE to doc dir again
 
 * Tue Jan 22 2019 Bjorn <bjorn1@users.sourceforge.net> 7.5.1-1
 
