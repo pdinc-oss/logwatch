@@ -110,6 +110,7 @@ while (defined(my $ThisLine = <STDIN>)) {
    chomp($ThisLine);
    if (
        ($ThisLine =~ /^pam_succeed_if: requirement "uid < 100" (not|was) met by user /) or
+       ($ThisLine =~ /^pam_succeed_if\(.*?\): requirement "uid >= 1000" (not|was) met by user /) or
        ($ThisLine =~ m/^(log: )?$/ ) or
        ($ThisLine =~ m/^(log: )?\^\[\[60G/ ) or
        ($ThisLine =~ m/^(log: )? succeeded$/ ) or
@@ -851,7 +852,7 @@ if (keys %ChownErr) {
   }
 }
 
-if ( ($Detail == 7 && keys %Krb_realm > 1) || ($Detail > 8 && keys %Krb_realm) ){
+if ( ($Detail == 7 && keys %Krb_realm > 1) || ($Detail > 7 && keys %Krb_realm) ){
   print "\nSuccessful Kerberos Authentication from ",(scalar keys %Krb_realm)," realm:\n";
   foreach my $realm (sort keys %Krb_realm) {
     if($Detail > 9){
