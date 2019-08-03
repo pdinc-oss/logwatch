@@ -889,7 +889,8 @@ foreach $LogFile (@LogFileList) {
    if ($FileText) {
       my $Command = $FileText . $FilterText . ">" . $TempDir . $LogFile;
       if ($Config{'debug'}>4) {
-         print "\nPreprocessing LogFile: " . $LogFile . "\n" . $Command . "\n";
+         print "\nPreprocessing LogFile: " . $LogFile . "\n " . 
+            $Config{'pathtocat'} . " " . $Command . "\n";
       }
       if ($LogFile !~ /^[-_\w\d]+$/) {
          print STDERR "Unexpected filename: [[$LogFile]]. Not used\n"
