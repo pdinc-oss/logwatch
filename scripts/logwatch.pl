@@ -819,7 +819,6 @@ foreach $LogFile (@LogFileList) {
          print "\n";
          next;
       }
-      #FIXME - We have a bug report for filenames with spaces, can be caught here needs test -mgt
       $FileText .= ("'" . $ThisFile . "' ");
    } #End foreach ThisFile
 

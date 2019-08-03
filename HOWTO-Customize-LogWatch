@@ -296,22 +296,22 @@ A. Logfile Groups
 -----------------
 
 There is only one required line in the logfile group config file.  This
-command is called 'LogFile'.
+statement is called 'LogFile'.
 
 # This will be the logfile named 'messages' in the default logfile
 # directory (probably /var/log).
 LogFile = messages
 
-# You can also give this command with an absolute path, like this:
+# You can also give this value with an absolute path.  For example:
 LogFile = /var/log/messages
 
 You can have as many LogFile entries as you wish.  All the files specified
 will be merged into one input stream for any filters that use this logfile
-group.  You can also use standard wildcards when you specify the filename.
+group.
 
-Another command that is optional is called 'Archive'.  You can specify a
-file to also include in the data stream if the '--archives' option is used.
-If these files do not exist it is okay.  For example:
+The 'Archive' statement is optional.  Specifying it will include the
+corresponding files in the data stream if the '--archives' option is
+used.  For example:
 
 # These 2 'Archive' entries will allow users of most Red Hat Linux
 # systems to access their archives of the 'messages' logfile:
@@ -320,6 +320,15 @@ Archive = messages.?
 Archive = messages.?.gz
 # It is best just to include both of these so that the logfile group
 # will work for most systems.
+
+When specifying filenames for either the LogFile or Archive statements,
+you can use standard regexps (for example, *, ?, or [0-9]).  In addition,
+filenames with spaces are possible by enclosing them in single quotes.
+
+For either the LogFile or Archive statements, the corresponding files
+need not exist.  In that case, the statement is ignored.  Because of this,
+many Logfile groups have multiple LogFile or Archive statements for many
+different OS implementations; only those that exist will be used.
 
 Now, the general theory is that the LogFile Group should apply the date
 range requested.  If the logfile is in the standard syslog format, you can
@@ -351,8 +360,8 @@ named service_name.conf, where service_name is the name of the service.
 You should probably copy an existing config for another service to create
 a new one.  
 
-There is only one required line.  This is the command 'LogFile'.  The
-LogFile command allows you to specify one or more *LogFile Groups* (as
+There is only one required line.  This is the statement 'LogFile'.  The
+LogFile statement allows you to specify one or more *LogFile Groups* (as
 described above) that this filter will process.  Remember, any filter can
 process any number of LogFile Groups, and any LogFile Group may contain the
 data from any number of logfiles (and archives). 
@@ -568,19 +577,18 @@ service scripts, e.g.
 =======================
 
 The introduction of this document listed additional sources of information.
-In addition, the website http://www.logwatch.org contains:
+In addition, the website https://sourceforge.net/projects/logwatch/ contains:
 	- the current (and some archived) distributions of Logwatch
-	- access to mailing lists where comments, suggestions, bug reports,
-	  etc., are welcome.
-	- access to the svn repository, for the very latest code.
+	- access to a ticket database for bugs, patches, and requests
+	- access to the git repository, for the very latest code.
 
 If you do create new services or enhancements that you feel would be useful
-to other people, please send them to the mailing list 'logwatch-devel at
-lists.sourceforge.net'.
+to other people, please post them under:
+	https://sourceforge.net/p/logwatch/patches/
 
 If you send patches, please make sure that you have the latest version
-of the file from svn, and send the patch file in unified format
-(using 'svn diff' or 'diff -u') as an attachment.
+of the file from git, and send the patch file in unified format.
+Alternatively, create a git merge request.
 
 Enhancement suggestions are more likely to be implemented if patch files
 implementing the change are sent.
