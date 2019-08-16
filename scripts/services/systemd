@@ -149,6 +149,8 @@ while (defined(my $ThisLine = <STDIN>)) {
       $ConfigError{$reason}{$service}++;
    } elsif (my ($service) = ($ThisLine =~ /^Unit (.*) entered failed state\.$/)) {
       $Failed{$service}++;
+   } elsif (my ($service) = ($ThisLine =~ /^(.*): Failed to execute command/)) {
+      $Failed{$service}++;
    } elsif (my ($service) = ($ThisLine =~ /^(.*): Unit entered failed state\.$/)) {
       $Failed{$service}++;
    } elsif (my ($service) = ($ThisLine =~ /^(.*) failed with error code \d+\.$/)) {
