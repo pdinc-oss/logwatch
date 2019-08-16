@@ -42,7 +42,11 @@ while (defined(my $ThisLine = <STDIN>)) {
    chomp($ThisLine);
    # Seeing leading space on Fedora 26
    $ThisLine =~ s/^ *//;
-   if ($ThisLine =~ /^Thin (\S+) is now (\d+)% full/) {
+   if ($ThisLine =~ /^pvscan\[\d+\] PV .* online, VG .* is complete/ 
+       or $ThisLine =~ /pvscan\[\d+\] VG .* run autoactivation/
+      ) {
+      # Ignore
+   } elsif ($ThisLine =~ /^Thin (\S+) is now (\d+)% full/) {
       $PoolUsed{$1} = $2 if $2 >= $PoolThreshold;
    } elsif ($ThisLine =~ /^Thin metadata (\S+) is now (\d+)% full/) {
       $PoolMetadataUsed{$1} = $2 if $2 >= $PoolMetadataThreshold;
