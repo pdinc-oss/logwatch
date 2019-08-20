@@ -42,7 +42,7 @@ while (defined(my $ThisLine = <STDIN>)) {
    chomp($ThisLine);
    # Seeing leading space on Fedora 26
    $ThisLine =~ s/^ *//;
-   if ($ThisLine =~ /^pvscan\[\d+\] PV .* online, VG .* is complete/ 
+   if ($ThisLine =~ /^pvscan\[\d+\] PV .* online(?:|, VG .* is complete)\.$/ 
        or $ThisLine =~ /pvscan\[\d+\] VG .* run autoactivation/
       ) {
       # Ignore
