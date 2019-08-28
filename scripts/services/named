@@ -60,6 +60,7 @@ while (defined($ThisLine = <STDIN>)) {
       ($ThisLine =~ /running/) or
       ($ThisLine =~ /NSTATS /) or
       ($ThisLine =~ /Cleaned cache of \d+ RRs/) or
+      ($ThisLine =~ /max-cache-size .* setting to /) or
       ($ThisLine =~ /USAGE \d+ \d+ CPU=\d+.*/) or
       ($ThisLine =~ /XSTATS /) or
       ($ThisLine =~ /Ready to answer queries/) or
@@ -86,7 +87,7 @@ while (defined($ThisLine = <STDIN>)) {
       ($ThisLine =~ /configuring command channel from/) or
       ($ThisLine =~ /interface ignored/) or
       ($ThisLine =~ /no IPv6 interfaces found/) or
-      ($ThisLine =~ /using \d+ UDP listeners per interface/) or
+      ($ThisLine =~ /using \d+ UDP listeners? per interface/) or
       ($ThisLine =~ /^running/) or
       ($ThisLine =~ /^exiting/) or
       ($ThisLine =~ /no longer listening/) or
@@ -157,6 +158,7 @@ while (defined($ThisLine = <STDIN>)) {
       ($ThisLine =~ /reading built-in trusted keys from file/) or
       ($ThisLine =~ /reading built-in trust anchors from file/) or
       ($ThisLine =~ /using built-in trusted-keys/) or
+      ($ThisLine =~ /using built-in keys instead/) or
       ($ThisLine =~ /set up managed keys zone/) or
       ($ThisLine =~ /managed-keys-zone.*key now trusted/) or
       ($ThisLine =~ /dhcpupdate: forwarding update for zone/) or
@@ -181,6 +183,8 @@ while (defined($ThisLine = <STDIN>)) {
       ($ThisLine =~ /resolver priming query complete/) or
       ($ThisLine =~ /client .* signer .* approved/) or
       ($ThisLine =~ /stop limiting/) or
+      # Previous line appears to contain the error
+      ($ThisLine =~ /client .*: query failed .* for .* at /) or
       # ignore this line because the following line describes the error
       ($ThisLine =~ /unexpected error/)
    ) {
