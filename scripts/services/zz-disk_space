@@ -156,10 +156,10 @@ sub DiskFull {
 #Main
 
 if ($OSname eq "Linux") {
-	$df_options = "-h -x tmpfs -x devtmpfs -x udf -x iso9660";
+	$df_options = "-h -x tmpfs -x devtmpfs -x udf -x iso9660 -x squashfs";
 	if ($local_disks_only) { $df_options .= " -l"; }
 } elsif ($OSname eq "Darwin") {
-	$df_options = "-h";
+	$df_options = "-h -T nodevfs,autofs";
 	if ($local_disks_only) { $df_options .= " -l"; }
 } elsif ($OSname eq "SunOS") {
 	if ( ($release eq "5.10") || ($release eq "5.9") || ($release eq "5.11") ) {
@@ -167,8 +167,8 @@ if ($OSname eq "Linux") {
 	} 
 	if ($local_disks_only) { $df_options .= " -l"; }
 } elsif ($OSname eq "AIX") {
-	$df_options = "";
-	if ($local_disks_only) { $df_options .= " -P"; }
+	$df_options = "-P";
+	if ($local_disks_only) { $df_options .= " -T local"; }
 } elsif ($OSname eq "GNU/kFreeBSD") {
 	$df_options = "-h -x tmpfs -x devtmpfs -x udf -x iso9660 -x devfs -x linprocfs -x sysfs -x fdescfs";
 	if ($local_disks_only) { $df_options .= " -l"; }
