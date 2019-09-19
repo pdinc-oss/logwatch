@@ -62,11 +62,13 @@ my $PerlVersion = "$^X";
 use Getopt::Long;
 use POSIX qw(uname);
 use File::Temp qw/ tempdir /;
+use Cwd;
 
 eval "use lib \"$BaseDir/lib\";";
 eval "use Logwatch \':dates\'";
 
 my (%Config, @ServiceList, @LogFileList, %ServiceData, %LogFileData);
+my (@TempLogDirs, @LogDirs);
 my (@AllShared, @AllLogFiles, @FileList);
 # These need to not be global variables one day
 my (@ReadConfigNames, @ReadConfigValues);
@@ -101,7 +103,7 @@ $Config{'suppress_ignores'} = 0;
 $Config{'hostlimit'} = "";
 $Config{'appendvaradmtologdirs'} = 1;
 $Config{'appendvarlogtologdirs'} = 1;
-$Config{'appendcwdtologdirs'} = 1;
+$Config{'appendcwdtologdirs'} = 0;
 
 if (-e "$ConfigDir/conf/html/header.html") {
    $Config{'html_header'} = "$ConfigDir/conf/html/header.html";
@@ -118,11 +120,6 @@ if (-e "$ConfigDir/conf/html/footer.html") {
 } else {
    $Config{'html_footer'} = "$BaseDir/default.conf/html/footer.html";
 }
-
-# Logwatch now does some basic searching for logs
-# So if the log file is not in the log path it will check /var/adm
-# and then /var/log -mgt
-$Config{'logdir'} = "/var/log";
 
 #Added to create switches for different os options -mgt
 #Changed to POSIX to remove calls to uname and hostname
@@ -178,15 +175,12 @@ for (my $i = 0; $i <= $#ReadConfigNames; $i++) {
       } elsif (! grep(/^$ReadConfigValues[$i]$/, @ServiceList)) {
          push @ServiceList, $ReadConfigValues[$i];
       }
+   } elsif ($ReadConfigNames[$i] eq "logdir") {
+      push @TempLogDirs, $ReadConfigValues[$i];
    } else {
       $Config{$ReadConfigNames[$i]} = $ReadConfigValues[$i];
    }
 }
-
-my @LogDirs=("$Config{'logdir'}/");
-push @LogDirs, "/var/adm/" if $Config{'appendvaradmtologdirs'};
-push @LogDirs, "/var/log/" if $Config{'appendvarlogtologdirs'};
-push @LogDirs, "" if $Config{'appendcwdtologdirs'};
 
 &CleanVars();
 
@@ -205,7 +199,7 @@ my ($tmp_mailto, $tmp_savefile);
 
 &GetOptions ("d|detail=s"   => \$Config{'detail'},
              "l|logfile=s@" => \@TempLogFileList,
-             "logdir=s"     => \$Config{'logdir'},
+             "logdir=s@"    => \@TempLogDirs,
              "s|service=s@" => \@TempServiceList,
              "m|mailto=s"   => \$tmp_mailto,
              "filename=s"   => \$tmp_savefile,
@@ -227,6 +221,28 @@ my ($tmp_mailto, $tmp_savefile);
            ) or &Usage();
 
 $Help and &Usage();
+
+push @TempLogDirs, "/var/adm/" if $Config{'appendvaradmtologdirs'};
+push @TempLogDirs, "/var/log/" if $Config{'appendvarlogtologdirs'};
+# Empty string for LogDirs entry interpreted as `cwd`, but set
+# explicitly here for more readable debug output
+push @TempLogDirs, getcwd() if $Config{'appendcwdtologdirs'};
+
+my %logdirs_seen;
+for my $logdir (@TempLogDirs) {
+   # add trainling slash to directory if not there
+   unless ($logdir =~ m=/$=) {
+      $logdir .= "/";
+   }
+   # remove duplicates
+   if (! $logdirs_seen{$logdir}++) {
+      push (@LogDirs, $logdir);
+   } else {
+      if ($Config{'debug'} > 2) {
+        print "Removing duplicate LogDir declaration $logdir\n";
+      }
+   }
+}
 
 #Catch option exceptions and extra logic here -mgt
 
@@ -436,93 +452,81 @@ for $ThisFile (@logfiles) {
 
          @{$LogFileData{$ThisLogFile}{'logfiles'}} = ();
          @{$LogFileData{$ThisLogFile}{'archives'}} = ();
+         # We use hashes to keep track of duplicates
+         my (%logfile_seen, %archive_seen);
          for (my $i = 0; $i <= $#ReadConfigNames; $i++) {
             if (grep(/^$i$/, @Separators)) {
                $count = 0;
             }
-            my @TempLogFileList;
             if ($ReadConfigNames[$i] eq "logfile") {
+               my @TempLogFileList =();
                #Lets try and find the logs -mgt
                if ($ReadConfigValues[$i] eq "") {
                   @{$LogFileData{$ThisLogFile}{'logfiles'}} = ();
+                  %logfile_seen = ();
                } else {
                   if ($ReadConfigValues[$i] !~ m=^/=) {
                      foreach my $dir (@LogDirs) {
-                        # We glob to obtain filenames.  We reverse in case
-                        # we use the decimal suffix (.0, .1, etc.) in filenames
-                        #@TempLogFileList = reverse(glob($dir . $ReadConfigValues[$i]));
-                        @TempLogFileList = sort{
+                        # We glob to obtain filenames, and check existence
+                        push(@TempLogFileList, sort{
                            ($b =~ /(\d+)$/) <=> ($a =~ /(\d+)$/) || uc($a) cmp  uc($b)
-                        }(glob($dir . $ReadConfigValues[$i]));
-                        # And we check for existence once again, since glob
-                        # may return the search pattern if no files found.
-                        last if (@TempLogFileList && (-e $TempLogFileList[0]));
+                        }(grep {-e} glob($dir . $ReadConfigValues[$i])));
                      }
                   } else {
-                     #@TempLogFileList = reverse(glob($ReadConfigValues[$i]));
-                     @TempLogFileList = sort{
+                     push(@TempLogFileList, sort{
                         ($b =~ /(\d+)$/) <=> ($a =~ /(\d+)$/) || uc($a) cmp  uc($b)
-                     }(glob($ReadConfigValues[$i]));
-                  }
-
-                  # We attempt to remove duplicates.
-                  # Same applies to archives, in the next block.
-                  foreach my $TempLogFileName (@TempLogFileList) {
-                     if (grep(/^\Q$TempLogFileName\E$/,
-                           @{$LogFileData{$ThisLogFile}{'logfiles'}})) {
-                        if ($Config{'debug'} > 2) {
-                           print "Removing duplicate LogFile file $TempLogFileName from $ThisFile configuration.\n";
-                        }
-                     } else {
-                        if (-e $TempLogFileName) {
-                           push @{$LogFileData{$ThisLogFile}{'logfiles'}},
-                              $TempLogFileName;
-                        }
-                     }
+                     }(grep {-e} glob($ReadConfigValues[$i])));
                   }
                }
+               # We remove duplicates.
+               # Same applies to archives, in the next block, so we keep
+               # %logfile_seen hash for later use.
+               if ($Config{'debug'} > 2) {
+                  for my $logfile (grep {$logfile_seen{$_}} @TempLogFileList) {
+                     print "Removing duplicate LogFile file $logfile from";
+                     print " $ThisFile configuration.\n";
+                  }
+               }
+               push(@{$LogFileData{$ThisLogFile}{'logfiles'}},
+                  grep { ! $logfile_seen{$_}++ } @TempLogFileList);
             } elsif (($ReadConfigNames[$i] eq "archive") && ( $Config{'archives'} == 1)) {
+               my @TempLogFileList =();
                if ($ReadConfigValues[$i] eq "") {
                   @{$LogFileData{$ThisLogFile}{'archives'}} = ();
+                  %archive_seen = ();
                } else {
+		  # Test if absolute path
                   if ($ReadConfigValues[$i] !~ m=^/=) {
                      foreach my $dir (@LogDirs) {
-                        # We glob to obtain filenames.  We reverse in case
-                        # we use the decimal suffix (.0, .1, etc.) in filenames
-                        #@TempLogFileList = reverse(glob($dir . $ReadConfigValues[$i]));
-                        @TempLogFileList = sort{
+                        # We glob to obtain filenames, and check existence
+                        push(@TempLogFileList, sort{
                            ($b =~ /(\d+)$/) <=> ($a =~ /(\d+)$/) || uc($a) cmp  uc($b)
-                        }(glob($dir . $ReadConfigValues[$i]));
-                        # And we check for existence once again, since glob
-                        # may return the search pattern if no files found.
-                        last if (@TempLogFileList && (-e $TempLogFileList[0]));
+                        }(grep {-e} glob($dir . $ReadConfigValues[$i])));
                      }
                   } else {
-                     #@TempLogFileList = reverse(glob($ReadConfigValues[$i]));
-                     @TempLogFileList = sort{
-                        ($b =~ /(\d+)$/) <=> ($a =~ /(\d+)$/) || uc($a) cmp  uc($b)
-                     }(glob($ReadConfigValues[$i]));
-                  }
-
-                  # We attempt to remove duplicates.  This time we also check
-                  # against the LogFile declarations.
-                  foreach my $TempLogFileName (@TempLogFileList) {
-                     if (grep(/^\Q$TempLogFileName\E$/,
-                           @{$LogFileData{$ThisLogFile}{'archives'}}) ||
-                         grep(/^\Q$TempLogFileName\E$/,
-                           @{$LogFileData{$ThisLogFile}{'logfiles'}}) ) {
-                        if ($Config{'debug'} > 2) {
-                           print "Removing duplicate Archive file $TempLogFileName from $ThisFile configuration.\n";
-                        }
-                     } else {
-                        if (-e $TempLogFileName) {
-                           push @{$LogFileData{$ThisLogFile}{'archives'}},
-                              $TempLogFileName;
-                           }
+                     foreach my $dir (@LogDirs) {
+                        push(@TempLogFileList, sort{
+                           ($b =~ /(\d+)$/) <=> ($a =~ /(\d+)$/) || uc($a) cmp  uc($b)
+                        }(grep {-e} glob($ReadConfigValues[$i])));
                      }
                   }
                }
 
+               # We remove duplicates.  This time we also check
+               # against the previous LogFile declarations.
+               if ($Config{'debug'} > 2) {
+                  for my $logfile (grep {$archive_seen{$_}} @TempLogFileList) {
+                     print "Removing duplicate Archive file $logfile from";
+                     print " $ThisFile configuration.\n";
+                  }
+                  for my $logfile (grep {$logfile_seen{$_}} @TempLogFileList) {
+                     print "Archive file $logfile in both LogFile and Archive";
+                     print " declarations in $ThisFile configuration.\n";
+                  }
+               }
+               push(@{$LogFileData{$ThisLogFile}{'archives'}},
+                  grep {! $archive_seen{$_}++ }
+                     grep { ! $logfile_seen{$_}++ } @TempLogFileList);
             } elsif ($ReadConfigNames[$i] =~ /^\*/) {
                if ($count == 0) {
                   @CmdList = ();
@@ -723,10 +727,6 @@ if ($ENV{PERL5LIB}) {
 
 #############################################################################
 
-unless ($Config{'logdir'} =~ m=/$=) {
-   $Config{'logdir'} .= "/";
-}
-
 # Okay, now it is time to do pre-processing on all the logfiles...
 
 my @EnvList = ();
@@ -819,6 +819,7 @@ foreach $LogFile (@LogFileList) {
          print "\n";
          next;
       }
+      #FIXME - We have a bug report for filenames with spaces, can be caught here needs test -mgt
       $FileText .= ("'" . $ThisFile . "' ");
    } #End foreach ThisFile
 
@@ -889,7 +890,7 @@ foreach $LogFile (@LogFileList) {
    if ($FileText) {
       my $Command = $FileText . $FilterText . ">" . $TempDir . $LogFile;
       if ($Config{'debug'}>4) {
-         print "\nPreprocessing LogFile: " . $LogFile . "\n " . 
+         print "\nPreprocessing LogFile: " . $LogFile . "\n " .
             $Config{'pathtocat'} . " " . $Command . "\n";
       }
       if ($LogFile !~ /^[-_\w\d]+$/) {
@@ -1011,6 +1012,8 @@ sub PrintConfig () {
    foreach (keys %Config) {
       print $_ . ' -> ' . $Config{$_} . "\n";
    }
+   print "Logdirs List:\n";
+   &PrintStdArray(@LogDirs);
    print "Service List:\n";
    &PrintStdArray(@ServiceList);
    print "\n";
