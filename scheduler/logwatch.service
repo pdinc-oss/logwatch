@@ -5,4 +5,5 @@ Before=logrotate.service
 
 [Service]
 Type=oneshot
-ExecStart=/usr/sbin/logwatch
+EnvironmentFile=-/etc/logwatch/systemd.conf
+ExecStart=/usr/sbin/logwatch $LOGWATCH_OPTIONS
