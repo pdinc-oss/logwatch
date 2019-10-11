@@ -30,6 +30,7 @@ my $Debug = $ENV{'LOGWATCH_DEBUG'} || 0;
 my $Detail = $ENV{'LOGWATCH_DETAIL_LEVEL'} || 0;
 my $IgnoreHost = $ENV{'sshd_ignore_host'} || "";
 my $RefusedConnectionsThreshold = $ENV{'refused_connections_threshold'} || 0;
+my $IllegalUsersThreshold = $ENV{'illegal_users_threshold'} || 0;
 my $DebugCounter = 0;
 
 # No sense in running if 'sshd' doesn't even exist on this system...
@@ -96,6 +97,7 @@ my $NetworkErrors = 0;
 my $StatusNoSuchFile = 0;
 my $BytesSent = 0;
 my $BytesReceived = 0;
+my $NoCipher = 0;
 
 if ( $Debug >= 5 ) {
    print STDERR "\n\nDEBUG: Inside SSHD Filter \n\n";
@@ -369,6 +371,8 @@ while (defined(my $ThisLine = <STDIN>)) {
       $ClientVers{$ClientVer}++;
    } elsif (my ($Host,$Port) = ($ThisLine =~ /^error: connect_to (\S+) port (\d+): failed\.$/)) {
       $ConnectFailed{"$Host port $Port"}++;
+   } elsif ($ThisLine =~ /^fatal: no matching cipher found: /) {
+      $NoCipher++;
    } else {
       # Report any unmatched entries...
       unless ($ThisLine =~ /fwd X11 connect/) {
@@ -497,6 +501,10 @@ if (keys %NegotiationFailed) {
    }
 }
 
+if ($NoCipher && $Detail > 0) {
+   print "\nNo matching cipher offered: " . timesplural($NoCipher);
+   }
+
 if (keys %TooManyFailures) {
    print "\nDisconnecting after too many authentication failures for user:\n";
    foreach my $User (sort {$a cmp $b} keys %TooManyFailures) {
@@ -524,19 +532,26 @@ if (keys %BadLogins) {
 }
 
 if (keys %IllegalUsers) {
-   print "\nIllegal users from:\n";
+   print "\nIllegal users from";
+   if ($IllegalUsersThreshold) {
+      print " (with threshold >= $IllegalUsersThreshold)";
+      }
+   print ":\n";
    foreach my $ip (sort SortIP keys %IllegalUsers) {
       my $name = LookupIP($ip);
       my $totcount = 0;
       foreach my $user (keys %{$IllegalUsers{$ip}}) {
          $totcount += $IllegalUsers{$ip}{$user};
-      }
-      print "   $name: " . timesplural($totcount);
-      if ($Detail >= 5) {
-         my $sort = CountOrder(%{$IllegalUsers{$ip}});
-         foreach my $user (sort $sort keys %{$IllegalUsers{$ip}}) {
-            my $val = $IllegalUsers{$ip}{$user};
-            print "      $user: " . timesplural($val);
+         }
+      if ($IllegalUsersThreshold == 0 ||
+            $totcount >= $IllegalUsersThreshold) {
+         print "   $name: " . timesplural($totcount);
+         if ($Detail >= 5) {
+            my $sort = CountOrder(%{$IllegalUsers{$ip}});
+            foreach my $user (sort $sort keys %{$IllegalUsers{$ip}}) {
+               my $val = $IllegalUsers{$ip}{$user};
+               print "      $user: " . timesplural($val);
+            }
          }
       }
    }
