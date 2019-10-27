@@ -201,8 +201,8 @@ while (defined(my $ThisLine = <STDIN>)) {
       $Forwarded{$User}{$Recip}++;
 
 # sieve pipe
-   } elsif (my ($User, $Recip) = ($ThisLine =~ /^$dovecottag (?:imap|lmtp)\((.*?)\): sieve: (?:msgid=.*: )?pipe action: piped message to program `.*'/) or
-            my ($User, $Recip) = ($ThisLine =~ /^$dovecottag (?:imap|lmtp)\((.*?)\): sieve: (?:msgid=.*: )?left message in mailbox '.*'/) ) {
+   } elsif (my ($User, $Recip) = ($ThisLine =~ /^$dovecottag (?:imap|lmtp)\((.*?)\)(?:<[^>]+><[^>]+>)?: sieve: (?:msgid=.*: )?pipe action: piped message to program `.*'/) or
+            my ($User, $Recip) = ($ThisLine =~ /^$dovecottag (?:imap|lmtp)\((.*?)\)(?:<[^>]+><[^>]+>)?: sieve: (?:msgid=.*: )?left message in mailbox '.*'/) ) {
       # dovecot: imap(user@domain.com): sieve: pipe action: piped message to program `sa-learn-sieve.sh'
       # dovecot: imap(user@domain.com): sieve: left message in mailbox 'INBOX.Spam'
       # dovecot: lmtp(spam@domain.com): sieve: msgid=<6e3eb3f436fdca54@host.domain.com>: pipe action: piped message to program `sa-learn-sieve.sh'
@@ -224,6 +224,12 @@ while (defined(my $ThisLine = <STDIN>)) {
 
    } elsif ( $ThisLine =~ /^$dovecottag lmtp\(.*\): Disconnect from/ ) {
    # dovecot: [ID 583609 mail.info] lmtp(12782): Disconnect from local: Client quit: 1 Time(s)
+   # IGNORE
+
+   } elsif ($ThisLine =~ /^$dovecottag doveadm\(.*\)\: Executing command '.*' as '.*'/ or
+            $ThisLine =~ /^$dovecottag doveadm\(.*\)(?:<[^>]+><[^>]+>)?: doveadm: .*/ ) {
+   # dovecot: doveadm(::1): Executing command 'quota get' as 'user@domain.com'
+   # dovecot: doveadm(user@domain.com)<11075><P/qmJj0ktF1DKwAAsNnMGQ>: doveadm: ::1 - - "POST /doveadm/v1 HTTP/1.1" 200 249 "http://localhost:8080/doveadm/v1" ""
    # IGNORE
 
    # Dovecot 2.0 proxy
