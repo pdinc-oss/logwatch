@@ -333,6 +333,7 @@ printf "Created symlink for /usr/sbin/logwatch \n"
 if [ $systemd -eq 1 ]; then
    install -m 0644 scheduler/logwatch.service /lib/systemd/system/logwatch.service
    install -m 0644 scheduler/logwatch.timer /lib/systemd/system/logwatch.timer
+   install -m 0644 scheduler/systemd.conf $BASEDIR/default.conf/systemd.conf
    if [ ! -e /lib/systemd/system/multi-user.target.wants ]; then
       install -m 0755 -d /lib/systemd/system/multi-user.target.wants
    fi
