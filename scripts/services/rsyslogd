@@ -76,6 +76,7 @@ while (defined($ThisLine = <STDIN>)) {
       # More detail for this in the invalid cert info line above
       $ThisLine =~ /^not permitted to talk to peer, certificate invalid:/ or
       $ThisLine =~ /^rsyslogd\'s (groupid|userid) changed to/ or
+      $ThisLine =~ /^imjournal: journal files changed, reloading/ or
       $ThisLine =~ /^imjournal: journal reloaded/ or
       $ThisLine =~ /^imuxsock: Acquired UNIX socket .* from systemd/ or
       $ThisLine =~ /^message repeated \d+ times:/ or
