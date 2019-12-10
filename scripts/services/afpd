@@ -51,6 +51,7 @@ while (defined($ThisLine = <STDIN>)) {
          ( $ThisLine =~ /^afp_zzz: (entering|waking up from) (normal|extended) sleep/ ) or
          ( $ThisLine =~ /^afp_disconnect: trying primary reconnect/ ) or
          ( $ThisLine =~ /^afp_disconnect: primary reconnect succeeded/ ) or
+         ( $ThisLine =~ /^Netatalk AFP\/TCP listening on /) or
          ( $ThisLine =~ /^Reconnect: transfering session to child/ ) or
          ( $ThisLine =~ /^Reconnect: killing new session child.* after transfer/ ) or
          ( $ThisLine =~ /^afp_dsi_transfer_session: successfull primary reconnect/ ) or
