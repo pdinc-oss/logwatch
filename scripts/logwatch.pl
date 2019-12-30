@@ -1305,7 +1305,7 @@ sub parselogs {
       my $FileText = "";
       foreach $ThisFile (@FileList) {
          if (-s $TempDir . $ThisFile) {
-            $FileText .= ( $TempDir . $ThisFile . " ");
+            $FileText .= ( $TempDir . $ThisFile );
          }
       }
 
@@ -1315,14 +1315,14 @@ sub parselogs {
       }
       @EnvList = ();
 
-      my $FilterText = " ";
+      my $FilterText = "";
       foreach (sort keys %{$ServiceData{$Service}}) {
          my $cmd = $_;
          if ($cmd =~ s/^\d+-\*//) {
             if (-f "$ConfigDir/scripts/shared/$cmd") {
-               $FilterText .= ("$PerlVersion $ConfigDir/scripts/shared/$cmd '$ServiceData{$Service}{$_}' |" );
+               $FilterText .= ("$PerlVersion $ConfigDir/scripts/shared/$cmd '$ServiceData{$Service}{$_}' | " );
             } elsif (-f "$BaseDir/scripts/shared/$cmd") {
-               $FilterText .= ("$PerlVersion $BaseDir/scripts/shared/$cmd '$ServiceData{$Service}{$_}' |" );
+               $FilterText .= ("$PerlVersion $BaseDir/scripts/shared/$cmd '$ServiceData{$Service}{$_}' | " );
             } else {
                die "Cannot find shared script $cmd\n";
             }
@@ -1393,11 +1393,14 @@ sub parselogs {
          if ($FileList[0] eq 'none') {
             $Command = " $FilterText 2>&1 ";
          } elsif ($FileText) {
-            if ($HostStrip ne " ") {
-               $Command = " ( $Config{'pathtocat'} $FileText | $HostStrip | $FilterText) 2>&1 ";
-            } else {
-               $Command = " ( $Config{'pathtocat'} $FileText | $FilterText) 2>&1 ";
+            $Command = " ( $Config{'pathtocat'} $FileText | " ;
+            if ($ServiceData{$Service}{pre_ignore}) {
+               $Command .= "egrep -v \"$ServiceData{$Service}{pre_ignore}\" | ";
             }
+            if ($HostStrip ne " ") {
+               $Command .= "$HostStrip | ";
+            }
+            $Command .= "$FilterText) 2>&1 ";
          }
       }
 
