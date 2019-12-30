@@ -121,8 +121,7 @@ my $MsgsSent =           my $NoMilterFilters =    my $NoMoreSpace =
 my $OutdatedAliasdb =
 my $OverSize =           my $OverSizeBytes =      my $RelayLocalhost =
 my $RemoteProtocolError =my $SendmailStarts =
-my $SendmailStopped =    my $TLSAcceptFailed =    my $TLSConnectFailed =
-my $TooManyRcpts =       my $XS4ALL =
+my $SendmailStopped =    my $TooManyRcpts =       my $XS4ALL =
 0;
 
 
@@ -151,6 +150,7 @@ $StarttlsNumBits,        $StarttlsReason,         $StarttlsVerify,
 $StatError,              $StatFile,               $Temp,
 $Temp1,                  $ThisLine,               $ThisOne,
 $TimeoutSend,            $TimeoutSendWarning,     $TLSFile,
+$TLSFrom,
 $TLSReason,              $TotalBytes,             $TotalNum,
 $ToUser,                 $User,                   $Usr,
 $Warning,                $Directory,              $Cause
@@ -183,8 +183,8 @@ my (
 %SPFResults,             %Starttls,               %StarttlsCert,
 %StarttlsCipher,         %StatDeferred,           %StatFileError,
 %StatRejected,           %StatRejectedLog,
-%SysErr,                 %Timeouts,
-%TLSFailed,              %TLSFileMissing,         %ToList,
+%SysErr,                 %Timeouts,               %TLSAcceptFailed,
+%TLSConnectFailed,       %TLSFileMissing,         %ToList,
 %TooManyHops,            %UnknownUsers,           %UnknownUsersCheckRcpt,
 %WUnsafe
 );
@@ -378,6 +378,10 @@ next unless $ThisLine;
       # and yet another symptom of a connection shut down (EPIPE refers to "Broken pipe")
       # file=srvsmtp.c, LogLevel>5, LOG_WARNING
       ( $ThisLine =~ /^STARTTLS=server, error: accept failed=-1, reason=unknown, SSL_error=5, errno=${\Errno::EPIPE}, retry=/ ) or
+      # the following is a detailed SSL error log (from tlslogerr)
+      # always preceded by a more user-friendly error message
+      # file=srvrsmtp.c, LogLevel>8, LOG_WARNING
+      ( $ThisLine =~ /STARTTLS=(?:\w*): \d*:error:\w{8}:[^:]*:[^:]*:([^:]*):/ ) or
       # the following is a log message introduced in 8.13.6
       # file=sfsasl.c, LogLevel>14, LOG_INFO
       # tls_retry errors are either transient, or additional log info is issued and parsed
@@ -807,15 +811,18 @@ next unless $ThisLine;
    # file=tls.c, LogLevel>7, LOG_WARNING
    } elsif ( ($TLSFile) = ($ThisLine=~ /STARTTLS=((server|client): file .* unsafe: .*)/) ) {
       $TLSFileMissing{$TLSFile}++;
-   # file=srvrsmtp.c, LogLevel>8, LOG_WARNING
-   } elsif ( ($TLSReason) = ($ThisLine=~ /STARTTLS=(?:\w*): \d*:error:\w{8}:[^:]*:[^:]*:([^:]*):/) ) {
-      $TLSFailed{$TLSReason}++;
-   # file=srvrsmtp.c, LogLevel>5, LOG_WARNING
-   } elsif ($ThisLine=~ /STARTTLS=server, error: accept failed=/) {
-      $TLSAcceptFailed++;
-   # file=deliver.c, LogLevel>5, LOG_WARNING
-   } elsif ($ThisLine=~ /STARTTLS=client, error: connect failed=/) {
-      $TLSConnectFailed++;
+   # file=srvrsmtp.c, LogLevel>5, LOG_WARNING; reason given as of 8.14.6
+   } elsif ( ($TLSReason, $TLSFrom) = ($ThisLine=~ /STARTTLS=server, error: accept failed=-?\d+, reason=([^,]*), (?:[^,]*,){3} relay=(.*)/) ) {
+      $TLSAcceptFailed{$TLSReason}{$TLSFrom}++;
+   # handle pre-8.14.6
+   } elsif ( ($TLSFrom) = ($ThisLine=~ /STARTTLS=server, error: accept failed=-?\d+, SSL_error=(?:[^,]*,){3} relay=(.*)/) ) {
+      $TLSAcceptFailed{"no reason given"}{$TLSFrom}++;
+   # file=deliver.c, LogLevel>5, LOG_WARNING;  reason given as of 8.14.6
+   } elsif ( ($TLSReason) = ($ThisLine=~ /STARTTLS=client, error: connect failed=-?\d+. reason=([^,]*),/) ) {
+      $TLSConnectFailed{$TLSReason}++;
+   # handle pre-8.14.6
+   } elsif ($ThisLine=~ /STARTTLS=client, error: connect failed=-?\d+. SSL_error=/) {
+      $TLSConnectFailed{"no reason given"}++;
    # file=tls.c, LogLevel>-1, LOG_INFO
    } elsif (($CommonName,$StarttlsReason) = ($ThisLine =~ /^STARTTLS: (?:x509|TLS) cert verify: depth=[0-9]+ .*\/CN=([^\/,]*).* state=[0-9]+, reason=(.*)$/ )) {
       $StarttlsCert{$StarttlsReason}{$CommonName}++;
@@ -1422,29 +1429,33 @@ $TotalError[0] = 0;
 
 # SMTP Errors
 
-if($TLSAcceptFailed > 0) {
+if (keys %TLSConnectFailed) {
    eval "$PrintCond" if ($Detail >= 3);
-   print "\n\n$TLSAcceptFailed STARTTLS Accept Fail(s)" if ($Detail >= 3);
-   $TotalError[$ErrorIndex] += $TLSAcceptFailed;
-}
-
-$TotalError[++$ErrorIndex] = 0;
-
-if($TLSConnectFailed > 0) {
-   eval "$PrintCond" if ($Detail >= 3);
-   print "\n\n$TLSConnectFailed STARTTLS Connect Fail(s)" if ($Detail >= 3);
-   $TotalError[$ErrorIndex] += $TLSConnectFailed;
-}
-
-$TotalError[++$ErrorIndex] = 0;
-
-if (keys %TLSFailed && ($Detail >= 5)) {
-   eval "$PrintCond";
-   print "\n    and they failed because of:";
-   foreach $TLSReason (keys %TLSFailed) {
-      print "\n        $TLSReason";
+   print "\n\nTLS Connect Failed" if ($Detail >=3);
+   foreach $TLSReason (sort keys %TLSConnectFailed) {
+         PrettyTimes("    " . $TLSConnectFailed{$TLSReason})
+            if ($Detail >= 5);
+         $TotalError[$ErrorIndex] += $TLSConnectFailed{$TLSReason};
    }
+   print "\n\tTotal:  $TotalError[$ErrorIndex]" if( $Detail >=3 );
 }
+$TotalError[++$ErrorIndex] = 0;
+
+if (keys %TLSAcceptFailed) {
+   eval "$PrintCond" if ($Detail >= 3);
+   print "\n\nTLS Failed Access" if ($Detail >=3);
+   foreach $TLSReason (sort keys %TLSAcceptFailed) {
+      print "\n    $TLSReason" if ($Detail >= 5);
+      foreach $TLSFrom (sort keys %{$TLSAcceptFailed{$TLSReason}}) {
+         PrettyTimes("        " . PrettyHost($TLSFrom, 59),
+	    $TLSAcceptFailed{$TLSReason}{$TLSFrom}) if ($Detail >= 5);
+      $TotalError[$ErrorIndex] +=
+         $TLSAcceptFailed{$TLSReason}{$TLSFrom};
+      }
+   }
+   print "\n\tTotal:  $TotalError[$ErrorIndex]" if ($Detail >= 3);
+}
+$TotalError[++$ErrorIndex] = 0;
 
 if (keys %BadAuth) {
    eval "$PrintCond" if ($Detail >= 3);
