@@ -1305,7 +1305,7 @@ sub parselogs {
       my $FileText = "";
       foreach $ThisFile (@FileList) {
          if (-s $TempDir . $ThisFile) {
-            $FileText .= ( $TempDir . $ThisFile );
+            $FileText .= ( $TempDir . $ThisFile . " " );
          }
       }
 
@@ -1393,7 +1393,7 @@ sub parselogs {
          if ($FileList[0] eq 'none') {
             $Command = " $FilterText 2>&1 ";
          } elsif ($FileText) {
-            $Command = " ( $Config{'pathtocat'} $FileText | " ;
+            $Command = " ( $Config{'pathtocat'} $FileText| " ;
             if ($ServiceData{$Service}{pre_ignore}) {
                $Command .= "egrep -v \"$ServiceData{$Service}{pre_ignore}\" | ";
             }
