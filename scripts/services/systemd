@@ -79,6 +79,7 @@ while (defined(my $ThisLine = <STDIN>)) {
        $ThisLine =~ /^Reloading\.$/ or         # Happens on each boot at switch root
        $ThisLine =~ /^RTC configured in / or
        $ThisLine =~ /^Running in initial RAM disk\.$/ or
+       $ThisLine =~ /^selinux: avc: *received policyload notice/ or
        $ThisLine =~ /^Set hostname to / or
        $ThisLine =~ /^(?:Set up|Unset) automount Arbitrary Executable File Formats File System Automount Point\.$/ or
        $ThisLine =~ /^Shutting down\.$/ or
