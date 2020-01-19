@@ -164,10 +164,10 @@ directory.  Your distribution may have set additional defaults in the
 are declared in the files under these directories.  You can change the
 default values to modify how or what is displayed with logwatch.
 
-One variable available to all services, and which by default is not
-specified, is the 'Detail' variable (note that it is not preceded by
-a '$' symbol).  Specifying a Detail value will override the global
-Detail level, for that service only.
+Two variables are available to all services, and not specified by
+default.  They are the 'Detail' variable and the 'Pre_Ignore'
+variables.  The use of these two variables are described at the
+end of this section.
 
 There are two mechanisms for customizing the variables:
 
@@ -263,6 +263,23 @@ There are two mechanisms for customizing the variables:
 
    will cause the messages file to be ignored for those same services,
    and only the syslog file will be used.
+
+An earlier reference was made to the two variables available to all
+services:  Detail and Pre_Ignore.  Note that neither is preceded by
+a '$' symbol when used in the configuration file.
+
+Specifying a Detail value will override the global Detail level, for
+that service only.  As with the corresponding command option, 'Detail'
+can be an integer of zero or higher, or the values Low, Medium, or
+High, which correspond to the integers 0, 5, and 10, respectively.
+
+Specifying a Pre_Ignore variable with a regular expression value will
+use that regular expression as the argument to 'egrep' to filter the
+log statements.  The filter is applied before the service script is run.
+This is in contrast to the regular expressions in the ignore.conf file
+(described in Section 3.A above), which filter the output after the
+service script is run.  Also, the declarations in the ignore.conf file
+are applied to all services.
 
 
 5. Customizing the Scripts
