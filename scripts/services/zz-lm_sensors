@@ -31,6 +31,13 @@
 ###########################################################################
 #Main
 
+#Exit early if the report is not for the current host.
+use POSIX qw(uname);
+my $logwatch_hostname = $ENV{'LOGWATCH_ONLY_HOSTNAME'};
+my ($OSname, $hostname, $release, $version, $machine) = POSIX::uname(); 
+$hostname =~ s/\..*//;
+exit (0) if ($ENV{'LOGWATCH_ONLY_HOSTNAME'} and ($logwatch_hostname ne $hostname));
+
 #Output sensors stats
 
 my $pathto_sensors = $ENV{'pathto_sensors'} || '/usr/bin/sensors';
