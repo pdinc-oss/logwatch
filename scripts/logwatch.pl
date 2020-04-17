@@ -987,7 +987,8 @@ sub getInt {
 sub CleanVars {
    foreach (keys %Config) {
       unless (defined $Config{$_} and
-	($_ =~ /^(hostname|filename|mailto|logdir|hostlimit)$/ )) {
+	# For the following config keys, do not make any changes to value
+	($_ =~ /^(hostname|filename|mailto|logdir|hostlimit|mailer)$/ )) {
          $Config{$_} = getInt($Config{$_});
       }
    }
