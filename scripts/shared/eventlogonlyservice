@@ -36,11 +36,11 @@ use strict;
 
 my $ServiceName = $ARGV[0];
 if ( $ENV{'LOGWATCH_DEBUG'} > 5 ) {
-   print STDERR "DEBUG: Inside OnlyService for $ServiceName\n";
+   print STDERR "DEBUG: Inside EventLogOnlyService for $ServiceName\n";
 }
 
 while (defined(my $ThisLine = <STDIN>)) {
-    if ($ThisLine =~ m/^... .. ..:..:.. .* MSWinEventLog(\t\d+\t|\[\d+\]:)$ServiceName\t/oi) {
+    if ($ThisLine =~ m/^... .. ..:..:.. .* MSWinEventLog(?:\t\d+\t|\[\d+\]:)$ServiceName\t/oi) {
       print $ThisLine;
     }
 }
