@@ -215,8 +215,8 @@ while (defined(my $ThisLine = <STDIN>)) {
    } elsif (my ($User, $Recip) = ($ThisLine =~ /^$dovecottag (?:lda|deliver|lmtp)\((?:\d+, )?(.*)\)(?:<[^>]+><[^>]+>)?:(?: .*:)? sieve: msgid=.* discarded duplicate vacation response to \<(.*)\>/ )) {
       $VacationDup{$User}{$Recip}++;
 
-   } elsif ( $ThisLine =~ /^$dovecottag (?:lda|deliver|lmtp)\(.*\): .*sieve: msgid=.* marked message to be discarded if not explicitly delivered/ ) {
-   # dovecot: lda(joe): sieve: msgid=<m$01$@com>: marked message to be discarded if not explicitly delivered (discard action)
+   } elsif ( $ThisLine =~ /^$dovecottag (?:lda|deliver|lmtp)\((?:\d+, )?(.*)\)(?:<[^>]+><[^>]+>)?:(?: .*:)? sieve: msgid=.* [Mm]arked message to be discarded if not explicitly delivered/ ) {
+   # dovecot: lda(joe)<3424><4kj83kjfhskjfh>: sieve: msgid=<m$01$@com>: discard action: marked message to be discarded if not explicitly delivered (discard action)
    # IGNORE
    } elsif ( $ThisLine =~ /^$dovecottag lmtp\(.*\): Connect from/ ) {
    # dovecot: [ID 583609 mail.info] lmtp(12782): Connect from local: 1 Time(s)
