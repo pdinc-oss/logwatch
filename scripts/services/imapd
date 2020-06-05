@@ -110,6 +110,11 @@ while (defined($ThisLine = <STDIN>)) {
       $Logout{$User}{$Host}++;
       $Logout2{$User}++;
       $SocketErrors{$Host}++;
+   } elsif (
+      (( $ThisLine =~ /^.*error:1408F10B:SSL routines:SSL3_GET_RECORD:wrong version number.*$/)) or
+      (( $ThisLine =~ /^.*error:1408A0C1:SSL routines:SSL3_GET_CLIENT_HELLO:no shared cipher.*$/))
+   ) {
+      $SocketErrors{'unknown'}++;
    } else {
       # Report any unmatched entries...
       # remove PID from named messages
