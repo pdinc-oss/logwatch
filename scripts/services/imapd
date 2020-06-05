@@ -46,7 +46,9 @@ while (defined($ThisLine = <STDIN>)) {
       ($ThisLine =~ /^Disconnected, ip=\[.*\]/) or
       # uw-imapd
       ($ThisLine =~ /^Moved \d+ bytes of new mail to.*$/) or
-      ($ThisLine =~ /^Unexpected client disconnect, while reading line.*$/)
+      ($ThisLine =~ /^Unexpected client disconnect, while reading line.*$/) or
+      ($ThisLine =~ /^ip=\[.*\], An unexpected TLS packet was received.*$/) or
+      ($ThisLine =~ /^ip=\[.*\], Unexpected SSL connection shutdown.*$/)
    ) {
       # Don't care about these...
    } elsif ( ($User, $Host) = ( $ThisLine =~ /^Login user=(.*?) host=(.*\[.*\])$/ ) ) {
@@ -65,6 +67,8 @@ while (defined($ThisLine = <STDIN>)) {
       $Connection{$Host}++;
    } elsif ( ($Host) = ( $ThisLine =~ /^Connection, ip=\[(.*)\]$/o ) ) {
       $Connection{$Host}++;
+   } elsif ( ($Num, $Host) = ( $ThisLine =~ /^message repeated (.*) times: \[ Connection, ip=\[(.*)\]$/o ) ) {
+      $Connection{$Host} += $Num;
 #   } elsif ( ($User,$Downloaded,$DownloadSize,$Left,$LeftSize) = ( $ThisLine =~ /^Stats: (.*?) (.*?) (.*?) (.*?) (.*?)$/) ) {
 #      $DownloadedMessages{$User} += $Downloaded;
 #      $DownloadedMessagesSize{$User} += $DownloadSize;
