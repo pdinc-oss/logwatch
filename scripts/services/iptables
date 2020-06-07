@@ -128,6 +128,9 @@ while (defined($ThisLine = <STDIN>)) {
    # IPTABLES
    elsif (($chain,$ifin,$ifout,$fromip,$toip,$proto,$rest) = ($ThisLine =~ /^(.*?)\s*IN=([\w\.\-]*).*?OUT=([\w\.\-]*).*?SRC=([\w\.:]+).*?DST=([\w\.:]+).*?PROTO=(\w+)(.*)/ )) {
 
+      # STATE_INVALID_DROP is generally uninteresting
+      next if ($chain eq "STATE_INVALID_DROP:" and $Detail < 10);
+
       # get a destination port number  (or icmp type) if there is one
       if (! ( ($toport) = ( $rest =~ /TYPE=(\w+)/ ) ) ) {
          if (! ( ($toport) = ( $rest =~ /DPT=(\w+)/ ) ) ) {
