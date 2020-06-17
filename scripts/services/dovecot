@@ -65,6 +65,7 @@ my %Login;
 my %LoginIMAP;
 my %LoginPOP3;
 my %MUAList;
+my %MUASessionList;
 my %OtherList;
 my %ProxyConnection;
 my %ProxyConnectionIMAP;
@@ -151,13 +152,17 @@ while (defined(my $ThisLine = <STDIN>)) {
          $Connection{$Host}++;
       }
    } elsif ( (my ($User, $Host) = ( $ThisLine =~ /^(?:$dovecottag )?imap-login: Login: (.*?) \[(.*)\]/ ) ) or
-             (my ($User, $Host) = ( $ThisLine =~ /^(?:$dovecottag )?imap-login: (?:Info: )?Login: user=\<(.*?)\>.*rip=(.*), lip=/ ) ) ) {
+             (my ($User, $Host, $Session) = ( $ThisLine =~ /^(?:$dovecottag )?imap-login: (?:Info: )?Login: user=\<(.*?)\>.*rip=(.*), lip=.*, session=<([^>]+)>/ ) ) ) {
       if ($Host !~ /$IgnoreHost/) {
          $Host = hostName($Host);
          $Login{$User}{$Host}++;
          $LoginIMAP{$User}++;
          $ConnectionIMAP{$Host}++;
          $Connection{$Host}++;
+         if (defined($MUASessionList{$Session})) {
+             $MUAList{$MUASessionList{$Session}}{$User}++;
+             delete $MUASessionList{$Session};
+         }
       }
    } elsif (my ($User, $Host) = ( $ThisLine =~ /managesieve-login: Login: user=\<(.*?)\>.*rip=(.*), lip=/ ) ) {
       if ($Host !~ /$IgnoreHost/) {
@@ -318,6 +323,9 @@ while (defined(my $ThisLine = <STDIN>)) {
    # This is with imap_id_log = * enabled
    } elsif (my ($User,$MUA) = ($ThisLine =~ /imap\((.*)\): ID sent: name=(.*)/)) {
       $MUAList{$MUA}{$User}++;
+   # Need to match these later
+   } elsif (my ($MUA, $Session) = ($ThisLine =~ /imap-login: ID sent: name=(.*): user=.*, session=<([^>]+)>/)) {
+      $MUASessionList{$Session} = $MUA;
    # These are failed connections with imap_id_log = * enabled
    } elsif ($ThisLine =~ /imap-login: ID sent: (?:name|vendor)=/) {
       # Ignore
