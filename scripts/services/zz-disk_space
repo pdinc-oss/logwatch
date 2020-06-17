@@ -146,7 +146,7 @@ sub DiskFull {
                     ($source !~ /\/dev\/scd/ ) &&
                     ($source !~ /\/dev\/sr/ ) &&
                     ($source !~ /\/dev\/loop./) &&
-                    ($target !~ /^$diskfull_exclude_dirs/)) {
+                    ($target !~ /^$diskfull_exclude_dirs/i)) {
             print "$target ($source) => $used% Used. Warning: Disk Filling up.\n";
         }
     }
