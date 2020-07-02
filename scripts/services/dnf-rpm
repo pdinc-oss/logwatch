@@ -77,11 +77,27 @@ if (keys %PackageReinstalled) {
        print "   ". $ThisOne;
    }
 }
-if (keys %PackageUpdate) {
-   print "\nPackages Updated:\n";
-   chomp(my @Updated = sort {lc($a) cmp lc($b)} keys %PackageUpdated);
-   foreach $ThisOne (sort {lc($a) cmp lc($b)} keys %PackageUpdate) {
-       print "   ". shift(@Updated) ." -> ". $ThisOne;
+if (keys %PackageUpdate == keys %PackageUpdated) {
+   if (keys %PackageUpdate) {
+      print "\nPackages Updated:\n";
+      chomp(my @Updated = sort {lc($a) cmp lc($b)} keys %PackageUpdated);
+      foreach $ThisOne (sort {lc($a) cmp lc($b)} keys %PackageUpdate) {
+          print "   ". shift(@Updated) ." -> ". $ThisOne;
+      }
+   }
+} else {
+   print "\nPackages Updated (Count Mismatch)";
+   if (keys %PackageUpdate) {
+      print "\nPackages To Be Updated:\n";
+      foreach $ThisOne (sort {lc($a) cmp lc($b)} keys %PackageUpdate) {
+          print "   ". $ThisOne;
+      }
+   }
+   if (keys %PackageUpdated) {
+      print "\nPackages Updated To:\n";
+      foreach $ThisOne (sort {lc($a) cmp lc($b)} keys %PackageUpdated) {
+          print "   ". $ThisOne;
+      }
    }
 }
 if (keys %PackageDowngrade) {
