@@ -188,7 +188,15 @@ while (my $line = <STDIN>) {
       if ($Detail >= 7) {
          $data{'DNS Mappings'}{$line}++;
       }
+   } elsif ($line =~ s/^[Aa]dded reverse map from ([0-9a-fA-F.]+\.ip6\.arpa\.?) to ([a-zA-Z\d\._-]+)\s*$/Add reverse $1 -> $2/) {
+      if ($Detail >= 7) {
+         $data{'DNS Mappings'}{$line}++;
+      }
    } elsif ($line =~ s/^[Rr]emoved reverse map on (\d+)\.(\d+)\.(\d+)\.(\d+)\.in-addr\.arpa\.?\s*$/Remove reverse $4.$3.$2.$1/) {
+      if ($Detail >= 7) {
+         $data{'DNS Mappings'}{$line}++;
+      }
+   } elsif ($line =~ s/^[Rr]emoved reverse map on ([0-9a-fA-F.]+\.ip6\.arpa\.?)/Remove reverse $1/) {
       if ($Detail >= 7) {
          $data{'DNS Mappings'}{$line}++;
       }
@@ -196,7 +204,15 @@ while (my $line = <STDIN>) {
       if ($Detail >= 7) {
          $data{'DNS Mappings'}{$line}++;
       }
+   } elsif ($line =~ s/^Added new forward map from ([a-zA-Z\d\._-]+) to ([0-9a-fA-F:]+)\s*$/Add forward $1 -> $2/) {
+      if ($Detail >= 7) {
+         $data{'DNS Mappings'}{$line}++;
+      }
    } elsif ($line =~ s/^Removed forward map from ([a-zA-Z\d\._-]+) to ([\d\.]+)\s*$/Remove forward $1 -> $2/) {
+      if ($Detail >= 7) {
+         $data{'DNS Mappings'}{$line}++;
+      }
+   } elsif ($line =~ s/^Removed forward map from ([a-zA-Z\d\._-]+) to ([0-9a-fA-F:]+)\s*$/Remove forward $1 -> $2/) {
       if ($Detail >= 7) {
          $data{'DNS Mappings'}{$line}++;
       }
