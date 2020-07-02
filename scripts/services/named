@@ -166,6 +166,8 @@ while (defined($ThisLine = <STDIN>)) {
       ($ThisLine =~ /using .* as GeoIP directory/) or
       ($ThisLine =~ /GEO-.* Build/) or
       ($ThisLine =~ /initializing GeoIP /) or
+      ($ThisLine =~ /looking for GeoIP2? databases in /) or
+      ($ThisLine =~ /opened GeoIP2? database /) or
       # the following seems okay since it says "success"
       ($ThisLine =~ /managed-keys-zone.*: No DNSKEY RRSIGs found for '.*': success/) or
       ($ThisLine =~ /managed-keys-zone.*: Unable to fetch DNSKEY set '.*': timed out/) or
@@ -178,6 +180,7 @@ while (defined($ThisLine = <STDIN>)) {
       ($ThisLine =~ /next key event: /) or
       ($ThisLine =~ /reconfiguring zone keys/) or
       ($ThisLine =~ /using built-in DLV key/) or
+      ($ThisLine =~ /trust-anchor-telemetry/) or
 #      ($ThisLine =~ /reading built-in trusted keys from file/) or
       ($ThisLine =~ /all zones loaded/) or
       ($ThisLine =~ /resolver priming query complete/) or
