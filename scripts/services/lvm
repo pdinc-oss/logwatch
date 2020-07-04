@@ -49,9 +49,9 @@ while (defined(my $ThisLine = <STDIN>)) {
        or $ThisLine =~ /^WARNING: lvmetad is being updated, retrying/
       ) {
       # Ignore
-   } elsif ($ThisLine =~ /^(?:WARNING: )Thin (\S+) is now (\d+(\.\d+)?)% full/) {
+   } elsif ($ThisLine =~ /^(?:WARNING: )?Thin (\S+) is now (\d+(\.\d+)?)% full/) {
       $PoolUsed{$1} = $2 if $2 >= $PoolThreshold;
-   } elsif ($ThisLine =~ /^(?:WARNING: )Thin metadata (\S+) is now (\d+(\.\d+)?)% full/) {
+   } elsif ($ThisLine =~ /^(?:WARNING: )?Thin metadata (\S+) is now (\d+(\.\d+)?)% full/) {
       $PoolMetadataUsed{$1} = $2 if $2 >= $PoolMetadataThreshold;
    } elsif ($ThisLine =~ /^Monitoring thin pool (\S+)\./) {
       $MonitoringOn{$1}++;
