@@ -22,8 +22,8 @@
 # and ensure full compatibility with the newer Openswan.
 ##########################################################################
 
-# This is a scanner for logwatch (see www.logwatch.org) that processes
-# FreeSWAN's <http://www.freeswan.org/> Pluto log files and attempts to
+# This is a scanner for logwatch that processes FreeSWAN's
+# <http://www.freeswan.org/> Pluto log files and attempts to
 # make some sense out of them.
 #
 # Please CC suggestions to mcr@freeswan.org and/or design@lists.freeswan.org
