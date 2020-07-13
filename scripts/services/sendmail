@@ -360,7 +360,15 @@ next unless $ThisLine;
       ( $ThisLine =~ /^STARTTLS=(server|client), init=1/ ) or
       # file=deliver.c, LogLevel>13, LOG_INFO
       ( $ThisLine =~ /^STARTTLS=client, start=ok$/ ) or
-
+      # file=readcf.c, LogLevel>9, LOG_NOTICE, starting in 8.16.1
+      #   because the features string can be many things, we ignore those
+      #   strings that are not known errors.  (Other error strings are
+      #   possible, but they don't match because they have more arguments.)
+      ( $ThisLine =~ m/^tls_(srv|clt)_features=
+          (?!too_short|only_one_of_CertFile\/KeyFile_specified)[^,]*,
+          \ relay=([^\ ])*\ \[.*\]$/x ) or
+      # file=tls.c, LogLevel>13, LOG_DEBUG, starting in 8.16.1
+      ( $ThisLine =~ /engine=.*, path=.*, ispre=\d+, pre=\d+, initialized=\d+$/ ) or
       # the following is described in tls.c as a bug in OpenSSL, and
       # recommends that the error message be ignored (last checked on 8.15.2)
       # file=tls.c, LogLevel>15, LOG_WARNING
