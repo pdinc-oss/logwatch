@@ -59,7 +59,7 @@ sub other {
 
 my $ThisLine;
 while (defined($ThisLine = <STDIN>)) {
-   $ThisLine =~ s/LOG\d\[\d{1,5}:\d{15}\]: (.*)/$1/;
+   $ThisLine =~ s/LOG\d\[(?:\d{1,5}:\d{15}|\w+)\]: (.*)/$1/;
    if ( $Debug >= 5 ) {
       print STDERR "DEBUG($DebugCounter): $ThisLine";
       $DebugCounter++;
@@ -84,6 +84,8 @@ while (defined($ThisLine = <STDIN>)) {
       # ignore
    } elsif ($ThisLine =~ m/^connect_blocking: getsockopt ([0-9a-fA-F.:]+: Connection refused) \(\d+\)$/) {
       $errors{"connect_blocking: $1"}++;
+   } elsif ($ThisLine =~ m/^DH parameters updated/) {
+      # ignore
    } elsif ($ThisLine =~ m/^(?:remote socket|local socket|accept): (Too many open files) \(\d+\)$/) {
       $errors{"$1: increase the maximum number of open file descriptors"}++;
    } elsif ($ThisLine =~ m/^Log file reopened$/) {
@@ -106,6 +108,8 @@ while (defined($ThisLine = <STDIN>)) {
       $stops++;
    } elsif ($ThisLine =~ m/^transfer: s_poll_wait: TIMEOUTclose exceeded: closing$/) {
       $notices{"TIMEOUTclose exceeded: closing connection"}++;
+   } elsif ($ThisLine =~ m/^Updating DH parameters/) {
+      # ignore
    } elsif ($ThisLine =~ m/^(SSL_(?:accept|read|shutdown): .*|getpeerbyname: .*)(?: \(\d+\))?$/) {
       $notices{$1}++;
    } else {
