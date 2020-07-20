@@ -53,6 +53,7 @@ my %OtherList;
 while (defined(my $ThisLine = <STDIN>)) {
    chomp($ThisLine);
    if ($ThisLine =~ /^(Activat|Deactivat|Mount|Unmount|Reload|Start|Stopp)ing / or
+       $ThisLine =~ /^Finished / or
        # These events will be caught with the Unit X entered failed state message
        $ThisLine =~ /^Failed to start / or
        $ThisLine =~ /: Failed with result / or

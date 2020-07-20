@@ -49,9 +49,9 @@ while (defined(my $ThisLine = <STDIN>)) {
        or $ThisLine =~ /^WARNING: lvmetad is being updated, retrying/
       ) {
       # Ignore
-   } elsif ($ThisLine =~ /^Thin (\S+) is now (\d+)% full/) {
+   } elsif ($ThisLine =~ /^(?:WARNING: )?Thin (\S+) is now (\d+(\.\d+)?)% full/) {
       $PoolUsed{$1} = $2 if $2 >= $PoolThreshold;
-   } elsif ($ThisLine =~ /^Thin metadata (\S+) is now (\d+)% full/) {
+   } elsif ($ThisLine =~ /^(?:WARNING: )?Thin metadata (\S+) is now (\d+(\.\d+)?)% full/) {
       $PoolMetadataUsed{$1} = $2 if $2 >= $PoolMetadataThreshold;
    } elsif ($ThisLine =~ /^Monitoring thin pool (\S+)\./) {
       $MonitoringOn{$1}++;
@@ -61,7 +61,7 @@ while (defined(my $ThisLine = <STDIN>)) {
       $MonitoringOff{$1}++;
    } elsif ($ThisLine =~ /^No longer monitoring snapshot (\S+)\./) {
       $MonitoringSnapshotOff{$1}++;
-   } elsif ($ThisLine =~ /^Snapshot (\S+) is now (\d+)% full/) {
+   } elsif ($ThisLine =~ /^(?:WARNING: )?Snapshot (\S+) is now (\d+(\.\d+)?)% full/) {
       $SnapshotUsed{$1} = $2 if $2 >= $SnapshotThreshold;
    } elsif ($ThisLine =~ /^(\d+) logical volume\(s\) in volume group "(\S+)" monitored/) {
       $MonitoringOn{$2}++;
