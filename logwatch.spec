@@ -1,6 +1,6 @@
 Summary: Analyzes and Reports on system logs
 Name: logwatch
-Version: 7.5.3
+Version: 7.5.4
 Release: 1
 License: MIT
 Group: Applications/System
@@ -112,6 +112,8 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Wed Jul 22 2020 Bjorn <bjorn1@users.sourceforge.net> 7.5.4-1
+
 * Wed Jan 22 2020 Bjorn <bjorn1@users.sourceforge.net> 7.5.3-1
 
 * Mon Jul 22 2019 Bjorn <bjorn1@users.sourceforge.net> 7.5.2-1
