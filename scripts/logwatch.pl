@@ -1202,7 +1202,7 @@ sub initprint {
          if ( $Config{'encode'} eq "base64" ) {
             $out_mime .= "Content-transfer-encoding: base64\n";
          } else {
-            $out_mime .= "Content-Transfer-Encoding: 7bit\n";
+            $out_mime .= "Content-Transfer-Encoding: 8bit\n";
          }
          #Config{output} html
          if ( $Config{'format'} eq "html" ) {
