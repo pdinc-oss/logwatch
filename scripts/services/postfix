@@ -2609,6 +2609,7 @@ sub postfix_fatal;
 sub postfix_error;
 sub postfix_warning;
 sub postfix_script;
+sub backwards_compatible;
 sub postfix_postsuper;
 sub process_delivery_attempt;
 sub cleanhostreply;
@@ -2814,6 +2815,9 @@ sys     0m3.005s
    if ($p1 =~ /^fatal: +(.*)$/)             { postfix_fatal($1);   next; }
    if ($p1 =~ /^panic: +(.*)$/)             { postfix_panic($1);   next; }
    if ($p1 =~ /^error: +(.*)$/)             { postfix_error($1);   next; }
+
+   # Backwards compatibility mode
+   if ($p1 =~ /compati/i)                   { backwards_compatible($p1); next; }    # backwards-compatible default settings
 
    # output by all services that use table lookups - process before specific messages
    if ($p1 =~ /(?:lookup )?table (?:[^ ]+ )?has changed -- (?:restarting|exiting)$/) {
@@ -4806,6 +4810,22 @@ sub postfix_script($) {
    }
 }
 
+# Handles postfix backwards compatibility mode lines
+#
+sub backwards_compatible($) {
+    my $line = shift;
+
+    if ($line =~ /^Postfix is running with backwards-compatible default settings/o) {
+	$Totals{'backwardscompatible'}++;
+    }
+    elsif ($line =~ /^See http.*COMPATIBILITY_README.html for details/o) {
+	$Totals{'backwardscompatible'}++;
+    }
+    elsif ($line =~ /^To disable backwards compatibility use.*/o) {
+	$Totals{'backwardscompatible'}++;
+    }
+}
+
 # Clean up a server's reply, to give some uniformity to reports
 #
 sub cleanhostreply($ $ $ $) {
@@ -5213,6 +5233,9 @@ sub build_sect_table() {
    add_section ($S, 'postfixwaiting',              0, 'd', 'Postfix waiting to terminate');
    end_section_group ($S, 'postfixstate');
 
+   begin_section_group ($S, 'backwardscompatible', "\n");
+   add_section ($S, 'backwardscompatible',         1, 'd', 'Running in backwards compatibile mode');
+   end_section_group ($S, 'backwardscompatible');
 
    if ($Opts{'debug'} & Logreporters::D_SECT) {
       print "\tSection table\n";
