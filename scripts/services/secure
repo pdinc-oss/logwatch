@@ -156,6 +156,7 @@ while (defined($ThisLine = <STDIN>)) {
       ( $ThisLine =~ /sshguard\[\d+\]: (?:message repeated \d+ times: \[ )?\S+: not blocking /) or
       ( $ThisLine =~ /sshguard\[\d+\]: Received EOF from stdin/) or
       ( $ThisLine =~ /sshguard\[\d+\]: .*has already been blocked/) or
+      ( $ThisLine =~ /gnome-keyring-daemon\[\d+\]: asked to register item.*already registered/) or
       0 # This line prevents blame shifting as lines are added above
    ) {
       # Ignore these entries
