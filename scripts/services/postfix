@@ -2286,7 +2286,7 @@ sub postfix_postgrey($) {
       #TDpg unrecognized request type: ''
       #TDpg rm /var/spool/postfix/postgrey/log.0000000002
       #TDpg 2007/01/25-14:48:00 Pid_file already exists for running process (4775)... aborting    at line 232 in file /usr/lib/perl5/vendor_perl/5.8.7/Net/Server.pm
-
+      #TDpg Resolved [localhost]:10023 to [127.0.0.1]:10023, IPv4
 
       $line =~ /^cleaning / or
       $line =~ /^delayed / or
@@ -2301,7 +2301,8 @@ sub postfix_postgrey($) {
       # unanchored last
       $line =~ /Pid_file already exists/ or
       $line =~ /postgrey .* starting!/ or
-      $line =~ /Server closing!/
+      $line =~ /Server closing!/ or
+      $line =~ /Resolved .*localhost.*IPv4/
    );
 
    my ($action,$reason,$delay,$host,$ip,$sender,$recip);
