@@ -93,6 +93,10 @@ while (defined($ThisLine = <STDIN>)) {
          $KeepEnv++ if $MatchedDate;
          next;
       }
+      if ( $ThisLine =~ /^ Suggested action: either install a certificate or change tls_advertise_hosts option/ ) {
+         push @SelfSignedH, $ThisLine;
+         next;
+      }
       $BadFormat{$ThisLine}++;
       next;
    } unless ($year1,$month1,$day1,$h1,$m1,$s1) = ($ThisLine =~ /^(\d+)\-(\d+)\-(\d+)\s(\d+):(\d+):(\d+)\s.+/);
@@ -266,6 +270,10 @@ while (defined($ThisLine = <STDIN>)) {
       $Lookup++;
       push @LookupH, $ThisLine;
    }
+   elsif ( $ThisLine =~ /No server certificate defined; will use a selfsigned one/ ) {
+      $SelfSigned++;
+      push @SelfSignedH, $ThisLine;
+   }
    elsif ( $ThisLine =~ /DKIM: .* \[verification succeeded\]/ ) {
       # Ignore successful DKIM verification reports
       # http://www.exim.org/exim-html-current/doc/html/spec_html/ch-support_for_dkim_domainkeys_identified_mail.html
@@ -318,6 +326,16 @@ if ($Detail >= $LvlRuns) {
       $StartQueue and print "  Start queue run: $StartQueue Time(s)\n";
       # End Queue
       $EndQueue and print "  End queue run: $EndQueue Time(s)\n";
+   }
+}
+
+if (@SelfSignedH) {
+   print "\n--- Self-Signed Certificate in use ($SelfSigned  Time(s))\n";
+
+   if ($Detail >= $LvlMsgs) {
+      foreach $ThisOne (@SelfSignedH) {
+         print "$ThisOne\n";
+      }
    }
 }
 
@@ -749,6 +767,7 @@ if ($Detail >= $LvlProtocol) {
             }
          }
       }
+
    }
 }
 
