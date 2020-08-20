@@ -119,6 +119,8 @@ while (my $line = <STDIN>) {
       ($line =~ /^of the dhcpd.conf file\./)
      ) {
     # Do nothing
+   } elsif ($line =~ /lease age \d+ \(secs\) under \d+% threshold, reply with unaltered, existing lease/) {
+    # Do nothing
 
    } elsif ($line =~ s/^exiting./DHCP server exiting./) {
       $data{'Generic error'}{$line}++;
