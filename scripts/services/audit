@@ -140,6 +140,9 @@ while ($ThisLine = <STDIN>) {
             # type=1400 audit(1315353795.331:33657): apparmor="DENIED" operation="exec" parent=14952 profile="/usr/lib/apache2/mpm-prefork/apache2//example.com" name="/usr/lib/sm.bin/sendmail" pid=14953 comm="sh" requested_mask="x" denied_mask="x" fsuid=33 ouid=0
             # type=1400 audit(1597683992.796:8057): apparmor="DENIED" operation="exec" profile="/usr/bin/evince" name="/usr/lib/uim/uim-helper-server" pid=1687330 comm="evince" requested_mask="x" denied_mask="x" fsuid=1000 ouid=0: 1 Time(s)
             $denials{$1.' '.$3.' ('.$2.' via '.$4 . ')'}++;
+        } elsif ( $ThisLine =~ /apparmor="DENIED" operation="([^"]+)" info="([^"]+)" error=-*[0-9]+ profile="([^"]+)" name="([^"]+)" pid=\d+ comm="([^"]+)"/ ) {
+            # type=1400 audit(1597690743.153:8073): apparmor="DENIED" operation="mount" info="failed flags match" error=-13 profile="lxd-open-iscsi-review-mp389234-groovy_</var/snap/lxd/common/lxd>" name="/run/" pid=1694826 comm="mount" flags="rw, nosuid, nodev, remount": 1 Time(s)
+            $denials{$1.' '.$4.' ('.$3.' via '.$5 .': '.$2. ')'}++;
         } elsif ( $ThisLine =~ /apparmor="ALLOWED" operation="([^"]+)" (info="([^"]+)" )?(error=[+-]?\d+ )?(parent=\d+ )?profile="([^"]+)" (name="([^"]+)" )?pid=\d+ comm="([^"]+)"/ ) {
             # type=1400 audit(1369519203.141:259049): apparmor="ALLOWED" operation="exec" parent=3733 profile="/usr/sbin/dovecot//null-1c//null-1d" name="/usr/lib/dovecot/pop3-login" pid=24634 comm="dovecot" requested_mask="x" denied_mask="x" fsuid=0 ouid=0 target="/usr/sbin/dovecot//null-1c//null-1d//null-d12"
             # type=1400 audit(1369627891.522:447576): apparmor="ALLOWED" operation="capable" parent=1 profile="/usr/sbin/dovecot//null-1c//null-1d" pid=3733 comm="dovecot" capability=5 capname="kill"
