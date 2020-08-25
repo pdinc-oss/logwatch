@@ -36,7 +36,7 @@
 use strict;
 use Logwatch ':all';
 
-my (%denials, %grants, %loads);
+my (%denials, %allowed, %loads);
 my %OtherList;
 my $othercount = 0;
 my $Debug = ($ENV{'LOGWATCH_DEBUG'} || 0);
@@ -157,7 +157,7 @@ while ($ThisLine = <STDIN>) {
 	if ( $ThisLine =~ /avc:\s*denied\s*{\s*([^}]+).*scontext=(\S+)\s*tcontext=(\S+)\s*tclass=(\S+)/ ) {
 	    $denials{$2.' '.$3.' ('.$1.$4 . ')'}++;
 	} elsif ( $ThisLine =~ /avc:\s*granted\s*{\s*([^}]+).*scontext=(\S+)\s*tcontext=(\S+)\s*tclass=(\S+)/ ) {
-	    $grants{$2.' '.$3.' ('.$1.$4 . ')'}++;
+	    $allowed{$2.' '.$3.' ('.$1.$4 . ')'}++;
 	} elsif ($ThisLine =~ /security_compute_sid:\s*invalid context\s*(\S+)\s*for\s*scontext=(\S+)\s*tcontext=(\S+)\s*tclass=(\S+)/ ) {
 	    $InvalidContext{$4." running as ".$2." acting on ".$3." \nshould transit to invalid ".$1}++;
         } elsif ($ThisLine =~ /security_sid_mls_copy:\s*invalid context\s*(\S+)/) {
@@ -170,7 +170,7 @@ while ($ThisLine = <STDIN>) {
 	if ( $ThisLine =~ /avc:\s*denied\s*{\s*[^}]+.*scontext=(\S+)\s*tcontext=(\S+)\s*tclass=(\S+)/ ) {
 	    $denials{$1.' '.$2.' ('.$3 . ')'}++;
 	} elsif ( $ThisLine =~ /avc:\s*granted\s*{\s*[^}]+}.*scontext=(\S+)\s*tcontext=(\S+)\s*tclass=(\S+)/ ) {
-	    $grants{$1.' '.$2.' ('.$3 . ')'}++;
+	    $allowed{$1.' '.$2.' ('.$3 . ')'}++;
 	} elsif ($ThisLine =~ /security_compute_sid:\s*invalid context\s*(\S+)\s*for\s*scontext=(\S+)\s*tcontext=\S+\s*tclass=(\S+)/ ) {
 	    $InvalidContext{$3." running as ".$2." should transit to invalid ".$1}++;
         } elsif ($ThisLine =~ /security_sid_mls_copy:\s*invalid context\s*(\S+)/) {
@@ -183,7 +183,7 @@ while ($ThisLine = <STDIN>) {
 	if ( $ThisLine =~ /avc:\s*denied\s*{\s*[^}]+.*scontext=([^:]+):[^:]+:\S+\s*tcontext=([^:]+):[^:]+:\S+\s*tclass=(\S+)/ ) {
 	    $denials{$1.' '.$2.' ('.$3 . ')'}++;
 	} elsif ( $ThisLine =~ /avc:\s*granted\s*{\s*[^}]+.*scontext=([^:]+):[^:]+:\S+\s*tcontext=([^:]+):[^:]+:\S+\s*tclass=(\S+)/ ) {
-	    $grants{$1.' '.$2.' ('.$3 . ')'}++;
+	    $allowed{$1.' '.$2.' ('.$3 . ')'}++;
 	} elsif ($ThisLine =~ /security_compute_sid:\s*invalid context\s*(\S+)\s*for\s*scontext=(\S+)\s*tcontext=\S+\s*tclass=(\S+)/ ) {
    	    $InvalidContext{$3." running as ".$2." should transit to invalid ".$1}++;
         } elsif ($ThisLine =~ /security_sid_mls_copy:\s*invalid context\s*(\S+)/) {
@@ -208,10 +208,10 @@ if ( keys %denials ) {
     }
 }
 
-if ( keys %grants ) {
-    print "\n\n*** Grants ***\n";
-    foreach my $key (sort keys %grants) {
-    	print "   $key: ". $grants{$key} . " times\n";
+if ( keys %allowed ) {
+    print "\n\n*** Allowed ***\n";
+    foreach my $key (sort keys %allowed) {
+        print "   $key: ". $allowed{$key} . " times\n";
     }
 }
 
