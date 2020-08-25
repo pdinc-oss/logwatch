@@ -3586,7 +3586,7 @@ sys     0m3.005s
 
    ### smtpd_tls_loglevel >= 1
    # Server TLS messages
-   elsif (($status,$host,$hostip,$type) = ($p1 =~ /^(?:(Anonymous|Trusted|Untrusted) )?TLS connection established from ([^[]+)\[([^]]+)\](?::\d+)?: (.*)$/)) {
+   elsif (($status,$host,$hostip,$type) = ($p1 =~ /^(?:(Anonymous|Trusted|Untrusted) )?TLS connection established from ([^[]+)\[([^]]+)\](?::\d+)?(?: to [^:]+)?: (.*)$/)) {
       #TDsd TLS connection established from example.com[192.168.0.1]: TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits)
       # Postfix 2.5+: status: Untrusted or Trusted
       #TDsd Untrusted TLS connection established from example.com[192.168.0.1]: TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits)
