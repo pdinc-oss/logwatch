@@ -79,8 +79,10 @@ while (defined($ThisLine = <STDIN>)) {
       ($ThisLine =~ /recvfrom: No route to host/) or
       # Be sure to catch: transfer of 'zone' from IP#53: failed to connect: timed out
       # not exact just triggers a full transfer
-      ($ThisLine =~ /transfer of .*: (IXFR|AXFR(|-style IXFR) (started|ended)|connected using|failed while receiving responses: not exact)/) or
-      ($ThisLine =~ /Transfer status: success/) or
+      ($ThisLine =~ /transfer of .*: (:?IXFR|AXFR(:?|-style IXFR) (:?started|ended)|connected using|failed while receiving responses: not exact)/) or
+      # This will generate another error that we will catch
+      ($ThisLine =~ /transfer of .*: resetting/) or
+      ($ThisLine =~ /Transfer status: (:?success|up to date)/) or
       ($ThisLine =~ /using \d+ CPU/) or
       ($ThisLine =~ /loading configuration/) or
       ($ThisLine =~ /command channel listening/) or
@@ -213,7 +215,7 @@ while (defined($ThisLine = <STDIN>)) {
       $DeniedZoneTransfers{$Host}{$Zone}++;
    } elsif ( ($Zone) = ( $ThisLine =~ /zone (.+) zone transfer deferred due to quota/ ) ) {
       $DeferredZoneTransfers{$Zone}++;
-   } elsif ( ($Zone, $Host) = ( $ThisLine =~ /transfer of '(.+)' from ([^\#]+)#[^\:]+: (failed|(Transfer status|giving up): ((network|host) unreachable|timed out|connection refused))/ ) ) {
+   } elsif ( ($Zone, $Host) = ( $ThisLine =~ /transfer of '(.+)' from ([^\#]+)#[^\:]+: (failed|(Transfer status|giving up): ((network|host) unreachable|timed out|connection refused|REFUSED))/ ) ) {
       $FailedZoneTransfers{$Host}{$Zone}++;
    } elsif ( ($Zone) = ( $ThisLine =~ /cache zone \"(.*)\" loaded/ ) ) {
       $ZoneLoaded{"cache $Zone"}++;
