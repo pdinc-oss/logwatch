@@ -31,6 +31,7 @@ my $Detail = $ENV{'LOGWATCH_DETAIL_LEVEL'} || 0;
 my $IgnoreHost = $ENV{'sshd_ignore_host'} || "";
 my $RefusedConnectionsThreshold = $ENV{'refused_connections_threshold'} || 0;
 my $IllegalUsersThreshold = $ENV{'illegal_users_threshold'} || 0;
+$main::DoLookup = $ENV{'sshd_ip_lookup'}; 
 my $DebugCounter = 0;
 
 # No sense in running if 'sshd' doesn't even exist on this system...
