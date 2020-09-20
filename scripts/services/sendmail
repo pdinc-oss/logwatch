@@ -132,8 +132,8 @@ my (
 $Address,                $Arg,                    $Attack,
 $Auth,
 $BlSite,                 $Bytes,                  $CommonName,
-$DeliverStat,            $Dest,                   $Domain,
-$Error,                  $ErrorCount,
+$DeliverStat,            $Dest,                   $DetailReason,
+$Domain,                 $Error,                  $ErrorCount,
 $ETRN,                   $File,                   $Forward,
 $FromUser,               $Header,                 $HeaderMod,
 $Host,                   $IP,
@@ -162,8 +162,8 @@ my @SizeDist;
 
 my (
 %Abuse,                  %AddressError,           %AttackAttempt,
-%AUTHfailure,            %AuthWarns,              %BadAuth,
-%BadRcptThrottle,        %BlackHoled,
+%AUTHfailure,            %AUTHnouser,             %AuthWarns,
+%BadAuth,                %BadRcptThrottle,        %BlackHoled,
 %BlackHoles,             %CheckMailReject,        %CheckRcptReject,
 %CollectError,           %CommandUnrecognized,    %DisabledMailbox,
 %DNSMap,
@@ -808,8 +808,13 @@ next unless $ThisLine;
    } elsif ( ($StatFile, $StatError) = ($ThisLine=~ /^poststats: (.*?): (.*)/) ) {
       $StatFileError{$StatFile}{$StatError}++;
    # file=srvrsmtp.c, LogLevel>9, LOG_WARNING
-   } elsif ( ($Auth, $Reason, $RelayHost) = ($ThisLine =~ /^AUTH failure \((.*)?\): ([^\)]*)\(.* relay=(.*)/) ) {
-      $AUTHfailure{$RelayHost}{$Reason}++;
+   } elsif ( ($Auth, $Reason, $DetailReason, $RelayHost) = ($ThisLine =~ /^AUTH failure \((.*)?\): ([^\(]*)(\(.*) relay=(.*)/) ) {
+      if ( $Reason =~ /^user not found / ) {
+         (($User) = ($DetailReason =~ /\(-20\) SASL\(-13\): user not found: user: ([^ ]*)/));
+            $AUTHnouser{$User}++;
+      } else {
+         $AUTHfailure{$RelayHost}{$Reason}++;
+      }
    # file=tls.c, LogLevel>7, LOG_INFO
    } elsif ($ThisLine=~ /STARTTLS=.* field=cn_issuer, status=failed to extract CN/ ) {
       $NoCommonName++;
@@ -833,10 +838,16 @@ next unless $ThisLine;
       $TLSConnectFailed{"no reason given"}++;
    # file=tls.c, LogLevel>-1, LOG_INFO
    } elsif (($CommonName,$StarttlsReason) = ($ThisLine =~ /^STARTTLS: (?:x509|TLS) cert verify: depth=[0-9]+ .*\/CN=([^\/,]*).* state=[0-9]+, reason=(.*)$/ )) {
-      $StarttlsCert{$StarttlsReason}{$CommonName}++;
+      # "reason=ok" now printing in sendmail 8.16.1; not an error
+      if ($StarttlsReason !~ /^ok$/) {
+         $StarttlsCert{$StarttlsReason}{$CommonName}++;
+      }
    # do the same if, incorrectly, Common Name is not defined
    } elsif (($StarttlsReason) = ($ThisLine =~ /^STARTTLS: (?:x509|TLS) cert verify: depth=[0-9]+ .* state=[0-9]+, reason=(.*)$/ )) {
-      $StarttlsCert{$StarttlsReason}{"(undefined CommonName)"}++;
+      # "reason=ok" now printing in sendmail 8.16.1; not an error
+      if ($StarttlsReason !~ /^ok$/) {
+         $StarttlsCert{$StarttlsReason}{"(undefined CommonName)"}++;
+      }
    # file=tls.c, LogLevel>8, LOG_INFO
    } elsif ( ($StarttlsMode, $StarttlsVerify, $StarttlsCipherType, $StarttlsNumBits) =
       ($ThisLine =~ /^STARTTLS=(server|client), relay=.*, version=.*, verify=(\w*), cipher=(.*), bits=(\w*\/\w*)/) ) {
@@ -1485,6 +1496,18 @@ if (keys %AUTHfailure) {
          PrettyTimes("        $Auth", $AUTHfailure{$Host}{$Auth}) if ($Detail >= 5);
          $TotalError[$ErrorIndex] += $AUTHfailure{$Host}{$Auth};
       }
+   }
+   print "\n\tTotal:  $TotalError[$ErrorIndex]" if ($Detail >= 3);
+}
+$TotalError[++$ErrorIndex] = 0;
+
+if (keys %AUTHnouser) {
+   eval "$PrintCond" if ($Detail >= 3);
+   print "\n\nFailed AUTH requests because of No User" if ($Detail >= 3);
+   my $UserCount = CountOrder(%AUTHnouser);
+   foreach $User (sort $UserCount keys %AUTHnouser) {
+      PrettyTimes("    $User", $AUTHnouser{$User})  if ($Detail >=5);
+      $TotalError[$ErrorIndex] += $AUTHnouser{$User};
    }
    print "\n\tTotal:  $TotalError[$ErrorIndex]" if ($Detail >= 3);
 }
