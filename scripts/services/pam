@@ -32,7 +32,7 @@ while (defined(my $ThisLine = <STDIN>)) {
     if ( ( $ThisLine =~ /^pam_get_user: no username obtained$/ ) or
          ( $ThisLine =~ /^pam_end: NULL pam handle passed/ ) or
          ( $ThisLine =~ /^Starting up$/ ) or
-         ( $ThisLine =~ /^Shutting down$/ ) ) {
+         ( $ThisLine =~ /^Shutting down/ ) ) {
         # We don't care about these
     }
     elsif ( $ThisLine =~ s/^FAILED LOGIN SESSION FROM ([^ ]+) FOR .*$/$1/ ) {
