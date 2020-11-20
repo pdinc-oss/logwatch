@@ -77,6 +77,7 @@ while (defined(my $ThisLine = <STDIN>)) {
        $ThisLine =~ /^Inserted module / or
        $ThisLine =~ /^Listening on / or
        $ThisLine =~ /^Mounted / or
+       $ThisLine =~ /^Queued start job for default target / or
        $ThisLine =~ /^Relabelled / or
        $ThisLine =~ /^Reloading\.$/ or         # Happens on each boot at switch root
        $ThisLine =~ /^RTC configured in / or
