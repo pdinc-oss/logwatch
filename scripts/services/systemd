@@ -93,7 +93,6 @@ while (defined(my $ThisLine = <STDIN>)) {
        $ThisLine =~ /^Successfully loaded SELinux policy in / or
        $ThisLine =~ /already active, refusing\./ or
        $ThisLine =~ /^Failed to propagate agent release message:/ or
-       $ThisLine =~ /^Queued start job for default target/ or
        $ThisLine =~ /: Supervising process .* which is not our child\. We'll most likely not notice when it exits\.$/ or
        $ThisLine =~ /: Got notification message from PID \d+, but reception is disabled\./ or
        $ThisLine =~ /: Got notification message from PID \d+, but reception only permitted for main PID \d+/ or
