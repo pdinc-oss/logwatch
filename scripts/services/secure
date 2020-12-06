@@ -355,7 +355,7 @@ while (defined($ThisLine = <STDIN>)) {
       $pwd_file_too_short++;
    } elsif ( ($User,$Su) = ($ThisLine =~ /^su: ([^ ]+) to ([^ ]+) on \/dev\/ttyp([0-9a-z]+)/) ) {
       $Su_User{$User}{$Su}++;
-   } elsif ( ($Su,$User) = ($ThisLine =~ /^su: \(to ([^ ]+)\) ([^ ]+) on (?:none|\/dev\/(pts\/|ttyp)([0-9]+))/) ) {
+   } elsif ( ($Su,$User) = ($ThisLine =~ /^su: \(to ([^ ]+)\) ([^ ]+) on (?:none|(\/dev\/)?(pts\/|ttyp)([0-9]+))/) ) {
       $Su_User{$User}{$Su}++;
    } elsif ( ($Su,$User) = ($ThisLine =~ /^su\[\d+\]: Successful su for (\S+) by (\S+)/) ) {
       $Su_User{$User}{$Su}++;

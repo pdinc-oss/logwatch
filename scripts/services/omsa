@@ -63,6 +63,7 @@ while (defined(my $ThisLine = <STDIN>)) {
          next if (($Message =~ /^Controller event log: Time established as/) and ($Detail < 10));
          next if (($Message =~ /^Controller event log: Unexpected sense: Encl PD .* CDB: 12 00 00 00 (:?04|20) 00, Sense: 5\/24\/00/) and ($IgnoreNonCertifiedDrives));
          next if (($Message =~ /^Controller event log: Unexpected sense: PD .* CDB: 12 01 dc 01 1d 00, Sense: (4\/cf|5\/24)\/00/) and ($IgnoreNonCertifiedDrives));
+         next if (($Message =~ /^Unexpected sense. SCSI sense data: Sense key:  5 Sense code: 24 Sense qualifier:  0:/) and ($IgnoreNonCertifiedDrives));
          next if (($Message =~ /^Disk found is not supplied by an authorized hardware provider/) and ($IgnoreNonCertifiedDrives));
          next if (($Message =~ /^The battery charge cycle is complete\./) and ($Detail < 5));
          next if (($Message =~ /^The controller battery Learn cycle will start in (?:\d+) days\./) and ($Detail < 5));
