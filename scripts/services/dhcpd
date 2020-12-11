@@ -81,6 +81,7 @@ while (my $line = <STDIN>) {
       ($line =~ /^pool [0-9a-f]+ /) or
       ($line =~ /^[^ ]* file: /) or
       ($line =~ /^reuse_lease: lease age \d+ \(secs\) under \d+\% threshold, reply with unaltered, existing lease for/) or
+      ($line =~ /GSSAPI Authentication for LDAP will not be used/) or
       0 # noop, but makes diffs easier when appending ignore statements
       ) {
       # Ignore these lines
