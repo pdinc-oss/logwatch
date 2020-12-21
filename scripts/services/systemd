@@ -107,6 +107,7 @@ while (defined(my $ThisLine = <STDIN>)) {
        $ThisLine =~ /: Start(-pre)? operation timed out\. Terminating\./ or
        $ThisLine =~ /hold-?off time over, scheduling restart\./ or
        $ThisLine =~ /Service has no hold-off time.*, scheduling restart\./ or
+       $ThisLine =~ /Service Restart.* expired, scheduling restart\./ or
        $ThisLine =~ /Scheduled restart job, restart counter is at .*\./ or
        $ThisLine =~ /Stopping timed out\. Killing\./ or
        $ThisLine =~ /^Timed out waiting for/ or
