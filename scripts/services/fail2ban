@@ -66,7 +66,7 @@ while (defined(my $ThisLine = <STDIN>)) {
          ($ThisLine =~ /INFO\s+(Set |Socket|Exiting|Gamin|Created|Added|Using|Connected to |rollover performed)/) or # syntax of 0.7.? fail2ban
          ($ThisLine =~ /..,... WARNING: Verbose level is /) or
          ($ThisLine =~ /..,... WARNING: Restoring firewall rules/) or
-         ($ThisLine =~ /WARNING Determined IP using DNS Lookup: [^ ]+ = \['[^']+'\]/) or
+         ($ThisLine =~ /WARNING Determined IP using DNS Lookup/) or
          ($ThisLine =~ /INFO\s+(Stopping all jails|Exiting Fail2ban)/) or
          ($ThisLine =~ /INFO\s+Initiated '.*' backend/) or
          ($ThisLine =~ /INFO\s+(Added logfile = .*|Set maxRetry = \d+|Set findtime = \d+|Set banTime = \d+)/) or
