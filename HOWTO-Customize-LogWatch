@@ -341,6 +341,9 @@ Archive = messages.?.gz
 When specifying filenames for either the LogFile or Archive statements,
 you can use standard regexps (for example, *, ?, or [0-9]).  In addition,
 filenames with spaces are possible by enclosing them in single quotes.
+Similarly, filename case can be preserved by quoting the filename.
+Single-quoted strings do not expand regexp characters; double-quoted
+strings do.
 
 For either the LogFile or Archive statements, the corresponding files
 need not exist.  In that case, the statement is ignored.  Because of this,
