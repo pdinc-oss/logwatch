@@ -125,6 +125,7 @@ while (defined(my $ThisLine = <STDIN>)) {
       ($ThisLine =~ /^TCP\/UDP: Dynamic remote address changed during TCP connection establishment/) or
       ($ThisLine =~ /^TCP\/UDP: Preserving recently used remote address: /) or
       ($ThisLine =~ /^TCP connection established with [\d.]+:\d+/) or
+      ($ThisLine =~ /^TCP connection established with \[AF_INET6?\]/) or
       ($ThisLine =~ /^TCPv\d_(CLIENT|SERVER) link (local|remote)/) or
       ($ThisLine =~ /^TLS-Auth MTU parms/) or
       ($ThisLine =~ /^TLS: Initial packet from/) or

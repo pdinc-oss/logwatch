@@ -170,7 +170,7 @@ while (defined(my $ThisLine = <STDIN>)) {
       $DriveTest{$Device}{$TestType}++;
    } elsif ( my ($Device,$AttribType,$Code,$Name) = ($ThisLine =~ /^Device: ([^,]+), Failed SMART ([A-Za-z]+) Attribute: ([0-9]+) ([A-Za-z_]+)/)) {
       $Failed{$Device}{"$AttribType attribute: $Name ($Code)"}++;
-   } elsif ( my ($Device, $Text) = ($ThisLine =~ /^Device: ([^,]+), failed (.*)$/) ) {
+   } elsif ( my ($Device, $Text) = ($ThisLine =~ /^Device: ([^,]+), (?:failed|SMART Failure:) (.*)$/) ) {
       $Failed{$Device}{"$Text"}++; 
    } elsif ( ( $ThisLine =~ /warning/i ) ) {
       $Warnings{$ThisLine}++;

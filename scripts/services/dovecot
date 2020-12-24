@@ -75,6 +75,7 @@ my %ProxyLogin;
 my %ProxyLoginIMAP;
 my %ProxyLoginPOP3;
 my %SieveLogin;
+my %UnknownUsers;
 my %VacationDup;
 my %VacationResponse;
 
@@ -115,9 +116,6 @@ sub hostName {
 my $dovecottag = qr/dovecot(?:\[\d+\])?:(?:\s*\[[^]]+\])?/;
 
 while (defined(my $ThisLine = <STDIN>)) {
-   # The *RemoveHeaders script is now invoked in the service configuration file
-   # so this next line is no longer needed
-   #$ThisLine =~ s/^\w{3} .\d \d\d:\d\d:\d\d (?:[^\s:]* |)//;
    if ( ($ThisLine =~ /(?:ssl-build-param|ssl-params): SSL parameters regeneration completed/) or
       ($ThisLine =~ /ssl-params: Generating SSL parameters/) or
       ($ThisLine =~ /auth-worker/) or
@@ -171,6 +169,8 @@ while (defined(my $ThisLine = <STDIN>)) {
          $ConnectionSieve{$Host}++;
          $Connection{$Host}++;
       }
+   } elsif (my ($User) = ( $ThisLine =~ /auth: (?:pam|passwd-file)\((.*),.*\): unknown user/ ) ) {
+     $UnknownUsers{$User}++; 
 
 # 'lda' for dovecot 2.0, 'deliver' for earlier versions
    } elsif (my ($User, $Mailbox) = ( $ThisLine =~ /^$dovecottag (?:lda|deliver)\((.*)\)(?:<[^>]+><[^>]+>)?: msgid=.*: saved mail to (.*)/ ) ) {
@@ -654,6 +654,19 @@ if (keys %ProxyDisconnected) {
    print "\n\nDovecot Proxy disconnects:\n";
    foreach my $Reason (sort keys %ProxyDisconnected) {
       print "   $Reason: $ProxyDisconnected{$Reason} Time(s)\n";
+   }
+}
+
+if (keys %UnknownUsers) {
+   my $UserCount = 0;
+   foreach my $User (keys %UnknownUsers) {
+      $UserCount += $UnknownUsers{$User};
+   }
+   print "\n\nUnknown users blocked: $UserCount Total\n";
+   if ($Detail >= 10) {
+      foreach my $User (sort keys %UnknownUsers) {
+         print "     $UnknownUsers{$User} $User\n";
+      }
    }
 }
 

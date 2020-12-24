@@ -58,6 +58,7 @@ while (defined(my $ThisLine = <STDIN>)) {
        ( $ThisLine =~ /^Unix socket file/ ) or
        ( $ThisLine =~ /^Protecting against \d+ viruses\./ ) or
        ( $ThisLine =~ /^Reading databases from/ ) or
+       ( $ThisLine =~ /^Activating the newly loaded database/ ) or
        ( $ThisLine =~ /file removed\./ ) or
        ( $ThisLine =~ / (?:dis|en)abled\.$/ ) or
        ( $ThisLine =~ /^Archive/ ) or
