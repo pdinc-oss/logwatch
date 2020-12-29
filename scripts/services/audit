@@ -55,6 +55,7 @@ my $UELimit = 100;
 my $ThisLine;
 my %Warning = ();
 my %AuditctlStatus = ();
+my %unconfineds = ();
 
 print STDERR "\n\nDEBUG: Inside audit filter\n\n" if ( $Debug >= 5 );
 
