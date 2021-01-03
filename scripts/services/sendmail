@@ -810,7 +810,7 @@ next unless $ThisLine;
    # file=srvrsmtp.c, LogLevel>9, LOG_WARNING
    } elsif ( ($Auth, $Reason, $DetailReason, $RelayHost) = ($ThisLine =~ /^AUTH failure \((.*)?\): ([^\(]*)(\(.*) relay=(.*)/) ) {
       if ( $Reason =~ /^user not found / ) {
-         (($User) = ($DetailReason =~ /\(-20\) SASL\(-13\): user not found: user: ([^ ]*)/));
+         (($User) = ($DetailReason =~ /\(-20\) SASL\(-13\): user not found: .*user(?:=|: )([^ ,]*)/));
             $AUTHnouser{$User}++;
       } else {
          $AUTHfailure{$RelayHost}{$Reason}++;
@@ -899,7 +899,7 @@ next unless $ThisLine;
    } elsif ( ($User,$Reason) = ($ThisLine =~ /SYSERR\((.*)\): (.*)/) ) {
      $SysErr{$User}{$Reason}++;
    # file=milter.c, LogLevel>8, LOG_INFO
-   } elsif ( ($HeaderMod) = ($ThisLine =~ /Milter (?:add|insert|change|delete).*: header: (.*)/) ) {
+   } elsif ( ($HeaderMod) = ($ThisLine =~ /Milter (?:\(\w*\) )?(?:add|insert|change|delete).*: header: (.*)/) ) {
       foreach $Header (@MilterHeadersToCount) {
          if ($HeaderMod =~ /$Header/) {
             $MilterHeaderCount{$Header}++;
@@ -934,7 +934,7 @@ next unless $ThisLine;
       $KnownSpammer{$1}++;
    } elsif (
       # file=milter.c, LogLevel>8, LOG_INFO
-      ( $ThisLine =~ /Milter (add|change|insert|delete): /)
+      ( $ThisLine =~ /Milter (?:\(\w*\) )?(add|change|insert|delete): /)
    ) {
       # We don't care about these statements above
 
@@ -951,7 +951,7 @@ next unless $ThisLine;
       $SPFResults{$SPFStatus}++;
 
    # This is for the Sendmail Sender-ID milter
-   } elsif ( (my $SenderIDStatus, $SPFStatus) = ($ThisLine =~ /^Milter insert \(1\): header: Authentication-Results:.*; sender-id=(fail.*|softfail|neutral|none|error|unknown|pass); spf=(fail.*|softfail|neutral|none|error|unknown|pass)/) ) {
+   } elsif ( (my $SenderIDStatus, $SPFStatus) = ($ThisLine =~ /^Milter (?:\(\w*\) )?insert \(1\): header: Authentication-Results:.*; sender-id=(fail.*|softfail|neutral|none|error|unknown|pass); spf=(fail.*|softfail|neutral|none|error|unknown|pass)/) ) {
    # Example string
    # Milter insert (1): header: Authentication-Results: my.host.name
    # sender=list-users-bounces+list-users=host.name@another.org;
