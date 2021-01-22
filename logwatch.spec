@@ -1,6 +1,6 @@
 Summary: Analyzes and Reports on system logs
 Name: logwatch
-Version: 7.5.4
+Version: 7.5.5
 Release: 1
 License: MIT
 Group: Applications/System
