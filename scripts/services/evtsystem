@@ -59,7 +59,7 @@ while (defined(my $ThisLine = <STDIN>)) {
    next if ($EventLogType eq "Verbose");
    next if ($EventLogType eq "Information" and $Detail < 10);
 
-   # Remove some items that prevent de-duplication
+   # Modify some items that prevent de-duplication
    if ($Detail < 10) {
       $ExpandedString =~ s/\d+ time\(s\)/XX times(s)/;
       $ExpandedString =~ s/requested by PID\s+\S+\s+//;
