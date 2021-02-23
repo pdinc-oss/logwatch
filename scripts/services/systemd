@@ -45,21 +45,24 @@ my %UserSession;
 my %OtherList;
 
 # Failure will generate multiple messages like:
+# EL7:
 # Feb  5 16:37:50 hostname systemd: ansible-pull.service: main process exited, code=exited, status=2/INVALIDARGUMENT
 # Feb  5 16:37:50 hostname systemd: Failed to start Run ansible-pull on boot.
 # Feb  5 16:37:50 hostname systemd: Unit ansible-pull.service entered failed state.
 # Feb  5 16:37:50 hostname systemd: ansible-pull.service failed.
+# EL8:
+# Feb  5 16:37:50 hostname systemd[1]: ansible-pull.service: Main process exited, code=exited, status=2/INVALIDARGUMENT
+# Feb  5 16:37:50 hostname systemd[1]: ansible-pull.service: Failed with result 'exit-code'.
 
 while (defined(my $ThisLine = <STDIN>)) {
    chomp($ThisLine);
    if ($ThisLine =~ /^(Activat|Deactivat|Mount|Unmount|Reload|Start|Stopp)ing / or
        $ThisLine =~ /^Finished / or
-       # These events will be caught with the Unit X entered failed state message
+       # These events will be caught with the Failed with or failed message
        $ThisLine =~ /^Failed to start / or
-       $ThisLine =~ /: Failed with result / or
        $ThisLine =~ /Failed at step / or
-       $ThisLine =~ / failed\.$/ or
        $ThisLine =~ /([Cc]ontrol|[Mm]ain|[Mm]ount) process exited, code=(exited|killed|dumped),? status=/ or
+       $ThisLine =~ /^Unit.* entered failed state\.$/ or
        # Informational
        $ThisLine =~ /^Closed .*[\. ][Ss]ockets?\.$/ or
        $ThisLine =~ /^Closed .* [Ss]cheduler\.$/ or
@@ -72,6 +75,11 @@ while (defined(my $ThisLine = <STDIN>)) {
        $ThisLine =~ /^Received SIGINT\./ or
        $ThisLine =~ /^Deactivated / or
        $ThisLine =~ /^Detected (architecture|virtualization) / or
+       # Spurious warning - should be fixed in later systemd (EL8.4)
+       $ThisLine =~ /^Failed to connect to API bus: Connection refused/ or
+       # Extransous scope messages with LanSweeper - revisit with EL8.4
+       $ThisLine =~ /: Failed to add PIDs to scope's control group: No such process/ or
+       $ThisLine =~ /scope: Failed with result 'resources'/ or
        $ThisLine =~ /^Found device / or
        $ThisLine =~ /Got automount request for \/proc\// or
        $ThisLine =~ /^Inserted module / or
@@ -157,11 +165,9 @@ while (defined(my $ThisLine = <STDIN>)) {
       $ConfigError{$reason}{$service}++;
    } elsif (my ($service,$reason) = ($ThisLine =~ /^\[?([^\]:]+(?::\d+)?)[\]:]? (Unknown .* in section '.*')/)) {
       $ConfigError{$reason}{$service}++;
-   } elsif (my ($service) = ($ThisLine =~ /^Unit (.*) entered failed state\.$/)) {
+   } elsif (my ($service) = ($ThisLine =~ /(\S+): Failed (:?to execute command|with result)/)) {
       $Failed{$service}++;
-   } elsif (my ($service) = ($ThisLine =~ /^(.*): Failed to execute command/)) {
-      $Failed{$service}++;
-   } elsif (my ($service) = ($ThisLine =~ /^(.*): Unit entered failed state\.$/)) {
+   } elsif (my ($service) = ($ThisLine =~ /(\S+) failed\.$/)) {
       $Failed{$service}++;
    } elsif (my ($service) = ($ThisLine =~ /^(.*) failed with error code \d+\.$/)) {
       $Failed{$service}++;
