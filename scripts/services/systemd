@@ -62,18 +62,19 @@ while (defined(my $ThisLine = <STDIN>)) {
        $ThisLine =~ /^Failed to start / or
        $ThisLine =~ /Failed at step / or
        $ThisLine =~ /([Cc]ontrol|[Mm]ain|[Mm]ount) process exited, code=(exited|killed|dumped),? status=/ or
+       $ThisLine =~ /^Timed out starting/ or
        $ThisLine =~ /^Unit.* entered failed state\.$/ or
        # Informational
        $ThisLine =~ /^Closed .*[\. ][Ss]ockets?\.$/ or
        $ThisLine =~ /^Closed .* [Ss]cheduler\.$/ or
        $ThisLine =~ /^Closed .* [Ww]atch\.$/ or
        $ThisLine =~ /^Closed (?:Multimedia|Sound) System\.$/ or
+       $ThisLine =~ /^Closed PipeWire/ or
        $ThisLine =~ /^Closed udev / or
        $ThisLine =~ /: Consumed .* CPU time\.$/ or
        # crond will never restart process when it is restarted
        $ThisLine =~ /^crond\.service: Found left-over process \d+ \(.*\) in control group while starting unit\. Ignoring\.$/ or
        $ThisLine =~ /^Received SIGINT\./ or
-       $ThisLine =~ /^Deactivated / or
        $ThisLine =~ /^Detected (architecture|virtualization) / or
        # Spurious warning - should be fixed in later systemd (EL8.4)
        $ThisLine =~ /^Failed to connect to API bus: Connection refused/ or
@@ -81,11 +82,14 @@ while (defined(my $ThisLine = <STDIN>)) {
        $ThisLine =~ /: Failed to add PIDs to scope's control group: No such process/ or
        $ThisLine =~ /scope: Failed with result 'resources'/ or
        $ThisLine =~ /^Found device / or
+       $ThisLine =~ /Found dependency on / or
        $ThisLine =~ /Got automount request for \/proc\// or
+       $ThisLine =~ /^Hostname set to / or
        $ThisLine =~ /^Inserted module / or
        $ThisLine =~ /^Listening on / or
        $ThisLine =~ /^Mounted / or
        $ThisLine =~ /^Queued start job for default target / or
+       $ThisLine =~ /^Queuing reload/ or
        $ThisLine =~ /^Relabelled / or
        $ThisLine =~ /^Reloading\.$/ or         # Happens on each boot at switch root
        $ThisLine =~ /^RTC configured in / or
@@ -193,6 +197,8 @@ while (defined(my $ThisLine = <STDIN>)) {
    } elsif (my ($service) = ($ThisLine =~ /^Reloaded (.*)\.$/)) {
       $Reloaded{$service}++;
    } elsif (my ($service) = ($ThisLine =~ /^Deactivated (.*)\.$/)) {
+      $Deactivated{$service}++;
+   } elsif (my ($service) = ($ThisLine =~ /(.*): Deactivated /)) {
       $Deactivated{$service}++;
    } elsif ($ThisLine eq "Reexecuting.") {
       $Reexecuted++ if $Detail;
