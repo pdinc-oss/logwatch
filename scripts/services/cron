@@ -63,7 +63,7 @@ while (defined($ThisLine = <STDIN>)) {
       if ($ThisLine =~ s/^CMD \((.+)\)\s*$/$1/) {
          $Runs->{$User}->{$ThisLine}++;
          $ExecutedCommand{$PID} = {command=>$ThisLine, user=>$User};
-      } elsif ($ThisLine =~ s/^CMDEND/) {
+      } elsif ($ThisLine =~ /^CMDEND/) {
          # Ignore - already counted above
          next;
       } elsif ($ThisLine =~ s/^CMD FINISH \((.+)\)\s*$/$1/) {
