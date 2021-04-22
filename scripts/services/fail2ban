@@ -206,8 +206,8 @@ if (keys(%InfoList) && $Detail>5) {
 
 if (keys(%NoticeList) && $Detail>7) {
     print "\nNotices:\n";
-    foreach my $line (sort {$a cmp $b} keys %OtherList) {
-        print "   $line: $OtherList{$line} Time(s)\n";
+    foreach my $line (sort {$a cmp $b} keys %NoticeList) {
+        print "   $line: $NoticeList{$line} Time(s)\n";
     }
 }
 
