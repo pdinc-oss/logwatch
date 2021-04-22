@@ -57,6 +57,10 @@ if ( $Debug >= 5 ) {
 
 sub DirUsage {
 	my $Dir = $_[0];
+        if ( !-d $Dir ) {
+           print "Directory $Dir not found\n";
+           return
+        };
 	if ($OSname eq "Linux") {
 		system("du -s --block-size=1048576 -h $Dir | sort -n -r -k 1");
 	} elsif ($OSname eq "Darwin") {
