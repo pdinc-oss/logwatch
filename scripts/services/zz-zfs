@@ -52,8 +52,8 @@ if ($ENV{'LOGWATCH_ONLY_HOSTNAME'} && ($logwatch_hostname ne $host)) {
   exit 0;
 }
 
-my $pathto_zpool = $ENV{'pathto_zpool'} || 'zpool';
-my $pathto_zfs   = $ENV{'pathto_zfs'}   || 'zfs';
+my $pathto_zpool = $ENV{'pathto_zpool'} || '/sbin/zpool';
+my $pathto_zfs   = $ENV{'pathto_zfs'}   || '/sbin/zfs';
 my $summary_only = $ENV{'summary_only'} || ($detail < 5);
 my $detail_only  = $ENV{'detail_only'}  || 0;
 
