@@ -173,6 +173,7 @@ while (defined(my $ThisLine = <STDIN>)) {
        ($ThisLine =~ /Disconnecting( (authenticating|invalid) user .* port \d+)?: Change of username or service not allowed: .* \[preauth\]/ ) or
        ($ThisLine =~ /Failed to release session: Interrupted system call/) or
        ($ThisLine =~ /Close session: user /) or
+       ($ThisLine =~ /error: .*: banner line contains invalid characters/) or
        0 # This line prevents blame shifting as lines are added above
    ) {
       # Ignore these
