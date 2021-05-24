@@ -70,6 +70,7 @@ while (defined(my $ThisLine = <STDIN>)) {
        $ThisLine =~ /^Closed .* [Ww]atch\.$/ or
        $ThisLine =~ /^Closed (?:Multimedia|Sound) System\.$/ or
        $ThisLine =~ /^Closed PipeWire/ or
+       $ThisLine =~ /^Closed REST API socket for / or
        $ThisLine =~ /^Closed udev / or
        $ThisLine =~ /: Consumed .* CPU time\.$/ or
        # crond will never restart process when it is restarted
