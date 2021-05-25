@@ -691,14 +691,14 @@ if (keys %RefusedAuthentication) {
 }
 
 if (keys %KrbAutFail) {
-   print "\n\Failed pam_krb5 authentication:\n";
+   print "\n Failed pam_krb5 authentication:\n";
    foreach my $User (sort keys %KrbAutFail) {
       print "   $User: " . timesplural($KrbAutFail{$User});
    }
 }
 
 if (keys %KrbAutErr) {
-   print "\n\pam_krb5 authentication errors:\n";
+   print "\n pam_krb5 authentication errors:\n";
    foreach my $Error (sort keys %KrbAutErr) {
       print "   $Error: " . timesplural($KrbAutErr{$Error});
    }
