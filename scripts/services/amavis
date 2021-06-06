@@ -2420,7 +2420,7 @@ while (<>) {
    # LMTP/SMTP connection
    # NOTE:  no longer used. size data now being obtained from Passed/Block line, as size info may not be available here
    #elsif (my ($size) = ($p1 =~ /^[LS]MTP:(?:\[$re_IP\])?:\d+ [^:]+: [<(](?:.*?)[>)] -> \S+ (?:SIZE=(\d+))?.*?Received: / )) {
-   elsif ($p1 =~ /^[LS]MTP:/) {
+   elsif ($p1 =~ /^[LS]MTP ?:/) {
      #TD LMTP::10024 /var/spool/amavis/tmp/amavis-20070119T144757-09086: <from@example.com> -> <to@sample.net> SIZE=1000 Received: from mail.sample.net ([127.0.0.1]) by localhost (mail.sample.net [127.0.0.1]) (amavisd-new, port 10024) with LMTP for <to@sample.net>; Fri, 19 Jan 2007 15:41:45 -0800 (PST)
      #TD SMTP:[127.0.0.1]:10024 /var/spool/amavis/tmp/amavis-20070119T144757-09086: <from@example.com> -> <to@sample.net>,<recip@sample.net> SIZE=2500000 Received: from mail.sample.net ([127.0.0.1]) by localhost (mail.sample.net [127.0.0.1]) (amavisd-new, port 10024) with LMTP for <to@sample.net>; Fri, 19 Jan 2007 15:41:45 -0800 (PST)
      #TD SMTP::10024 /var/lib/amavis/tmp/amavis-27-26927: <from@example.com> -> <to@example.net> Received: from localhost ([127.0.0.1]) by localhost (example.com [127.0.0.1]) (amavisd-new, port 10024) with SMTP for <to@example.net>; Sat,  7 Jun 2008 23:09:34 +0200 (CEST)
