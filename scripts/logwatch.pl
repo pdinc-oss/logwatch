@@ -1135,7 +1135,7 @@ sub Usage () {
    print "--service <name>: *Name of a service definition to report on.\n";
    print "--output <output type>: Report Output - stdout [default], mail, file.\n"; #8.0
    print "--format <formatting>: Report Format - text [default], html.\n"; #8.0
-   print "--encode <encoding>: Encoding to use - none [default], base64.\n"; #8.0
+   print "--encode <encoding>: Encoding to use - none [default], base64, 7bit, 8bit [same as 'none'].\n"; #8.0
    print "--mailto <addr>: Mail report to <addr>.\n";
    print "--archives: Use archived log files too.\n";
    print "--filename <filename>: Used to specify they filename to save to. --filename <filename> [Forces output to file].\n";
@@ -1201,6 +1201,8 @@ sub initprint {
          #Config{encode} switch
          if ( $Config{'encode'} eq "base64" ) {
             $out_mime .= "Content-transfer-encoding: base64\n";
+         elsif ( $Config{'encode'} eq "7bit" ) {
+            $out_mime .= "Content-Transfer-Encoding: 7bit\n";
          } else {
             $out_mime .= "Content-Transfer-Encoding: 8bit\n";
          }
