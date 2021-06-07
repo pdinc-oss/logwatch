@@ -1201,7 +1201,7 @@ sub initprint {
          #Config{encode} switch
          if ( $Config{'encode'} eq "base64" ) {
             $out_mime .= "Content-transfer-encoding: base64\n";
-         elsif ( $Config{'encode'} eq "7bit" ) {
+         } elsif ( $Config{'encode'} eq "7bit" ) {
             $out_mime .= "Content-Transfer-Encoding: 7bit\n";
          } else {
             $out_mime .= "Content-Transfer-Encoding: 8bit\n";
