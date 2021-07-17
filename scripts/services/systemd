@@ -189,7 +189,7 @@ while (defined(my $ThisLine = <STDIN>)) {
    } elsif (my ($target) = ($ThisLine =~ /^Reached target (.*)\.$/)) {
       $Target{$target}++;
       $LastTarget = $target;
-   } elsif (my ($session, $user) = ($ThisLine =~ /^Started Session (\d+) of user (.*)\.$/)) {
+   } elsif (my ($session, $user) = ($ThisLine =~ /^Started Session ([[:xdigit:]]+) of user (.*)\.$/)) {
       $UserSession{$user}->{$session}++;
    } elsif (my ($service) = ($ThisLine =~ /^Activated (.*)\.$/)) {
       $Activated{$service}++;
@@ -341,7 +341,7 @@ if (keys %UserSession && $Detail > 3) {
          }
          print "\n";
       } else {
-         print scalar(keys %{$UserSession{$user}}) . ": Time(s)\n";
+         print scalar(keys %{$UserSession{$user}}) . ": Time(s)";
       }
       print "\n";
    }
