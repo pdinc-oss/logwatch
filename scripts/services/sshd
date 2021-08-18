@@ -164,15 +164,16 @@ while (defined(my $ThisLine = <STDIN>)) {
        ($ThisLine =~ /Starting session: (forced-command|subsystem|shell|command)/ ) or
        ($ThisLine =~ /Found matching \w+ key:/ ) or
        ($ThisLine =~ /User child is on pid \d/ ) or
-       ($ThisLine =~ /Nasty PTR record .* is set up for [\da-fA-F.:]+, ignoring/) or
+       ($ThisLine =~ /Nasty PTR record .* is set up for [\da-fA-F.:]+(?:%\S+)?, ignoring/) or
        ($ThisLine =~ /Exiting on signal / ) or
-       ($ThisLine =~ /Disconnected from [\da-fA-F.:]* port \d*/ ) or
-       ($ThisLine =~ /Disconnected from user \S+ [\da-fA-F.:]* port \d*/ ) or
-       ($ThisLine =~ /Disconnected from (authenticating|invalid) user \S+ [\da-fA-F.:]* port \d*/ ) or
+       ($ThisLine =~ /Disconnected from [\da-fA-F.:]*(?:%\S+)? port \d*/ ) or
+       ($ThisLine =~ /Disconnected from user \S+ [\da-fA-F.:]*(?:%\S+)? port \d*/ ) or
+       ($ThisLine =~ /Disconnected from (authenticating|invalid) user \S+ [\da-fA-F.:]*(?:%\S+)? port \d*/ ) or
        ($ThisLine =~ /Disconnecting( (authenticating|invalid) user .* port \d+)?: Too many authentication failures \[preauth\]/ ) or
        ($ThisLine =~ /Disconnecting( (authenticating|invalid) user .* port \d+)?: Change of username or service not allowed: .* \[preauth\]/ ) or
        ($ThisLine =~ /Failed to release session: Interrupted system call/) or
        ($ThisLine =~ /Close session: user /) or
+       ($ThisLine =~ /error: .*: banner line contains invalid characters/) or
        0 # This line prevents blame shifting as lines are added above
    ) {
       # Ignore these
