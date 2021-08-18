@@ -362,11 +362,14 @@ next unless $ThisLine;
       ( $ThisLine =~ /^STARTTLS=client, start=ok$/ ) or
       # file=readcf.c, LogLevel>9, LOG_NOTICE, starting in 8.16.1
       #   because the features string can be many things, we ignore those
-      #   strings that are not known errors.  (Other error strings are
-      #   possible, but they don't match because they have more arguments.)
+      #   strings that are known to be non-errors.  (Other error strings are
+      #   possible, but they don't match because they have more arguments,
+      #   such as option/value pairs, "error=", "opt=", etc.)
+      #   The "stat=" string was added in 8.17.1, and can be non-error
+      #   (value of stat=0).
       ( $ThisLine =~ m/^tls_(srv|clt)_features=
           (?!too_short|only_one_of_CertFile\/KeyFile_specified)[^,]*,
-          \ relay=([^\ ])*\ \[.*\]$/x ) or
+          \ (stat=0,\ )?relay=([^\ ])*\ \[.*\]$/x ) or
       # file=tls.c, LogLevel>13, LOG_DEBUG, starting in 8.16.1
       ( $ThisLine =~ /engine=.*, path=.*, ispre=\d+, pre=\d+, initialized=\d+$/ ) or
       # the following is described in tls.c as a bug in OpenSSL, and
