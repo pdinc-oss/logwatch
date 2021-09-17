@@ -3508,6 +3508,16 @@ sys     0m3.005s
          $Counts{'saslauthfail'}{$cached . $reason}{formathost($hostip,$host)}++;
       }
 
+      elsif (($host,$hostip) = ($p1 =~ /abort: TLS from ([^[]+)\[([^]]+)\]: No client certificate presented/)) {
+
+         $Totals{'tlsservernocert'}++; next unless ($Collecting{'tlsservernocert'});
+         $Counts{'tlsservernocert'}{formathost($hostip,$host)}++;
+      }
+      elsif (($host,$hostip) = ($p1 =~ /abort: TLS from ([^[]+)\[([^]]+)\]: Client certificate not trusted/)) {
+
+         $Totals{'tlsclientcertnottrusted'}++; next unless ($Collecting{'tlsclientcertnottrusted'});
+         $Counts{'tlsclientcertnottrusted'}{formathost($hostip,$host)}++;
+      }
       else {
          # keep this as the last condition in this else clause
          inc_unmatched('unknownqid')  if  ! in_ignore_list ($p1);
@@ -5220,6 +5230,8 @@ sub build_sect_table() {
    add_section ($S, 'tablechanged',                0, 'd', 'Restarts due to lookup table change');
    add_section ($S, 'pixworkaround',               1, 'd', 'PIX workaround enabled');
    add_section ($S, 'tlsserverconnect',            1, 'd', 'TLS connections (server)');
+   add_section ($S, 'tlsservernocert',             1, 'd', 'TLS no client certificate presented');
+   add_section ($S, 'tlsclientcertnottrusted',     1, 'd', 'TLS client certificate not trusted');
    add_section ($S, 'tlsclientconnect',            1, 'd', 'TLS connections (client)');
    add_section ($S, 'saslauth',                    1, 'd', 'SASL authenticated messages');
    add_section ($S, 'tlsunverified',               1, 'd', 'TLS certificate unverified');
