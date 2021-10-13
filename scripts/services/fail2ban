@@ -40,6 +40,7 @@ my %WarningList = ();
 my %InfoList = ();
 my %NoticeList = ();
 my %OtherList = ();
+my %Flushing = ();		# keep track of which services being flushed
 
 my %ServicesBans = ();
 my %ServicesFound = ();
@@ -63,11 +64,10 @@ while (defined(my $ThisLine = <STDIN>)) {
          ($ThisLine =~ /INFO\s+Jail.+(?:stopped|started|uses )/) or
          ($ThisLine =~ /INFO\s+Changed logging target to/) or
          ($ThisLine =~ /INFO\s+Creating new jail/) or
-         ($ThisLine =~ /INFO\s+(Set |Socket|Exiting|Gamin|Created|Added|Using|Connected to |rollover performed)/) or # syntax of 0.7.? fail2ban
+         ($ThisLine =~ /INFO\s+(Set |Socket|Gamin|Created|Added|Using|Connected to |rollover performed)/) or # syntax of 0.7.? fail2ban
          ($ThisLine =~ /..,... WARNING: Verbose level is /) or
          ($ThisLine =~ /..,... WARNING: Restoring firewall rules/) or
          ($ThisLine =~ /WARNING Determined IP using DNS Lookup/) or
-         ($ThisLine =~ /INFO\s+(Stopping all jails|Exiting Fail2ban)/) or
          ($ThisLine =~ /INFO\s+Initiated '.*' backend/) or
          ($ThisLine =~ /INFO\s+(Added logfile = .*|Set maxRetry = \d+|Set findtime = \d+|Set banTime = \d+)/) or
          ($ThisLine =~ /Unable to find a corresponding IP address for .*: \[Errno -2\] Name or service not known/)
@@ -78,12 +78,22 @@ while (defined(my $ThisLine = <STDIN>)) {
         }
     } elsif ( my ($Service,$Action,$Host) = ($ThisLine =~ m/NOTICE:?\s+\[?(.*?)[]:]?\s(Restore Ban)[^\.]* (\S+)/)) {
         $ServicesBans{$Service}{$Host}{'ReBan'}++;
+        $ServicesBans{$Service}{"(all)"}{'ReBan'}++;
     } elsif ( my ($Service,$Action,$Host) = ($ThisLine =~ m/(?:WARNING|NOTICE):?\s+\[?(.*?)[]:]?\s(Ban|Unban)[^\.]* (\S+)/)) {
         if ( $Debug >= 6 ) {
             print STDERR "DEBUG($DebugCounter): Found $Action for $Service from $Host\n";
         }
-        $ServicesBans{$Service}{$Host}{$Action}++;
-        $ServicesBans{$Service}{"(all)"}{$Action}++;
+	if (exists $Flushing{$Service}) {
+	    if ($Action =~ /Unban/) {
+	        $ServicesBans{$Service}{$Host}{'FlushUnban'}++;
+                $ServicesBans{$Service}{"(all)"}{'FlushUnban'}++;
+            } else {
+            print STDERR "ERROR: Lost track of flushing services\n";
+            }
+        } else {
+            $ServicesBans{$Service}{$Host}{$Action}++;
+            $ServicesBans{$Service}{"(all)"}{$Action}++;
+        }
     } elsif ( my ($Service,$Host,$NumFailures) = ($ThisLine =~ m/INFO: (\S+): (.+) has (\d+) login failure\(s\). Banned./)) {
         if ($Debug >= 4) {
             print STDERR "DEBUG: Found host $Host trying to access $Service - failed $NumFailures times\n";
@@ -120,8 +130,17 @@ while (defined(my $ThisLine = <STDIN>)) {
         $WarningList{$Message}++;
     } elsif ( my ($Message) = ($ThisLine =~ / INFO (.*)$/)) {
         $InfoList{$Message}++;
+	if ( my ($Service) = ($Message =~ /Jail \'(.*)\' stopped/)) {
+	    delete $Flushing{$Service};
+        }
+	if ( my ($Service) = ($Message =~ /Stopping all jails|Exiting Fail2ban/)) {
+	    %Flushing = ();
+        }
     } elsif ( my ($Message) = ($ThisLine =~ / NOTICE (.*)$/)) {
         $NoticeList{$Message}++;
+	if ( my ($Service) = ($Message =~ /\[(.*)\] Flush ticket/)) {
+	    $Flushing{$Service} = 1;
+        }
     } else {
         # Report any unmatched entries...
         $OtherList{$ThisLine}++;
@@ -132,30 +151,34 @@ while (defined(my $ThisLine = <STDIN>)) {
 
 
 if (keys %ServicesBans) {
-    printf("\nBanned services with Fail2Ban:                      Bans+ReBans:Unbans\n");
+    printf("\nBanned services with Fail2Ban:                             Bans:Unbans  ReBans:Flush\n");
     foreach my $service (sort {$a cmp $b} keys %ServicesBans) {
-        printf("   %-55s [%3d:%-3d]\n", "$service:",
-               $ServicesBans{$service}{'(all)'}{'Ban'}  +
+        printf("   %-55s [%3d:%-3d]      [%3d:%-3d]\n", "$service:",
+               $ServicesBans{$service}{'(all)'}{'Ban'}, 
+               $ServicesBans{$service}{'(all)'}{'Unban'}, 
                $ServicesBans{$service}{'(all)'}{'ReBan'},
-               $ServicesBans{$service}{'(all)'}{'Unban'});
+               $ServicesBans{$service}{'(all)'}{'FlushUnban'});
         delete $ServicesBans{$service}{'(all)'};
         my $totalSort = TotalCountOrder(%{$ServicesBans{$service}}, \&SortIP);
         if ($Detail >= 5) {
             foreach my $ip (sort $totalSort keys %{$ServicesBans{$service}}) {
                 my $name = LookupIP($ip);
-                printf("      %-53s %3d:%-3d\n",
+                printf("      %-53s %3d:%-3d        %3d:%-3d\n",
                        $name,
                        $ServicesBans{$service}{$ip}{'Ban'},
-                       $ServicesBans{$service}{$ip}{'Unban'});
+                       $ServicesBans{$service}{$ip}{'Unban'},
+                       $ServicesBans{$service}{$ip}{'ReBan'},
+                       $ServicesBans{$service}{$ip}{'FlushUnban'});
                 if (($Detail >= 10) and ($ServicesBans{$service}{$ip}{'Failures'}>0)) {
                     print "      Failed ";
                     foreach my $fails (@{$ServicesBans{$service}{$ip}{'Failures'}}) {
                         print " $fails";
                     }
                     print " times";
-                    printf("\n     %d Duplicate Ban attempts", $ServicesBans{$service}{$ip}{'AlreadyInTheList'}) ;
-                    printf("\n     %d ReBans due to rules reinitilizations", $ServicesBans{$service}{$ip}{'ReBan'}) ;
-                    print "\n";
+}
+                if (($Detail >= 10) and ($ServicesBans{$service}{$ip}{'AlreadyInTheList'}>0)) {
+                    printf("         (%d Duplicate Ban attempts)\n",
+                        $ServicesBans{$service}{$ip}{'AlreadyInTheList'}) ;
                 }
             }
         }
