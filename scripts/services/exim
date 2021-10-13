@@ -271,7 +271,6 @@ while (defined($ThisLine = <STDIN>)) {
       push @LookupH, $ThisLine;
    }
    elsif ( $ThisLine =~ /No server certificate defined; will use a selfsigned one/ ) {
-      $SelfSigned++;
       push @SelfSignedH, $ThisLine;
    }
    elsif ( $ThisLine =~ /DKIM: .* \[verification succeeded\]/ ) {
@@ -330,7 +329,7 @@ if ($Detail >= $LvlRuns) {
 }
 
 if (@SelfSignedH) {
-   print "\n--- Self-Signed Certificate in use ($SelfSigned  Time(s))\n";
+   print "\n--- Self-Signed Certificate in use ($SelfSignedH  Time(s))\n";
 
    if ($Detail >= $LvlMsgs) {
       foreach $ThisOne (@SelfSignedH) {
@@ -503,8 +502,8 @@ if ($Detail >= $LvlDontAccept) {
             # If we picked up a malfunction but didn't collect it here,
             # no need to make the user suffer with superfluous error
             # messages.
-            #next;
             print "Didn't Summarize: $ThisOne\n";
+            next;
          }
          if ($cc =~ m/Blocked/ ) {
             # hash of blocked things
