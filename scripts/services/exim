@@ -329,7 +329,7 @@ if ($Detail >= $LvlRuns) {
 }
 
 if (@SelfSignedH) {
-   print "\n--- Self-Signed Certificate in use ($SelfSignedH  Time(s))\n";
+   $SelfSignedH and print "\n--- Self-Signed Certificate in use ($SelfSignedH Time(s))\n";
 
    if ($Detail >= $LvlMsgs) {
       foreach $ThisOne (@SelfSignedH) {
