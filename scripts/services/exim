@@ -84,6 +84,8 @@ my $IPAddress = qr/\d+\.\d+\.\d+\.\d+|[a-fA-F0-9]*:[a-fA-F0-9:]+/;
 
 my $MatchedDate = 0;
 
+my @SelfSignedH;
+
 while (defined($ThisLine = <STDIN>)) {
    chomp($ThisLine);
     # pobierz dzisiejsza date z 2002-03-31 22:13:48 ...
@@ -94,7 +96,7 @@ while (defined($ThisLine = <STDIN>)) {
          next;
       }
       if ( $ThisLine =~ /^ Suggested action: either install a certificate or change tls_advertise_hosts option/ ) {
-         push @SelfSignedH, $ThisLine;
+         # ignore this; outside of date range
          next;
       }
       $BadFormat{$ThisLine}++;
@@ -238,8 +240,8 @@ while (defined($ThisLine = <STDIN>)) {
    }
    elsif ( $ThisLine =~ /Connection from .* too many connections from that IP address/ ) {
       # Some hosts make lots of simultaneous connections
-	  # this is an extra error message when logging is high
-	  # and since another message duplicates it, we can just ignore this
+      # this is an extra error message when logging is high
+      # and since another message duplicates it, we can just ignore this
    }
    elsif ( $ThisLine =~ /rejected [HE][EH]LO from\s/ ) {
       # Typically due to underscores _ in the HELO line
@@ -271,6 +273,9 @@ while (defined($ThisLine = <STDIN>)) {
       push @LookupH, $ThisLine;
    }
    elsif ( $ThisLine =~ /No server certificate defined; will use a selfsigned one/ ) {
+      $NextLine = <STDIN>;
+      chomp($NextLine);
+      $ThisLine .= "\n" . $NextLine;
       push @SelfSignedH, $ThisLine;
    }
    elsif ( $ThisLine =~ /DKIM: .* \[verification succeeded\]/ ) {
@@ -329,7 +334,8 @@ if ($Detail >= $LvlRuns) {
 }
 
 if (@SelfSignedH) {
-   $SelfSignedH and print "\n--- Self-Signed Certificate in use ($SelfSignedH Time(s))\n";
+   my $SelfSignedH = @SelfSignedH;
+   print "\n--- Self-Signed Certificate in use ($SelfSignedH Time(s))\n";
 
    if ($Detail >= $LvlMsgs) {
       foreach $ThisOne (@SelfSignedH) {
@@ -523,7 +529,7 @@ if ($Detail >= $LvlDontAccept) {
                # debug print "start $bb at ".$h{$bb}."\n" ;
             }
             # marker
-            $spam{$cc} = ""; 
+            $spam{$cc} = "";
          }
          else {
 
@@ -531,7 +537,7 @@ if ($Detail >= $LvlDontAccept) {
                $mid = $spam{$cc};
             }
             $spam{$cc} = "$mid$aa : $bb,";
- 
+
          }
       }
       foreach $ThisOne (sort(keys %spam)) {
