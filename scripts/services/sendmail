@@ -314,6 +314,8 @@ next unless $ThisLine;
       # Domain errors detected later by ruleset=check_mail
       ( $ThisLine =~ /^--- 553 5(\.[0-9]){2} .*\.\.\. Domain of sender address .* does not exist$/ ) or
       ( $ThisLine =~ /^--- 553 5(\.[0-9]){2} .*\.\.\. Domain name required for sender address/ ) or
+      # detected later as Hostname required
+      ($ThisLine =~ /^--- 553 5(?:\.\d){2} (.*)\.\.\. Hostname required$/ ) or
       # the following used by milter, which is detected later
       ( $ThisLine =~ /^--- 554 5\.7\.1 / ) or
       # the following used by greet_pause feature
@@ -644,8 +646,37 @@ next unless $ThisLine;
    } elsif ( ($Auth) = ($ThisLine =~ /^--- 504 5\.3\.3 AUTH mechanism (.*) not available$/) ) {
       $BadAuth{$Auth}++;
    # file=sendmail.cf
-   } elsif ( ($User) = ($ThisLine =~ /^--- 553 5(?:\.\d){2} (.*)\.\.\. Hostname required$/) ) {
-      $DomainErrors{$Msgs{$QueueID}{"Relay"}}{$User . " (missing)"}++;
+   #} elsif ( ($User) = ($ThisLine =~ /^--- 553 5(?:\.\d){2} (.*)\.\.\. Hostname required$/) ) {
+   } elsif ( ($User) = ($ThisLine =~ /^(.*)\.\.\. Hostname required$/) ) {
+      if (not defined $Msgs{$QueueID}{"Relay"}) {
+         # most likely a split envelope.  We check for previous QueueId of same timestamp
+         # and process number, with previous sequence number in index 6 and 7.
+         my $QueueIdChars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+            $QueueIdChars .= "abcdefghijklmnopqrstuvwxyz";
+         my $CharIndex0 = index($QueueIdChars,substr($QueueID, 6, 1));
+         my $CharIndex1 = index($QueueIdChars,substr($QueueID, 7, 1));
+         $CharIndex1--;
+         if ($CharIndex1 < 0) {
+            $CharIndex1 = length($QueueIdChars) - 1;
+            $CharIndex0--;
+            if ($CharIndex0 < 0) {
+               $CharIndex0 = length($QueueIdChars) - 1;
+            }
+         }
+         my $OldQueueID = substr($QueueID, 0, 6) .
+            substr($QueueIdChars, $CharIndex0, 1) .
+            substr($QueueIdChars, $CharIndex1, 1) . substr($QueueID, 8);
+         if (defined $Msgs{$OldQueueID}{"Relay"}) {
+            # Previous QueueID found for same host
+            $DomainErrors{$Msgs{$OldQueueID}{"Relay"}}{$User}++;
+         } else {
+            # Unknown host
+            $DomainErrors{"(Missing hostname)"}{$User}++;
+         }
+      } else {
+         # No split envelope; we already have hostname
+         $DomainErrors{$Msgs{$QueueID}{"Relay"}}{$User}++;
+      }
    # file: sendmail.cf
    } elsif ( ($User, $RelayHost) = ($ThisLine =~ /^ruleset=check_(?:mail|rcpt), arg1=(.*), relay=(.*), reject=451\s*[\d.]*\s*Domain of sender address .* does not resolve/) ) {
    # I don't think we should include this, because it is a temporary error
