@@ -27,6 +27,7 @@
 $| = 1;
 
 use POSIX qw(uname);
+use strict;
 
 my (%Config);
 
@@ -50,6 +51,7 @@ my @short_other_iface_list;
 my $total_iface=0;
 my $total_ethernet_iface=0;
 my $total_other_iface=0;
+my $DebugCounter=0;
 
 my ($OSname, $hostname, $release, $version, $machine) = POSIX::uname();
 
@@ -63,8 +65,8 @@ if ( $Debug >= 5 ) {
 sub show_which {
    my ($cmd) = $_[0];
    my $path = $ENV{'PATH'} || '.';
-   @path_array = split(/:/,$path);
-   foreach $element (@path_array) {
+   my @path_array = split(/:/,$path);
+   foreach my $element (@path_array) {
    my $testfile=$element .'/'.$cmd;
    if ( -f $testfile) { print "$testfile\n"; }
    }
