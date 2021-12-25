@@ -24,12 +24,38 @@
 #########################################################
 
 use Logwatch ':ip';
-
+#use strict;
 
 #$DoLookup = ValueOrDefault($ENV{'named_ip_lookup'}, 0);
-$Debug = ValueOrDefault($ENV{'LOGWATCH_DEBUG'}, 0);
-$Detail = ValueOrDefault($ENV{'LOGWATCH_DETAIL_LEVEL'}, 0);
+my $Debug = ValueOrDefault($ENV{'LOGWATCH_DEBUG'}, 0);
+my $Detail = ValueOrDefault($ENV{'LOGWATCH_DETAIL_LEVEL'}, 0);
 
+#Init Counters
+my $DebugCounter=       my $StartNamed=         my $ReloadNamed=
+my $ShutdownNamed=      my $ShutdownNamedFail= 
+0;
+#Init Arrays
+my @CNAMEAndOther = ();
+#Init Hashes
+my (
+%AXFR,                  %BadZone,               %ChannelAddFail,
+%ConnectionRefused,     %DeferredZoneTransfers, %DeniedQuery,
+%DeniedQueryNoCache,    %DeniedTCPClient,       %DeniedZoneTransfers,
+%FailedZoneTransfers,   %FormErr,               %InsecUpdate,
+%JournalFail,           %LameServer,            %MasterFailure,
+%NetworkUnreachable,    %NonAuthoritative,      %RetryLimit,
+%UnexpRCODE,            %UpdateDenied,          %UpdateForwardingDenied,
+%ZoneExpired,           %ZoneFileErrors,        %ZoneLoaded,
+%ZoneReceivedNotify,    %ZoneRefusedNotify,     %ZoneRemoved,
+%ZoneUpdates,           %Limit,                 %LimitDrop,
+%CCCommands,            %CCMessages,            %CCMessages2,
+%ConfProb,              %DNSSECBadCache,        %DNSSECError,
+%DNSSECInsec,           %DNSSECInvalid,         %ErrOpenFiles,
+%GeoIPError,            %HUR,                   %Hints,
+%LimitSlip,             %NError,                %NUR,
+%NoSOA,                 %OtherList,             %StartLog,
+%UnknownCCCommands,
+);
 # Avoid "Use of uninitialized value" warning messages.
 sub ValueOrDefault {
     my ($value, $default) = @_;
@@ -42,7 +68,7 @@ if ( $Debug >= 5 ) {
 }
 
 
-while (defined($ThisLine = <STDIN>)) {
+while (defined(my $ThisLine = <STDIN>)) {
  if ( $Debug >= 30 ) {
         print STDERR "DEBUG($DebugCounter): $ThisLine";
         $DebugCounter++;
@@ -406,7 +432,7 @@ while (defined($ThisLine = <STDIN>)) {
 
 if ( keys %ZoneExpired ) {
    print "\nZones expired:\n";
-   foreach $ThisOne (sort {$a cmp $b} keys %ZoneExpired) {
+   foreach my $ThisOne (sort {$a cmp $b} keys %ZoneExpired) {
       print "   $ThisOne: $ZoneExpired{$ThisOne} Time(s)\n";
    }
 }
@@ -433,45 +459,45 @@ if ( keys %DeniedZoneTransfers ) {
 
 if ( keys %UpdateDenied ) {
    print "\nZone update refused:\n";
-   foreach $ThisOne (sort {$a cmp $b} keys %UpdateDenied) {
+   foreach my $ThisOne (sort {$a cmp $b} keys %UpdateDenied) {
       print "   $ThisOne: $UpdateDenied{$ThisOne} Time(s)\n";
    }
 }
 
 if ( keys %UpdateForwardingDenied ) {
    print "\nZone update forwarding refused:\n";
-   foreach $ThisOne (sort {$a cmp $b} keys %UpdateForwardingDenied) {
+   foreach my $ThisOne (sort {$a cmp $b} keys %UpdateForwardingDenied) {
       print "   $ThisOne: $UpdateForwardingDenied{$ThisOne} Time(s)\n";
    }
 }
 
 if ( keys %InsecUpdate ) {
    print "\nInsecure zones (dynamic update allowed by IP address):\n";
-   foreach $ThisOne (sort {$a cmp $b} keys %InsecUpdate) {
+   foreach my $ThisOne (sort {$a cmp $b} keys %InsecUpdate) {
       print "   " . $ThisOne . ": " . $InsecUpdate{$ThisOne} . " Time(s)\n";
    }
 }
 
 if ( keys %JournalFail ) {
    print "\nJournal update failed:\n";
-   foreach $ThisOne (sort {$a cmp $b} keys %JournalFail) {
+   foreach my $ThisOne (sort {$a cmp $b} keys %JournalFail) {
       print "   " . $ThisOne . ": " . $JournalFail{$ThisOne} . " Time(s)\n";
    }
 }
 
 if (keys %ConfProb) {
    print "\nErrors in configuration files\n";
-   foreach $File (sort keys %ConfProb) {
+   foreach my $File (sort keys %ConfProb) {
       if ($File =~ /.+/) {
         print "   file " . $File . "\n";
         foreach (keys %{$ConfProb{$File}}) {
-           ($Line,$Problem) = split ",";
+           my ($Line,$Problem) = split ",";
            print "      " . $File . ":" . "$Line" . ": " . $Problem . ": " . $ConfProb{$File}{"$Line,$Problem"} . " Time(s)\n";
         }
       }
       else {
         foreach (keys %{$ConfProb{$File}}) {
-           ($Line,$Problem) = split ",";
+           my ($Line,$Problem) = split ",";
             print "   " . $Problem . ": " . $ConfProb{$File}{"$Line,$Problem"} . " Time(s)\n";
         }
       }
@@ -480,7 +506,7 @@ if (keys %ConfProb) {
 
 if (keys %NError) {
    print "\nErrors:\n";
-   foreach $ThisOne (keys %NError) {
+   foreach my $ThisOne (keys %NError) {
       print "   " . $ThisOne . ": " . $NError{$ThisOne} . " Time(s)\n";
    }
 }
@@ -488,23 +514,23 @@ if (keys %NError) {
 if (keys %ErrOpenFiles) {
    print "\nThe following seams to be caused by the patches for CVE-2008-1447.";
    print "\nPlease update your bind.\n";
-   foreach $ThisOne (keys %ErrOpenFiles) {
+   foreach my $ThisOne (keys %ErrOpenFiles) {
       print "   " . $ThisOne . ": " . $ErrOpenFiles{$ThisOne} . " Time(s)\n";
    }
 }
 
 if (keys %Limit) {
    print "\nRate Limiting occurred for:\n";
-   foreach $Zone (keys %Limit) {
+   foreach my $Zone (keys %Limit) {
       print "   $Zone:\n";
-      foreach $Response (keys %{$Limit{$Zone}}) {
+      foreach my $Response (keys %{$Limit{$Zone}}) {
          print "      $Response:\n";
-         foreach $Net (keys %{$Limit{$Zone}{$Response}}) {
+         foreach my $Net (keys %{$Limit{$Zone}{$Response}}) {
             print "         $Net: $Limit{$Zone}{$Response}{$Net} Time(s)\n";
-            foreach $Client (keys %{$LimitDrop{$Zone}{$Response}{$Net}}) {
+            foreach my $Client (keys %{$LimitDrop{$Zone}{$Response}{$Net}}) {
                print "            Dropped $Client: $LimitDrop{$Zone}{$Response}{$Net}{$Client} Time(s)\n";
             }
-            foreach $Client (keys %{$LimitSlip{$Zone}{$Response}{$Net}}) {
+            foreach my $Client (keys %{$LimitSlip{$Zone}{$Response}{$Net}}) {
                print "            Slipped $Client: $LimitSlip{$Zone}{$Response}{$Net}{$Client} Time(s)\n";
             }
          }
@@ -514,7 +540,7 @@ if (keys %Limit) {
 
 if ( ( $Detail >= 5 ) and (keys %GeoIPError) ) {
    print "\nGeoIP Errors:\n";
-   foreach $ThisOne (keys %GeoIPError) {
+   foreach my $ThisOne (keys %GeoIPError) {
       print "   " . $ThisOne . ": " . $GeoIPError{$ThisOne} . " Time(s)\n";
    }
 }
@@ -522,10 +548,10 @@ if ( ( $Detail >= 5 ) and (keys %GeoIPError) ) {
 if ((keys %CCMessages) or (keys %CCMessages2)){
    print "\nMessages from control channel\n";
    foreach (keys %CCMessages) {
-      ($From,$Log) = split ",";
+      my ($From,$Log) = split ",";
       print "   " . $From . ": " . $Log . ": " . $CCMessages{"$From,$Log"} . " Time(s)\n";
    }
-   foreach $ThisOne (keys %CCMessages2) {
+   foreach my $ThisOne (keys %CCMessages2) {
       print "   " . $ThisOne . ": " . $CCMessages2{$ThisOne} . " Time(s)\n";
    }
 }
@@ -548,30 +574,30 @@ if ( ( $Detail >= 5 ) and ($ShutdownNamedFail) ) {
 
 if ( ( $Detail >= 5 ) and (keys %ZoneLoaded) ) {
    print "\nLoaded Zones:\n";
-   foreach $ThisOne (sort {$a cmp $b} keys %ZoneLoaded) {
+   foreach my $ThisOne (sort {$a cmp $b} keys %ZoneLoaded) {
       print "   $ThisOne: $ZoneLoaded{$ThisOne} Time(s)\n";
    }
 }
 
 if ( ( $Detail >= 5 ) and (keys %ZoneReceivedNotify) ) {
    print "\nZones receiving notify:\n";
-   foreach $ThisOne (sort {$a cmp $b} keys %ZoneReceivedNotify) {
+   foreach my $ThisOne (sort {$a cmp $b} keys %ZoneReceivedNotify) {
       print "   $ThisOne: $ZoneReceivedNotify{$ThisOne} Time(s)\n";
    }
 }
 
 if ( ( $Detail >= 5 ) and (keys %ZoneRefusedNotify) ) {
    print "\nZones refused notify:\n";
-   foreach $ThisOne (sort {$a cmp $b} keys %ZoneRefusedNotify) {
+   foreach my $ThisOne (sort {$a cmp $b} keys %ZoneRefusedNotify) {
       print "   $ThisOne: $ZoneRefusedNotify{$ThisOne} Time(s)\n";
    }
 }
 
 if ( ($Detail >= 5) and (keys %ChannelAddFail) ) {
    print "\nCan't add command channel:\n";
-   foreach $Channel (sort {$a cmp $b} keys %ChannelAddFail) {
+   foreach my $Channel (sort {$a cmp $b} keys %ChannelAddFail) {
       print "   $Channel:\n";
-      foreach $Reason (sort {$a cmp $b} keys %{$ChannelAddFail{$Channel}}) {
+      foreach my $Reason (sort {$a cmp $b} keys %{$ChannelAddFail{$Channel}}) {
          print "      $Reason: $ChannelAddFail{$Channel}{$Reason} Time(s)\n";
       }
    }
@@ -579,9 +605,9 @@ if ( ($Detail >= 5) and (keys %ChannelAddFail) ) {
 
 if ( ($Detail >= 5) and (keys %MasterFailure) ) {
    print "\nFailure trying to refresh zone:\n";
-   foreach $Zone (sort {$a cmp $b} keys %MasterFailure) {
+   foreach my $Zone (sort {$a cmp $b} keys %MasterFailure) {
       print "   $Zone:\n";
-      foreach $Reason (sort {$a cmp $b} keys %{$MasterFailure{$Zone}}) {
+      foreach my $Reason (sort {$a cmp $b} keys %{$MasterFailure{$Zone}}) {
          print "      $Reason: $MasterFailure{$Zone}{$Reason} Time(s)\n";
       }
    }
@@ -596,16 +622,16 @@ if ( ( $Detail >= 5 ) and (keys %DeferredZoneTransfers) ) {
 
 if ( ( $Detail >= 5 ) and (keys %ZoneRemoved) ) {
    print "\nRemoved Zones:\n";
-   foreach $ThisOne (sort {$a cmp $b} keys %ZoneRemoved) {
+   foreach my $ThisOne (sort {$a cmp $b} keys %ZoneRemoved) {
       print "   $ThisOne: $ZoneRemoved{$ThisOne} Time(s)\n";
    }
 }
 
 if ( ( $Detail >= 5 ) and (keys %AXFR) ) {
    print "\nZone Transfers:\n";
-   foreach $ThisOne (keys %AXFR) {
+   foreach my $ThisOne (keys %AXFR) {
       print "   Zone: $ThisOne\n";
-      foreach $Temp (keys %{$AXFR{$ThisOne}}) {
+      foreach my $Temp (keys %{$AXFR{$ThisOne}}) {
          print "      by $Temp: $AXFR{$ThisOne}{$Temp} Time(s)\n";
       }
    }
@@ -613,9 +639,9 @@ if ( ( $Detail >= 5 ) and (keys %AXFR) ) {
 
 if ( ( $Detail >= 10 ) and (keys %BadZone) ) {
    print "\nBad Zone Transfer Request:\n";
-   foreach $Reason (keys %BadZone) {
+   foreach my $Reason (keys %BadZone) {
       print "   Reason: $Reason\n";
-      foreach $ThisOne (sort {$a cmp $b} (keys %{$BadZone{$Reason}}) ) {
+      foreach my $ThisOne (sort {$a cmp $b} (keys %{$BadZone{$Reason}}) ) {
          print "      $ThisOne: $BadZone{$Reason}{$ThisOne} Time(s)\n";
       }
    }
@@ -623,37 +649,37 @@ if ( ( $Detail >= 10 ) and (keys %BadZone) ) {
 
 if ( ( $Detail >= 5 ) and (keys %DeniedTCPClient) ) {
    print "\nno more TCP clients warning:\n";
-   foreach $ThisOne (keys %DeniedTCPClient) {
+   foreach my $ThisOne (keys %DeniedTCPClient) {
       print "   from $ThisOne: $DeniedTCPClient{$ThisOne} Time(s)\n";
    }
 }
 
 if ( ( $Detail >= 5 ) and (keys %DeniedQuery) ) {
    print "\nQueries (cached) that were denied:\n";
-   foreach $ThisOne (keys %DeniedQuery) {
+   foreach my $ThisOne (keys %DeniedQuery) {
       print "   from $ThisOne: $DeniedQuery{$ThisOne} Time(s)\n";
    }
 }
 
 if ( ( $Detail >= 10 ) and (keys %DeniedQueryNoCache) ) {
    print "\nQueries (not cached) that were denied:\n";
-   foreach $ThisOne (sort {$a cmp $b} keys %DeniedQueryNoCache) {
+   foreach my $ThisOne (sort {$a cmp $b} keys %DeniedQueryNoCache) {
       print "   from $ThisOne: $DeniedQueryNoCache{$ThisOne} Time(s)\n";
    }
 }
 
 if ( ( $Detail >= 10 ) and (@CNAMEAndOther) ) {
    print "\nThese hosts have CNAME and other data (invalid):\n";
-   foreach $ThisOne (@CNAMEAndOther) {
+   foreach my $ThisOne (@CNAMEAndOther) {
       print "   $ThisOne\n";
    }
 }
 
 if ( ( $Detail >= 5 ) and (keys %ZoneFileErrors) ) {
    print "\nSyntax errors in zone files:\n";
-   for $File (keys %ZoneFileErrors) {
+   for my $File (keys %ZoneFileErrors) {
       print "   $File\n";
-      for $Error ( keys %{$ZoneFileErrors{$File}} ) {
+      for my $Error ( keys %{$ZoneFileErrors{$File}} ) {
          print "      \"$Error\" " . $ZoneFileErrors{$File}{$Error} . " Time(s)\n";
       }
    }
@@ -661,9 +687,9 @@ if ( ( $Detail >= 5 ) and (keys %ZoneFileErrors) ) {
 
 if ( ( $Detail >= 10 ) and (keys %ConnectionRefused) ) {
    print "\nConnection refused resolving:\n";
-   foreach $Addr (sort keys %ConnectionRefused) {
+   foreach my $Addr (sort keys %ConnectionRefused) {
       print "   $Addr:\n";
-      foreach $Server (sort SortIP keys %{$ConnectionRefused{$Addr}}) {
+      foreach my $Server (sort SortIP keys %{$ConnectionRefused{$Addr}}) {
          print "      $Server: $ConnectionRefused{$Addr}{$Server} Time(s)\n";
       }
    }
@@ -671,9 +697,9 @@ if ( ( $Detail >= 10 ) and (keys %ConnectionRefused) ) {
 
 if ( ( $Detail >= 10 ) and (keys %LameServer) ) {
    print "\nThese addresses had lame server references:\n";
-   foreach $Addr (sort keys %LameServer) {
+   foreach my $Addr (sort keys %LameServer) {
       print "   $Addr:\n";
-      foreach $Server (sort SortIP keys %{$LameServer{$Addr}}) {
+      foreach my $Server (sort SortIP keys %{$LameServer{$Addr}}) {
          print "      $Server: $LameServer{$Addr}{$Server} Time(s)\n";
       }
    }
@@ -681,30 +707,30 @@ if ( ( $Detail >= 10 ) and (keys %LameServer) ) {
 
 if ( ( $Detail >= 10 ) and (keys %NonAuthoritative) ) {
    print "\nNon-authoritative answer from master for these zones:\n";
-   foreach $ThisOne (keys %NonAuthoritative) {
+   foreach my $ThisOne (keys %NonAuthoritative) {
       print "   " . $ThisOne . ": " . $NonAuthoritative{$ThisOne} . " Time(s)\n";
    }
 }
 
 if ( ($Detail >= 10) and (keys %RetryLimit) ) {
    print "\nRetry limit exceeded for these zones:\n";
-   foreach $Zone (sort {$a cmp $b} keys %RetryLimit) {
+   foreach my $Zone (sort {$a cmp $b} keys %RetryLimit) {
       print "   $Zone: $RetryLimit{$Zone} Time(s)\n";
    }
 }
 
 if ( ($Detail >= 10) and (keys %NoSOA) ) {
    print "\nNotify question sections of these clients contained no SOA:\n";
-   foreach $Client (sort {$a cmp $b} keys %NoSOA) {
+   foreach my $Client (sort {$a cmp $b} keys %NoSOA) {
       print "   $Client: $NoSOA{$Client} Time(s)\n";
    }
 }
 
 if ( ( $Detail >= 10 ) and (keys %NetworkUnreachable) ) {
    print "\nNetwork is unreachable for:\n";
-   foreach $ThisOne (sort {$a cmp $b} keys %NetworkUnreachable) {
+   foreach my $ThisOne (sort {$a cmp $b} keys %NetworkUnreachable) {
       print "   $ThisOne:\n";
-      foreach $Host (sort {$a cmp $b} keys %{$NetworkUnreachable{$ThisOne}}) {
+      foreach my $Host (sort {$a cmp $b} keys %{$NetworkUnreachable{$ThisOne}}) {
          print "      $Host: $NetworkUnreachable{$ThisOne}{$Host} Time(s)\n";
       }
    }
@@ -712,9 +738,9 @@ if ( ( $Detail >= 10 ) and (keys %NetworkUnreachable) ) {
 
 if ( ( $Detail >= 10 ) and (keys %NUR) ) {
    print "\nNetwork unreachable resolving for:\n";
-   foreach $ThisOne (sort {$a cmp $b} keys %NUR) {
+   foreach my $ThisOne (sort {$a cmp $b} keys %NUR) {
       print "   $ThisOne:\n";
-      foreach $Host (sort {$a cmp $b} keys %{$NUR{$ThisOne}}) {
+      foreach my $Host (sort {$a cmp $b} keys %{$NUR{$ThisOne}}) {
          print "      $Host: $NUR{$ThisOne}{$Host} Time(s)\n";
       }
    }
@@ -722,9 +748,9 @@ if ( ( $Detail >= 10 ) and (keys %NUR) ) {
 
 if ( ( $Detail >= 10 ) and (keys %HUR) ) {
    print "\nHost unreachable resolving for:\n";
-   foreach $ThisOne (sort {$a cmp $b} keys %HUR) {
+   foreach my $ThisOne (sort {$a cmp $b} keys %HUR) {
        print "   $ThisOne:\n";
-       foreach $Host (sort {$a cmp $b} keys %{$HUR{$ThisOne}}) {
+       foreach my $Host (sort {$a cmp $b} keys %{$HUR{$ThisOne}}) {
           print "      $Host: $HUR{$ThisOne}{$Host} Time(s)\n";
        }
    }
@@ -732,9 +758,9 @@ if ( ( $Detail >= 10 ) and (keys %HUR) ) {
 
 if ( ( $Detail >= 10 ) and (keys %ZoneUpdates) ) {
    print "\nZone Updates:\n";
-   foreach $ThisOne (sort {$a cmp $b} keys %ZoneUpdates) {
+   foreach my $ThisOne (sort {$a cmp $b} keys %ZoneUpdates) {
       print "   $ThisOne:\n";
-      foreach $Message (sort {$a cmp $b} keys %{$ZoneUpdates{$ThisOne}}) {
+      foreach my $Message (sort {$a cmp $b} keys %{$ZoneUpdates{$ThisOne}}) {
          print "      $Message: $ZoneUpdates{$ThisOne}{$Message} Time(s)\n";
       }
    }
@@ -742,11 +768,11 @@ if ( ( $Detail >= 10 ) and (keys %ZoneUpdates) ) {
 
 if (($Detail >= 5) and (keys %UnexpRCODE)) {
    print "\nUnexpected DNS RCODEs:\n";
-   foreach $ThisOne (sort {$a cmp $b} keys %UnexpRCODE) {
+   foreach my $ThisOne (sort {$a cmp $b} keys %UnexpRCODE) {
       print "   " . $ThisOne . ":\n";
-      foreach $Zone (sort {$a cmp $b} keys %{$UnexpRCODE{$ThisOne}}) {
+      foreach my $Zone (sort {$a cmp $b} keys %{$UnexpRCODE{$ThisOne}}) {
          print "     " . $Zone . ":\n";
-         foreach $Host (sort SortIP keys %{$UnexpRCODE{$ThisOne}{$Zone}}) {
+         foreach my $Host (sort SortIP keys %{$UnexpRCODE{$ThisOne}{$Zone}}) {
             print "         " . $Host . ": " . $UnexpRCODE{$ThisOne}{$Zone}{$Host} . " Time(s)\n";
          }
       }
@@ -755,40 +781,40 @@ if (($Detail >= 5) and (keys %UnexpRCODE)) {
 
 if (($Detail >= 5) and (keys %FormErr)) {
    print "\nIncorrect response format:\n";
-   foreach $ThisOne (keys %FormErr) {
+   foreach my $ThisOne (keys %FormErr) {
       print "   " . $ThisOne . ": " . $FormErr{$ThisOne} . " Time(s)\n";
    }
 }
 
 if (($Detail >= 10) and (keys %StartLog)) {
    print "\nNamed startup logs:\n";
-   foreach $ThisOne (keys %StartLog) {
+   foreach my $ThisOne (keys %StartLog) {
       print "   " . $ThisOne . ": " . $StartLog{$ThisOne} . " Time(s)\n";
    }
 }
 
 if (($Detail and (keys %CCCommands)) or (keys %UnknownCCCommands)) {
    print "\nReceived control channel commands\n";
-   foreach $ThisOne (keys %CCCommands) {
+   foreach my $ThisOne (keys %CCCommands) {
       print "   " . $ThisOne . ": " . $CCCommands{$ThisOne} . " Time(s)\n";
    }
-   foreach $ThisOne (keys %UnknownCCCommands) {
+   foreach my $ThisOne (keys %UnknownCCCommands) {
       print "   " . $ThisOne . "(unknown command): " . $CCCommands{$ThisOne} . " Time(s)\n";
    }
 }
 
 if (keys %Hints) {
    print "\nCheckhints:\n";
-   foreach $ThisOne (sort {$a cmp $b} keys %Hints) {
+   foreach my $ThisOne (sort {$a cmp $b} keys %Hints) {
       print "   " .$ThisOne .": $Hints{$ThisOne} Time(s)\n";
    }
 }
 
 if (($Detail >= 5) and (keys %DNSSECInsec)) {
    print "\nDNSSEC Insecure Responses: " . $DNSSECInsec{'__Total__'} . " Time(s)\n";
-   foreach $Zone (sort keys %DNSSECInsec) {
+   foreach my $Zone (sort keys %DNSSECInsec) {
       if (($Detail >= 10) and ($Zone =~ /.+/) and ($Zone ne '__Total__')) {
-        foreach $RR (sort keys %{$DNSSECInsec{$Zone}}) {
+        foreach my $RR (sort keys %{$DNSSECInsec{$Zone}}) {
            print "   " . "$Zone/$RR: " . $DNSSECInsec{$Zone}{$RR} . " Time(s)\n";
         }
       }
@@ -797,9 +823,9 @@ if (($Detail >= 5) and (keys %DNSSECInsec)) {
 
 if (($Detail >= 5) and (keys %DNSSECInvalid)) {
    print "\nDNSSEC No Valid Signature: " . $DNSSECInvalid{'__Total__'} . " Time(s)\n";
-   foreach $Zone (sort keys %DNSSECInvalid) {
+   foreach my $Zone (sort keys %DNSSECInvalid) {
       if (($Detail >= 10) and ($Zone =~ /.+/) and ($Zone ne '__Total__')) {
-        foreach $RR (sort keys %{$DNSSECInvalid{$Zone}}) {
+        foreach my $RR (sort keys %{$DNSSECInvalid{$Zone}}) {
            print "   " . "$Zone/$RR: " . $DNSSECInvalid{$Zone}{$RR} . " Time(s)\n";
         }
       }
@@ -808,9 +834,9 @@ if (($Detail >= 5) and (keys %DNSSECInvalid)) {
 
 if (($Detail >= 5) and (keys %DNSSECBadCache)) {
    print "\nDNSSEC Bad Cache hit: " . $DNSSECBadCache{'__Total__'} . " Time(s)\n";
-   foreach $Zone (sort keys %DNSSECBadCache) {
+   foreach my $Zone (sort keys %DNSSECBadCache) {
       if (($Detail >= 10) and ($Zone =~ /.+/) and ($Zone ne '__Total__')) {
-        foreach $RR (sort keys %{$DNSSECBadCache{$Zone}}) {
+        foreach my $RR (sort keys %{$DNSSECBadCache{$Zone}}) {
            print "   " . "$Zone/$RR: " . $DNSSECBadCache{$Zone}{$RR} . " Time(s)\n";
         }
       }
@@ -819,10 +845,10 @@ if (($Detail >= 5) and (keys %DNSSECBadCache)) {
 
 if (($Detail >= 5) and (keys %DNSSECError)) {
    print "\nDNSSEC Errors:\n";
-   foreach $Error (sort keys %DNSSECError) {
+   foreach my $Error (sort keys %DNSSECError) {
       print "   $Error: " . $DNSSECError{$Error}{'__Total__'} . " Time(s)\n";
       if ($Detail >= 10) {
-         foreach $Host (sort keys %{$DNSSECError{$Error}}) {
+         foreach my $Host (sort keys %{$DNSSECError{$Error}}) {
             print "     " . "$Host: " . $DNSSECError{$Error}{$Host} . " Time(s)\n" unless ($Host eq '__Total__');
          }
       }
@@ -831,7 +857,7 @@ if (($Detail >= 5) and (keys %DNSSECError)) {
 
 if (keys %OtherList) {
    print "\n**Unmatched Entries**\n";
-   foreach $line (sort {$a cmp $b} keys %OtherList) {
+   foreach my $line (sort {$a cmp $b} keys %OtherList) {
       print "   $line: $OtherList{$line} Time(s)\n";
    }
 }
