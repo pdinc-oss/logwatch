@@ -22,10 +22,11 @@
 ## contributions to this script and want to claim
 ## copyright please contact logwatch-devel@lists.sourceforge.net.
 #########################################################
+use strict;
 
 my @Denies = ();
 
-while (defined($ThisLine = <STDIN>)) {
+while (defined(my $ThisLine = <STDIN>)) {
    chomp($ThisLine);
    next if ($ThisLine eq "");
    if ($ThisLine =~ /\snew denied hosts:\s\[([^\]]+)/i) {
