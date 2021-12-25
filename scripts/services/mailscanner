@@ -46,24 +46,22 @@ my $phishing_detail = $ENV{'mailscanner_phishing_detail'} || 0;
 my $mailscanner_phishingthreshold = $ENV{'mailscanner_phishingthreshold'} || 0;
 
 #Init Counters
-my $MailScan_bytes = 0;
-my $MailScan_Content = 0;
-my $MailScan_Delivered = 0;
-my $MailScan_Other = 0;
-my $MailScan_RBL = 0;
-my $MailScan_Received = 0;
-my $MailScan_Spam = 0;
-my $MailScan_Unscanned = 0;
-my $MailScan_Virus = 0;
-my $SA_timeout = 0;
-my $MailScan_ScannerTimeout = 0;
-my $MailScan_GoodWatermark = 0;
-my $MailScan_BadWatermark = 0;
-my $MailScan_SkipWatermark = 0;
-my $SpamAssassin_Rule_Actions = 0;
-my $MailScan_Deleted_pdb = 0;
-my $MailScan_Found_pdb = 0;
-my $MailScan_Spam_Virus = 0;
+my $MailScan_bytes =            my $MailScan_Content =          my $MailScan_Delivered =
+my $MailScan_Other =            my $MailScan_RBL =              my $MailScan_Received =
+my $MailScan_Spam =             my $MailScan_Unscanned =        my $MailScan_Virus =
+my $SA_timeout =                my $MailScan_ScannerTimeout =   my $MailScan_GoodWatermark =
+my $MailScan_BadWatermark =     my $MailScan_SkipWatermark =    my $SpamAssassin_Rule_Actions =
+my $MailScan_Deleted_pdb =      my $MailScan_Found_pdb =        my $MailScan_Spam_Virus =
+my $MailScan_VirtualHost=       my $MailScan_Virus_Antivir=     my $MailScan_Virus_BitDefender=
+my $MailScan_Virus_ClamAv=      my $MailScan_Virus_Clamd=       my $MailScan_Virus_ClamAVModule=
+my $MailScan_Virus_Fprot=       my $MailScan_Virus_McAfee=      my $MailScan_Virus_Kaspersky=
+my $MailScan_Virus_Sophos=      my $MailScan_Virus_SophosSavi=  my $MailScan_FilenameAllow=
+my $MailScan_FilenameBanned=    my $MailScan_FiletypeAllow=     my $MailScan_FiletypeBanned=
+my $MailScan_Whitelisted=       my $MailScan_Blacklisted=       my $MailScan_Phishing=
+my $MailScan_FormTag=           my $MailScan_ScriptTag=         my $MailScan_IframeTag=
+my $MailScan_ObjectTag=         my $MailScan_ImgTag=            my $MailWatchSQL=
+my $DisarmedQuarantined=        my $SACacheHit=                 my $MailScan_Skipwatermark=
+0;
 
 #Initalize hashes
 my (
@@ -77,6 +75,7 @@ my (
 %VirusType_Antivir,     %VirusType_BitDefender, %VirusType_ClamAv,
 %VirusType_Clamd,       %VirusType_Fprot,       %VirusType_ClamAVModule,
 %VirusType_McAfee,      %VirusType_Kaspersky,   %VirusType_Sophos,
+%MailScan_Spam_Act,     %VirusScannerTimeout,   %VirusType_SophosSavi,
 );
 
 while (defined($ThisLine = <STDIN>)) {
@@ -389,7 +388,7 @@ if ($MailScan_Spam > 0) {
 }
 
 if (keys %MailScan_Spam_Act) {
-   foreach $ThisOne (sort keys %MailScan_Spam_Act) {
+   foreach my $ThisOne (sort keys %MailScan_Spam_Act) {
       if ($MailScan_Spam_Act{$ThisOne} > 0) {
           print "\n\t\t" . $MailScan_Spam_Act{$ThisOne} . ' Spam messages with action(s) ' .$ThisOne ;
       }
@@ -440,98 +439,98 @@ if ($SA_timeout > 0) {
 
 if (keys %VirusScannerTimeout) {
    print "\n\t" . $MailScan_ScannerTimeout . " virus scanner timeout(s)\n";
-   foreach $ThisOne (sort keys %VirusScannerTimeout) {
+   foreach my $ThisOne (sort keys %VirusScannerTimeout) {
       print "\t    " . $ThisOne . ": " . $VirusScannerTimeout{$ThisOne} . " Time(s)\n";
    }
 }
 
 if (keys %VirusType_Antivir) {
    print "\nAntivir Virus Report: (Total Seen = $MailScan_Virus_Antivir)\n";
-   foreach $ThisOne (sort keys %VirusType_Antivir) {
+   foreach my $ThisOne (sort keys %VirusType_Antivir) {
       print '    ' . $ThisOne . ': ' . $VirusType_Antivir{$ThisOne} . " Times(s)\n";
    }
 }
 
 if (keys %VirusType_BitDefender) {
    print "\nBitDefender Virus Report: (Total Seen = $MailScan_Virus_BitDefender)\n";
-   foreach $ThisOne (sort keys %VirusType_BitDefender) {
+   foreach my $ThisOne (sort keys %VirusType_BitDefender) {
       print '    ' . $ThisOne . ': ' . $VirusType_BitDefender{$ThisOne} . " Times(s)\n";
    }
 }
 
 if (keys %VirusType_ClamAv) {
    print "\nClamAV Virus Report: (Total Seen = $MailScan_Virus_ClamAv)\n";
-   foreach $ThisOne (sort keys %VirusType_ClamAv) {
+   foreach my $ThisOne (sort keys %VirusType_ClamAv) {
       print '    ' . $ThisOne . ': ' . $VirusType_ClamAv{$ThisOne} . " Time(s)\n";
    }
 }
 
 if (keys %VirusType_ClamAVModule) {
    print "\nClamAVModule Virus Report: (Total Seen = $MailScan_Virus_ClamAVModule)\n";
-   foreach $ThisOne (sort keys %VirusType_ClamAVModule) {
+   foreach my $ThisOne (sort keys %VirusType_ClamAVModule) {
    print '    ' . $ThisOne . ': ' . $VirusType_ClamAVModule{$ThisOne} . " Time(s)\n";
    }
 }
 
 if (keys %VirusType_Clamd) {
    print "\nClamd Virus Report: (Total Seen = $MailScan_Virus_Clamd)\n";
-   foreach $ThisOne (sort keys %VirusType_Clamd) {
+   foreach my $ThisOne (sort keys %VirusType_Clamd) {
    print '    ' . $ThisOne . ': ' . $VirusType_Clamd{$ThisOne} . " Time(s)\n";
    }
 }
 
 if (keys %VirusType_Fprot) {
    print "\nF-Prot Virus Report: (Total Seen = $MailScan_Virus_Fprot)\n";
-   foreach $ThisOne (sort keys %VirusType_Fprot) {
+   foreach my $ThisOne (sort keys %VirusType_Fprot) {
       print '    ' . $ThisOne . ': ' . $VirusType_Fprot{$ThisOne} . " Time(s)\n";
    }
 }
 
 if (keys %VirusType_Kaspersky) {
    print "\nKaspersky Virus Report: (Total Seen = $MailScan_Virus_Kaspersky)\n";
-   foreach $ThisOne (sort keys %VirusType_Kaspersky) {
+   foreach my $ThisOne (sort keys %VirusType_Kaspersky) {
       print '    ' . $ThisOne . ': ' . $VirusType_Kaspersky{$ThisOne} . " Time(s)\n";
    }
 }
 
 if (keys %VirusType_McAfee) {
    print "\nMcAfee Virus Report: (Total Seen = $MailScan_Virus_McAfee)\n";
-   foreach $ThisOne (sort keys %VirusType_McAfee) {
+   foreach my $ThisOne (sort keys %VirusType_McAfee) {
       print '    ' . $ThisOne . ': ' . $VirusType_McAfee{$ThisOne} . " Time(s)\n";
    }
 }
 
 if (keys %VirusType_Sophos) {
    print "\nSophos Virus Report: (Total Seen = $MailScan_Virus_Sophos)\n";
-   foreach $ThisOne (sort keys %VirusType_Sophos) {
+   foreach my $ThisOne (sort keys %VirusType_Sophos) {
       print '    ' . $ThisOne . ': ' . $VirusType_Sophos{$ThisOne} . " Time(s)\n";
    }
 }
 
 if (keys %VirusType_SophosSavi) {
    print "\nSophosSavi Virus Report: (Total Seen = $MailScan_Virus_SophosSavi)\n";
-   foreach $ThisOne (sort keys %VirusType_SophosSavi) {
+   foreach my $ThisOne (sort keys %VirusType_SophosSavi) {
    print '    ' . $ThisOne . ': ' . $VirusType_SophosSavi{$ThisOne} . " Time(s)\n";
    }
 }
 
 if (keys %Spam_Virus_Found) {
    print "\nSpam Virus Report: (Total Seen = $MailScan_Spam_Virus)\n";
-   foreach $ThisOne (sort keys %Spam_Virus_Found) {
+   foreach my $ThisOne (sort keys %Spam_Virus_Found) {
       print '    ' . $ThisOne . ': ' . $Spam_Virus_Found{$ThisOne} . " Time(s)\n";
    }
 }
 
 if (keys %Hostlist) {
    print "\nVirus Sender Report: (Total Seen = $MailScan_VirtualHost)\n";
-   foreach $ThisOne (sort keys %Hostlist) {
+   foreach my $ThisOne (sort keys %Hostlist) {
       print '    ' . $ThisOne . ': ' . $Hostlist{$ThisOne} . " Time(s)\n";
    }
 }
 
 if (keys %Whitelisted_Host) {
    print "\nSpam Whitelisted Host Report: (Total Seen = $MailScan_Whitelisted)\n";
-   foreach $ThisOne (sort keys %Whitelisted_Host) {
+   foreach my $ThisOne (sort keys %Whitelisted_Host) {
    print '    ' . $ThisOne . ': ' . $Whitelisted_Host{$ThisOne} . " Time(s)\n";
    }
 }
@@ -539,14 +538,14 @@ if (keys %Whitelisted_Host) {
 
 if (keys %Blacklisted_Host) {
    print "\nSpam Blacklisted Host Report: (Total Seen = $MailScan_Blacklisted)\n";
-   foreach $ThisOne (sort keys %Blacklisted_Host) {
+   foreach my $ThisOne (sort keys %Blacklisted_Host) {
       print '    ' . $ThisOne . ': ' . $Blacklisted_Host{$ThisOne} . " Time(s)\n";
    }
 }
 
 if (keys %RBLType) {
    print "\nRBL Report: (Total Seen = $MailScan_RBL)\n";
-   foreach $ThisOne (sort keys %RBLType) {
+   foreach my $ThisOne (sort keys %RBLType) {
       print '    ' . $ThisOne . ': ' . $RBLType{$ThisOne} . " Time(s)\n";
    }
 }
@@ -555,7 +554,7 @@ if (keys %ContentType) {
    print "\nContent Report: (Total Seen = $MailScan_Content)";
    if ($DisarmedQuarantined > 0) { print " (Quarantined = $DisarmedQuarantined)"; }
    print "\n";
-   foreach $ThisOne (sort keys %ContentType) {
+   foreach my $ThisOne (sort keys %ContentType) {
       print '    ' . $ThisOne . ': ' . $ContentType{$ThisOne} . " Time(s)\n";
    }
 }
@@ -563,7 +562,7 @@ if (keys %ContentType) {
 if (keys %FilenameAllow) {
    print "\nAllowed Filename Report: (Total Seen = $MailScan_FilenameAllow)\n";
    if ($Detail >= 10) {
-      foreach $ThisOne (sort keys %FilenameAllow) {
+      foreach my $ThisOne (sort keys %FilenameAllow) {
          print '    ' . $ThisOne . ': ' . $FilenameAllow{$ThisOne} . " Time(s)\n";
       }
    } else {
@@ -573,7 +572,7 @@ if (keys %FilenameAllow) {
 
 if (keys %FilenameType) {
    print "\nBanned Filename Report: (Total Seen = $MailScan_FilenameBanned)\n";
-   foreach $ThisOne (sort keys %FilenameType) {
+   foreach my $ThisOne (sort keys %FilenameType) {
       print '    ' . $ThisOne . ': ' . $FilenameType{$ThisOne} . " Time(s)\n";
    }
 }
@@ -581,7 +580,7 @@ if (keys %FilenameType) {
 if (keys %FiletypeAllow) {
    print "\nAllowed Filetype Report: (Total Seen = $MailScan_FiletypeAllow)\n";
    if ($Detail >= 10) {
-      foreach $ThisOne (sort keys %FiletypeAllow) {
+      foreach my $ThisOne (sort keys %FiletypeAllow) {
          print '    ' . $ThisOne . ': ' . $FiletypeAllow{$ThisOne} . " Time(s)\n";
       }
    } else {
@@ -591,21 +590,21 @@ if (keys %FiletypeAllow) {
 
 if (keys %FiletypeType) {
    print "\nBanned Filetype Report: (Total Seen = $MailScan_FiletypeBanned)\n";
-   foreach $ThisOne (sort keys %FiletypeType) {
+   foreach my $ThisOne (sort keys %FiletypeType) {
       print '    ' . $ThisOne . ': ' . $FiletypeType{$ThisOne} . " Time(s)\n";
    }
 }
 
 if ( (keys %PhishingSource) && ($mailscanner_phishingthreshold > 0) ) {
    print "\nPhishing Report: (Total Seen = $MailScan_Phishing)\n";
-   foreach $ThisOne (sort keys %PhishingSource) {
+   foreach my $ThisOne (sort keys %PhishingSource) {
       if ( $PhishingSource{$ThisOne} >= $mailscanner_phishingthreshold ) {
          print '    ' . $ThisOne . ': ' . $PhishingSource{$ThisOne} . " Time(s)\n";
       }
    };
    if ($Detail >= 10) {
       print "\n  Detail:\n";
-      foreach $ThisOne (sort keys %PhishingSourceDest) {
+      foreach my $ThisOne (sort keys %PhishingSourceDest) {
          if ( $PhishingSourceDest{$ThisOne} >= $mailscanner_phishingthreshold ) {
             print '    ' . $ThisOne . ': ' . $PhishingSourceDest{$ThisOne} . " Time(s)\n";
          }
@@ -615,28 +614,28 @@ if ( (keys %PhishingSource) && ($mailscanner_phishingthreshold > 0) ) {
 
 if (keys %FormTagSource) {
    print "\nHTML <FORM> tag report: (Total Seen = $MailScan_FormTag)\n";
-   foreach $ThisOne (sort keys %FormTagSource) {
+   foreach my $ThisOne (sort keys %FormTagSource) {
       print '    ' . $ThisOne . ': ' . $FormTagSource{$ThisOne} . " Time(s)\n";
    }
 }
 
 if (keys %ScriptTagSource) {
    print "\nHTML <SCRIPT> tag report: (Total Seen = $MailScan_ScriptTag)\n";
-   foreach $ThisOne (sort keys %ScriptTagSource) {
+   foreach my $ThisOne (sort keys %ScriptTagSource) {
       print '    ' . $ThisOne . ': ' . $ScriptTagSource{$ThisOne} . " Time(s)\n";
    }
 }
 
 if (keys %IframeTagSource) {
    print "\nHTML <IFRAME> tag report: (Total Seen = $MailScan_IframeTag)\n";
-   foreach $ThisOne (sort keys %IframeTagSource) {
+   foreach my $ThisOne (sort keys %IframeTagSource) {
       print '    ' . $ThisOne . ': ' . $IframeTagSource{$ThisOne} . " Time(s)\n";
    }
 }
 
 if (keys %ObjectTagSource) {
    print "\nHTML <OBJECT> tag report: (Total Seen = $MailScan_ObjectTag)\n";
-   foreach $ThisOne (sort keys %ObjectTagSource) {
+   foreach my $ThisOne (sort keys %ObjectTagSource) {
       print '    ' . $ThisOne . ': ' . $ObjectTagSource{$ThisOne} . " Time(s)\n";
    }
 }
@@ -644,7 +643,7 @@ if (keys %ObjectTagSource) {
 if (keys %ImgTagSource) {
    print "\nHTML <IMG> tag report: (Total Seen = $MailScan_ImgTag)\n";
    if ($Detail >= 10) {
-      foreach $ThisOne (sort keys %ImgTagSource) {
+      foreach my $ThisOne (sort keys %ImgTagSource) {
          print '    ' . $ThisOne . ': ' . $ImgTagSource{$ThisOne} . " Time(s)\n";
       }
    } else {
@@ -653,13 +652,13 @@ if (keys %ImgTagSource) {
 }
 if ($SpamAssassin_Rule_Actions > 0) {
    print "\nSpamAssassin Rule Actions: (Total Seen = $SpamAssassin_Rule_Actions)\n";
-      foreach $ThisOne (sort keys %SpamAssassin_Rule) {
+      foreach my $ThisOne (sort keys %SpamAssassin_Rule) {
          print '    ' . 'Rule - ' . $ThisOne . ': ' . $SpamAssassin_Rule{$ThisOne} . " Time(s)\n";
       }
-      foreach $ThisOne (sort keys %SpamAssassin_Action) {
+      foreach my $ThisOne (sort keys %SpamAssassin_Action) {
          print '    ' . 'Action - ' . $ThisOne . ': ' . $SpamAssassin_Action{$ThisOne} . " Time(s)\n";
       }
-      foreach $ThisOne (sort keys %SpamAssassin_Message) {
+      foreach my $ThisOne (sort keys %SpamAssassin_Message) {
          print '    ' . 'Message - ' . $ThisOne . ': ' . $SpamAssassin_Message{$ThisOne} . " Time(s)\n";
       }
 }
@@ -673,7 +672,7 @@ if ( ($MailScan_GoodWatermark > 0) || ($MailScan_BadWatermark > 0) || ($MailScan
 
 if (keys %OtherList) {
    print "\n**Unmatched Entries**\n";
-   foreach $line (sort {$OtherList{$b}<=>$OtherList{$a} } keys %OtherList) {
+   foreach my $line (sort {$OtherList{$b}<=>$OtherList{$a} } keys %OtherList) {
       print "   $line: $OtherList{$line} Time(s)\n";
    }
 }
