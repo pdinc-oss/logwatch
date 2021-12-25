@@ -22,15 +22,26 @@
 ## contributions to this script and want to claim
 ## copyright please contact logwatch-devel@lists.sourceforge.net.
 #########################################################
+use strict;
 
-$Debug = $ENV{'LOGWATCH_DEBUG'} || 0;
+my $Debug = $ENV{'LOGWATCH_DEBUG'} || 0;
+my $DebugCounter = 0;
+
+#Init Array
+my @OtherList = ();
+
+#Init Hashes
+my (
+%PackageUpdated,        %PackageInstalled,      %PackageDepInstalled,
+%PackageErased,
+);
 
 if ( $Debug >= 5 ) {
    print STDERR "\n\nDEBUG: Inside YUM Filter \n\n";
    $DebugCounter = 1;
 }
 
-while (defined($ThisLine = <STDIN>)) {
+while (defined(my $ThisLine = <STDIN>)) {
    if ( $Debug >= 5 ) {
       print STDERR "DEBUG($DebugCounter): $ThisLine";
       $DebugCounter++;
@@ -52,25 +63,25 @@ while (defined($ThisLine = <STDIN>)) {
 
 if (keys %PackageInstalled) {
    print "\nPackages Installed:\n";
-   foreach $ThisOne (keys %PackageInstalled) {
+   foreach my $ThisOne (keys %PackageInstalled) {
       print "   " . $ThisOne;
    }
 }
 if (keys %PackageDepInstalled) {
    print "\nPackages (Dependency) Installed:\n";
-   foreach $ThisOne (keys %PackageDepInstalled) {
+   foreach my $ThisOne (keys %PackageDepInstalled) {
       print "   " . $ThisOne;
    }
 }
 if (keys %PackageUpdated) {
    print "\nPackages Updated:\n";
-   foreach $ThisOne (keys %PackageUpdated) {
+   foreach my $ThisOne (keys %PackageUpdated) {
        print "   ". $ThisOne;
    }
 }
 if (keys %PackageErased) {
    print "\nPackages Erased:\n";
-   foreach $ThisOne (keys %PackageErased) {
+   foreach my $ThisOne (keys %PackageErased) {
        print "   ". $ThisOne;
    }
 }
