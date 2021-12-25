@@ -32,6 +32,7 @@
 ## contributions to this script and want to claim
 ## copyright please contact logwatch-devel@lists.sourceforge.net.
 #########################################################
+use strict;
 
 eval "require Sys::CPU";
 if ($@) {
