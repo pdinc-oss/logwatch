@@ -39,7 +39,7 @@
 ## copyright please contact logwatch-devel@lists.sourceforge.net.
 #########################################################
 #use diagnostics;
-#use strict;
+use strict;
 
 my $Detail = $ENV{'LOGWATCH_DETAIL_LEVEL'} || 0;
 my $phishing_detail = $ENV{'mailscanner_phishing_detail'} || 0;
@@ -78,7 +78,7 @@ my (
 %MailScan_Spam_Act,     %VirusScannerTimeout,   %VirusType_SophosSavi,
 );
 
-while (defined($ThisLine = <STDIN>)) {
+while (defined(my $ThisLine = <STDIN>)) {
    #($QueueID) = ($ThisLine =~ m/^([a-zA-Z0-9]+): / );
    $ThisLine =~ s/^[a-zA-Z0-9]+: //;
    if ( ( $ThisLine =~ m/^Saved infected/ ) or
