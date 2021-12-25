@@ -33,6 +33,7 @@
 
 #Exit early if the report is not for the current host.
 use POSIX qw(uname);
+use strict;
 my $logwatch_hostname = $ENV{'LOGWATCH_ONLY_HOSTNAME'};
 my $Detail = $ENV{'LOGWATCH_DETAIL_LEVEL'} || 0;
 my ($OSname, $hostname, $release, $version, $machine) = POSIX::uname(); 
