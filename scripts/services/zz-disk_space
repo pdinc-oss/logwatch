@@ -26,6 +26,7 @@
 $| = 1;
 
 use POSIX qw(uname);
+use strict;
 
 my (%Config);
 
@@ -45,6 +46,7 @@ my $suppress_listing = $ENV{'suppress_listing'} || 0;
 
 my $df_options;
 my $disk_cmd;
+my $DebugCounter=0;
 
 my ($OSname, $hostname, $release, $version, $machine) = POSIX::uname();
 $hostname =~ s/\..*//;
