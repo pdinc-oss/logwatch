@@ -22,7 +22,7 @@
 ## contributions to this script and want to claim
 ## copyright please contact logwatch-devel@lists.sourceforge.net.
 #########################################################
-
+use strict;
 my $uptime=`uptime`;
 my $show_uptime = $ENV{'show_uptime'} || 0;
 if (($ENV{'PRINTING'} eq "y" ) && $show_uptime && $uptime) {
