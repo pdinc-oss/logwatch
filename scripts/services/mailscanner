@@ -38,12 +38,14 @@
 ## contributions to this script and want to claim
 ## copyright please contact logwatch-devel@lists.sourceforge.net.
 #########################################################
+#use diagnostics;
+#use strict;
 
 my $Detail = $ENV{'LOGWATCH_DETAIL_LEVEL'} || 0;
 my $phishing_detail = $ENV{'mailscanner_phishing_detail'} || 0;
 my $mailscanner_phishingthreshold = $ENV{'mailscanner_phishingthreshold'} || 0;
 
-#Inits
+#Init Counters
 my $MailScan_bytes = 0;
 my $MailScan_Content = 0;
 my $MailScan_Delivered = 0;
@@ -62,6 +64,20 @@ my $SpamAssassin_Rule_Actions = 0;
 my $MailScan_Deleted_pdb = 0;
 my $MailScan_Found_pdb = 0;
 my $MailScan_Spam_Virus = 0;
+
+#Initalize hashes
+my (
+%Spam_Virus_Found,      %OtherList,             %SpamAssassin_Action,
+%SpamAssassin_Message,  %ImgTagSource,          %ObjectTagSource,
+%SpamAssassin_Rule,     %IframeTagSource,       %FormTagSource,
+%ScriptTagSource,       %PhishingSourceDest,    %PhishingSource,
+%FilenameAllow,         %FiletypeAllow,         %FilenameType,
+%FiletypeType,          %ContentType,           %RBLType,
+%Blacklisted_Host,      %Whitelisted_Host,      %Hostlist,
+%VirusType_Antivir,     %VirusType_BitDefender, %VirusType_ClamAv,
+%VirusType_Clamd,       %VirusType_Fprot,       %VirusType_ClamAVModule,
+%VirusType_McAfee,      %VirusType_Kaspersky,   %VirusType_Sophos,
+);
 
 while (defined($ThisLine = <STDIN>)) {
    #($QueueID) = ($ThisLine =~ m/^([a-zA-Z0-9]+): / );
