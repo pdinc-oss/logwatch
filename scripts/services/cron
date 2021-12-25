@@ -22,16 +22,34 @@
 ## contributions to this script and want to claim
 ## copyright please contact logwatch-devel@lists.sourceforge.net.
 #########################################################
+use strict;
 
-$Detail = $ENV{'LOGWATCH_DETAIL_LEVEL'} || 0;
+my $Detail = $ENV{'LOGWATCH_DETAIL_LEVEL'} || 0;
 
-$Startups = 0;
-$Shutdowns = 0;
-$Reloads = 0;
-$MailErrors = 0;
-$BFMFile = 0;
+#Init Counters
+my $BFMFile=            my $INCRONDSS=          my $INCRONDStS=
+my $MailErrors=         my $Ntpdate=            my $Orphans=
+my $ntpdatemaxoffset=   my $ntpdateminoffset=   my $ntpdatenosync=
+my $Reloads=            my $Shutdowns=          my $Startups=
+my $CHUSERHErr=         my $PAMAUTHErr=
+0;
+#Init Reusable strings
+my $Error = "";
+my $User = "";
+#Init Array
+my @OtherList = ();
+my $Runs = ();
+#Init Hashes
+my (
+%ExecutedCommand,   %CronDeny,      %InodeError,
+%Errors,            %BFMFile,       %WFO,
+%SELCONTErr,        %UserReloads,   %INCRONDSTCr,
+%INCRONDSTCh,       %INCRONDSTDe,   %INCRONDUTCr,
+%INCRONDUTCh,       %INCRONDUTDe,   %INCRONDErr, 
+%CRONDErr,          %CHDIRErr,
+);
 
-while (defined($ThisLine = <STDIN>)) {
+while (defined(my $ThisLine = <STDIN>)) {
    chomp($ThisLine);
    if (
       ($ThisLine =~ /Updated timestamp for job/) or
@@ -57,8 +75,8 @@ while (defined($ThisLine = <STDIN>)) {
       ($ThisLine =~ s/^([^ ]+) \([^ ]+\)\s+//) or
       ($ThisLine =~ s/^\S+\s+\S+\s+..:..:..\s+\S+\s+\S+\[(\d+)\]:\s+\((\S+)\)\s+//)
    ) {
-      $PID  = $1;
-      $User = $2;
+      my $PID  = $1;
+      my $User = $2; #Not happy with User being everywhere
 
       if ($ThisLine =~ s/^CMD \((.+)\)\s*$/$1/) {
          $Runs->{$User}->{$ThisLine}++;
@@ -96,16 +114,16 @@ while (defined($ThisLine = <STDIN>)) {
       } elsif ( $ThisLine =~ /session opened/ ||
                   $ThisLine =~ /session closed/ ) {
          # ignore
-      } elsif ( ($Reason) = ($ThisLine =~ /^error \((.+)\)$/) ) {
+      } elsif ( my ($Reason) = ($ThisLine =~ /^error \((.+)\)$/) ) {
          if ($Reason =~ /^grandchild #(\d+) failed with exit status (\d+)/ && \
              $ExecutedCommand{$1}) {
 #            $Reason = $ExecutedCommand{$1}{user}.": command failed with error (".$2."): ".$ExecutedCommand{$1}{command};
             $Reason = "failed with error (".$2."): ".$ExecutedCommand{$1}{command};
          }
          $Errors{$ExecutedCommand{$1}{user}}{$Reason}++;
-      } elsif ( ($FileName) = ($ThisLine =~ /BAD FILE MODE \((.+)\)/) ) {
+      } elsif ( my ($FileName) = ($ThisLine =~ /BAD FILE MODE \((.+)\)/) ) {
          $BFMFile{$FileName}++;
-      } elsif ( ($FileName) = ($ThisLine =~ /WRONG FILE OWNER \((.+)\)/) ) {
+      } elsif ( my ($FileName) = ($ThisLine =~ /WRONG FILE OWNER \((.+)\)/) ) {
          $WFO{$FileName}++;
       } elsif ($ThisLine =~ /NULL security context for user, but SELinux in permissive mode/ ) {
          $SELCONTErr{$ThisLine}++;
@@ -135,7 +153,7 @@ while (defined($ThisLine = <STDIN>)) {
       $UserReloads{$User}++;
    } elsif ( $ThisLine =~ /.*?: fcron.* started/) {
       $Startups++;
-   } elsif ( ($offset) = ($ThisLine =~ /ntpdate\[\d+\]: adjust time server .* offset (.*) sec/)) {
+   } elsif ( my ($offset) = ($ThisLine =~ /ntpdate\[\d+\]: adjust time server .* offset (.*) sec/)) {
       $Ntpdate++;
 	  if ( $ntpdateminoffset > $offset ) { $ntpdateminoffset = $offset; }
 	  if ( $ntpdatemaxoffset < $offset ) { $ntpdatemaxoffset = $offset; }
@@ -145,17 +163,17 @@ while (defined($ThisLine = <STDIN>)) {
       $INCRONDSS++;
    } elsif (($ThisLine =~ /incrond/) && ($ThisLine =~ /stopping service/)) {
       $INCRONDStS++;
-   } elsif (($ThisLine =~ /incrond/) && (($Table) = ($ThisLine =~ /system table (.*) created, loading/))) {
+   } elsif (($ThisLine =~ /incrond/) && (my ($Table) = ($ThisLine =~ /system table (.*) created, loading/))) {
       $INCRONDSTCr{$Table}++;
-   } elsif (($ThisLine =~ /incrond/) && (($User) = ($ThisLine =~ /table for user (.*) created, loading/))) {
+   } elsif (($ThisLine =~ /incrond/) && (my ($User) = ($ThisLine =~ /table for user (.*) created, loading/))) {
       $INCRONDUTCr{$User}++;
-   } elsif (($ThisLine =~ /incrond/) && (($Table) = ($ThisLine =~ /system table (.*) changed, reloading/))) {
+   } elsif (($ThisLine =~ /incrond/) && (my ($Table) = ($ThisLine =~ /system table (.*) changed, reloading/))) {
       $INCRONDSTCh{$Table}++;
-   } elsif (($ThisLine =~ /incrond/) && (($User) = ($ThisLine =~ /table for user (.*) changed, reloading/))) {
+   } elsif (($ThisLine =~ /incrond/) && (my ($User) = ($ThisLine =~ /table for user (.*) changed, reloading/))) {
       $INCRONDUTCh{$User}++;
-   } elsif (($ThisLine =~ /incrond/) && (($Table) = ($ThisLine =~ /system table (.*) destroyed, removing/))) {
+   } elsif (($ThisLine =~ /incrond/) && (my ($Table) = ($ThisLine =~ /system table (.*) destroyed, removing/))) {
       $INCRONDSTDe{$Table}++;
-   } elsif (($ThisLine =~ /incrond/) && (($User) = ($ThisLine =~ /table for user (.*) destroyed, removing/))) {
+   } elsif (($ThisLine =~ /incrond/) && (my ($User) = ($ThisLine =~ /table for user (.*) destroyed, removing/))) {
       $INCRONDUTDe{$User}++;
    } elsif (  ($ThisLine =~ /incrond/) &&
       ( (($Error) = ($ThisLine =~ /(cannot create watch for (system table|user) .*: \(2\) No such file or directory)/)) ||
@@ -173,7 +191,7 @@ while (defined($ThisLine = <STDIN>)) {
       $SELCONTErr{$Error}++;
    } elsif ($ThisLine =~ /FAILED to authorize user with PAM \(User not known to the underlying authentication module\)/) {
       $PAMAUTHErr++;
-   } elsif ( ($FileName,$Cause) = ($ThisLine =~ /ERROR chdir failed \((.*)\): (.*)/) ) {
+   } elsif ( my ($FileName,$Cause) = ($ThisLine =~ /ERROR chdir failed \((.*)\): (.*)/) ) {
       $CHDIRErr{"$FileName,$Cause"}++;
    } elsif ($ThisLine =~ /ERROR \(failed to change user\)/) {
       $CHUSERHErr++;
@@ -187,23 +205,23 @@ while (defined($ThisLine = <STDIN>)) {
 
 if (%CronDeny) {
    print "Attempt to use crontab by unauthorized users:\n";
-   foreach $User (sort {$a cmp $b} keys %CronDeny) {
+   foreach my $User (sort {$a cmp $b} keys %CronDeny) {
       print "   $User : $CronDeny{$User} Time(s)\n";
    }
 }
 
 if (%InodeError) {
    print "\nInode errors in crontab files of users:\n";
-   foreach $User (sort {$a cmp $b} keys %InodeError) {
+   foreach my $User (sort {$a cmp $b} keys %InodeError) {
       print "   $User : $InodeError{$User} Time(s)\n";
    }
 }
 
 if (keys %Errors) {
    print "Errors when running cron:\n";
-   foreach $User (sort {$a cmp $b} keys %Errors) {
+   foreach my $User (sort {$a cmp $b} keys %Errors) {
       print "   User $User:\n";
-      foreach $Reason (sort {$a cmp $b} keys %{$Errors{$User}}) {
+      foreach my $Reason (sort {$a cmp $b} keys %{$Errors{$User}}) {
          print "      $Reason: $Errors{$User}{$Reason} Time(s)\n";
       }
    }
@@ -211,21 +229,21 @@ if (keys %Errors) {
 
 if (%CRONDErr) {
   printf "\n  crond daemon errors \n";
-  for $key (keys %CRONDErr) {
+  for my $key (keys %CRONDErr) {
     print "    " . $key . ": " . $CRONDErr{$key} . " time(s)\n";
   }
 }
 
 if (%INCRONDErr) {
   printf "\n  incrond daemon errors \n";
-  for $key (keys %INCRONDErr) {
+  for my $key (keys %INCRONDErr) {
     print "    " . $key . ": " . $INCRONDErr{$key} . " time(s)\n";
   }
 }
 
 if (%SELCONTErr) {
   printf "\n  SELinux context error \n";
-  for $key (keys %SELCONTErr) {
+  for my $key (keys %SELCONTErr) {
     print "    " . $key . ": " . $SELCONTErr{$key} . " time(s)\n";
   }
 }
@@ -248,9 +266,9 @@ if ($CHUSERHErr) {
 
 if (keys %{$Runs} and ($Detail >= 5)) {
    print "\n\nCommands Run:\n";
-   foreach $i (sort {$a cmp $b} keys %{$Runs}) {
+   foreach my $i (sort {$a cmp $b} keys %{$Runs}) {
       print "   User $i:\n";
-      foreach $j (sort {$a cmp $b} keys %{$Runs->{$i}}) {
+      foreach my $j (sort {$a cmp $b} keys %{$Runs->{$i}}) {
          print "      $j: " . $Runs->{$i}->{$j} . " Time(s)\n";
       }
    }
@@ -266,13 +284,13 @@ if ($MailErrors > 0) {
 
 if (keys %BFMFile) {
    print "\nFiles with bad mode:\n";
-   foreach $i (keys %BFMFile) {
+   foreach my $i (keys %BFMFile) {
       print "   $i\n";
    }
 }
 
 if (keys %WFO) {
-  foreach $i (keys %WFO) {
+  foreach my $i (keys %WFO) {
      printf "\n Wrong file owner (". $i ."): " . $WFO{$i}. " Time(s)\n";
   }
 }
@@ -290,7 +308,7 @@ if($ntpdatenosync) {
 if ($Detail >= 10) {
    if (keys %UserReloads) {
       print "   User crontabs reloaded:\n";
-      foreach $i (keys %UserReloads) {
+      foreach my $i (keys %UserReloads) {
          print "      $i $UserReloads{$i} Time(s)\n";
       }
    }
@@ -317,30 +335,30 @@ if ($Detail >= 10) {
 
   if ((%INCRONDSTCr) || (%INCRONDUTCr)) {
     printf "\n  created tables \n";
-    for $key (keys %INCRONDSTCr) {
+    for my $key (keys %INCRONDSTCr) {
       print "    system table " . $key . " created " . $INCRONDSTCr{$key} . ": time(s)\n";
     }
-    for $key (keys %INCRONDUTCr) {
+    for my $key (keys %INCRONDUTCr) {
       print "    table for user " . $key . " created " . $INCRONDUTCr{$key}. ": time(s)\n";
     }
   }
 
   if ((%INCRONDSTCh) || (%INCRONDUTCh)) {
     printf "\n  changes of tables \n";
-    for $key (keys %INCRONDSTCh) {
+    for my $key (keys %INCRONDSTCh) {
       print "    system table " . $key . " changed " . $INCRONDSTCh{$key} . ": time(s)\n";
     }
-    for $key (keys %INCRONDUTCh) {
+    for my $key (keys %INCRONDUTCh) {
       print "    table for user " . $key . "changed " . $INCRONDUTCh{$key} . ": time(s)\n";
     }
   }
 
   if ((%INCRONDSTDe) || (%INCRONDUTDe)) {
     printf "\n  destroyed tables \n";
-    for $key (keys %INCRONDSTDe) {
+    for my $key (keys %INCRONDSTDe) {
        print "    system table " . $key . " destroyed " . $INCRONDSTDe{$key} . ": time(s)\n";
     }
-    for $key (keys %INCRONDUTDe) {
+    for my $key (keys %INCRONDUTDe) {
        print "    table for user ". $key ." destroyed " .$INCRONDUTDe{$key} . ": time(s)\n";
     }
   }
