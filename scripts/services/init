@@ -22,10 +22,21 @@
 ## contributions to this script and want to claim
 ## copyright please contact logwatch-devel@lists.sourceforge.net.
 #########################################################
+use strict;
 
-$Detail = $ENV{'LOGWATCH_DETAIL_LEVEL'} || 0;
+my $Detail = $ENV{'LOGWATCH_DETAIL_LEVEL'} || 0;
 
-while (defined($ThisLine = <STDIN>)) {
+#Init Counters
+my $ReExecInit=     my$ReExecSbinInit=
+0;
+#Init Array
+my @OtherList = ();
+#Init Hashes
+my (
+%ProcessKilled,     %ProcessTerminated,     %RunLevel
+);
+
+while (defined(my $ThisLine = <STDIN>)) {
    if (( $ThisLine =~ /open\(.*\): No such file or directory/)  or
       ( $ThisLine =~ /Id "r" respawning too fast: disabled for 5 minutes/) or
       ( $ThisLine =~ /Re-reading inittab/) or
@@ -48,10 +59,10 @@ while (defined($ThisLine = <STDIN>)) {
 	   chomp ($ThisLine);
 	   $ReExecInit++;
    }
-   elsif ( ($Name,$Cause) = ($ThisLine =~ /(.*) main process \([0-9]*\) killed by (.*)/)) {
+   elsif ( my ($Name,$Cause) = ($ThisLine =~ /(.*) main process \([0-9]*\) killed by (.*)/)) {
       $ProcessKilled{"$Name,$Cause"}++;
    }
-   elsif ( ($Name, $Status) = ($ThisLine =~ /(.*) main process \([0-9]*\) terminated with status ([0-9]*)/)) {
+   elsif ( my ($Name, $Status) = ($ThisLine =~ /(.*) main process \([0-9]*\) terminated with status ([0-9]*)/)) {
       $ProcessTerminated{"$Name,Status"}++;
    }
    elsif ( $ThisLine =~ /Re-executing \/sbin\/init/) {
@@ -64,7 +75,7 @@ while (defined($ThisLine = <STDIN>)) {
 }
 
 if ((keys %RunLevel) and ($Detail >= 10)) {
-   foreach $Level (sort keys %RunLevel) {
+   foreach my $Level (sort keys %RunLevel) {
       print "   Entered or switched to runlevel " . $Level . ": " . $RunLevel{$Level} . " Time(s)\n";
    }
 }
@@ -89,7 +100,7 @@ if ((keys %ProcessTerminated) and ($Detail >=10)) {
    print "\nTerminated processses:\n";
    foreach (keys %ProcessTerminated) {
       my ($Name,$Status)=split ",";
-      print "   Process " . $Name. " terminated with status " . $Cause . ": " . $ProcessTerminated{"$Name,$Status"} . " Time(s)\n";
+      print "   Process " . $Name. " terminated with status " . $Status . ": " . $ProcessTerminated{"$Name,$Status"} . " Time(s)\n";
    }
 }
 
