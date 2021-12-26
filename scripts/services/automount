@@ -29,11 +29,22 @@
 ## contributions to this script and want to claim
 ## copyright please contact logwatch-devel@lists.sourceforge.net.
 #########################################################
+use strict;
 
-$Detail = $ENV{'LOGWATCH_DETAIL_LEVEL'} || 0;
-$MountAttempts = 0;
+my $Detail = $ENV{'LOGWATCH_DETAIL_LEVEL'} || 0;
+my $MountAttempts = 0;
 
-while (defined($ThisLine = <STDIN>)) {
+#Init String containers
+my (
+$Key,   $ThisMount,     $ThisOne
+);
+#Init Hashes
+my (
+%Failed,    %FailedStartup,     %KeyNotFound,
+%OtherList, %StartStop
+);
+
+while (defined(my $ThisLine = <STDIN>)) {
    if ( ($ThisLine =~ /^using kernel protocol version .*$/) or
          ($ThisLine =~ /^expired .*$/) or
          ($ThisLine =~ /^lookup\(ldap\): got answer, but no first entry for /) or
