@@ -22,10 +22,13 @@
 ## contributions to this script and want to claim
 ## copyright please contact logwatch-devel@lists.sourceforge.net.
 #########################################################
+use strict;
 
 my $Detail = $ENV{'LOGWATCH_DETAIL_LEVEL'} || 0;
+#Init Hash
+my %ARPWatch;
 
-while (defined($ThisLine = <STDIN>)) {
+while (defined(my $ThisLine = <STDIN>)) {
    chomp($ThisLine);
    next if ($ThisLine eq "");
    $ARPWatch{$ThisLine}++;
@@ -33,7 +36,7 @@ while (defined($ThisLine = <STDIN>)) {
 
 if ( ($Detail >= 10) and (keys %ARPWatch) ) {
    print "\n";
-   foreach $ThisOne (sort {$a cmp $b} keys %ARPWatch) {
+   foreach my $ThisOne (sort {$a cmp $b} keys %ARPWatch) {
       print $ThisOne . "\n";
    }
 }
