@@ -25,19 +25,42 @@
 
 # added $SearchDate to deal with xferlog format - see below
 use Logwatch ':dates';
+use strict;
+
 my $SearchDate = TimeFilter('%a %b %e %H:%M:%S %Y');
 
-$Detail = $ENV{'LOGWATCH_DETAIL_LEVEL'};
-$IgnoreUnmatched = $ENV{'vsftpd_ignore_unmatched'} || 0;
-$IgnoreRobots = $ENV{'vsftpd_ignore_robots'} || 0;
-$TotalBytesOut = 0;
-$TotalBytesIn = 0;
-$TotalDeleted = 0;
-$TotalCreatedDirs = 0;
-$TotalRemovedDirs = 0;
+my $Detail = $ENV{'LOGWATCH_DETAIL_LEVEL'};
+my $IgnoreUnmatched = $ENV{'vsftpd_ignore_unmatched'} || 0;
+my $IgnoreRobots = $ENV{'vsftpd_ignore_robots'} || 0;
+my $TotalBytesOut = 0;
+my $TotalBytesIn = 0;
+my $TotalDeleted = 0;
+my $TotalCreatedDirs = 0;
+my $TotalRemovedDirs = 0;
 
+#Init string containers
+my (
+$AccessMode,        $Date,      $Direction,
+$Email,             $FileName,  $FileSize,
+$IP,                $Temp,      $TotalKBytesIn,
+$TotalKBytesOut,    $TotalMBytesIn,
+$TotalMBytesOut,    $User
+);
+#Init Arrays
+my ( 
+@CreatedDirs,           @DeletedFiles,          @DownloadedFiles,
+@FailedCreatedDirs,     @FailedCreatedFiles,    @FailedDeletedFiles,
+@FailedDownloadedFiles, @FailedRemovedDirs,     @FailedRemovedFiles,
+@FailedUploadedFiles,   @OtherList,             @RemovedDirs,
+@UploadedFiles
+) = ();
 
-while (defined($ThisLine = <STDIN>)) {
+#Init Hashes
+my (
+%AnonLogins,    %FailedLogins,      %UserLogins,
+);
+
+while (defined(my $ThisLine = <STDIN>)) {
    if ( ( $ThisLine =~ /CONNECT/ ) or
         ( $ThisLine =~ /[OK|FAIL] RENAME/ ) or
         ( $ThisLine =~ /[OK|FAIL] CHMOD/ ) or
@@ -123,21 +146,21 @@ while (defined($ThisLine = <STDIN>)) {
 
 if ( (keys %AnonLogins) and ($Detail >= 5) ) {
    print "\nAnonymous FTP Logins:\n";
-   foreach $ThisOne (keys %AnonLogins) {
+   foreach my $ThisOne (keys %AnonLogins) {
       print $ThisOne . $AnonLogins{$ThisOne} . " Time(s)\n";
    }
 }
 
 if (keys %UserLogins) {
    print "\nUser FTP Logins:\n";
-   foreach $ThisOne (keys %UserLogins) {
+   foreach my $ThisOne (keys %UserLogins) {
       print $ThisOne . $UserLogins{$ThisOne} . " Time(s)\n";
    }
 }
 
 if (keys %FailedLogins) {
    print "\nFailed FTP Logins:\n";
-   foreach $ThisOne (keys %FailedLogins) {
+   foreach my $ThisOne (keys %FailedLogins) {
       print $ThisOne . $FailedLogins{$ThisOne} . " Time(s)\n";
    }
 }
