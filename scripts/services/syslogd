@@ -22,10 +22,20 @@
 ## contributions to this script and want to claim
 ## copyright please contact logwatch-devel@lists.sourceforge.net.
 #########################################################
+use strict;
 
 my $Detail = $ENV{'LOGWATCH_DETAIL_LEVEL'} || 0;
 
-while (defined($ThisLine = <STDIN>)) {
+#Init Counters
+my $Kills=  my $Starts=     my $Errors=
+0;
+
+#Init Hashes
+my (
+%OtherList,
+);
+
+while (defined(my $ThisLine = <STDIN>)) {
    chomp($ThisLine);
    if ( $ThisLine =~ /^(exiting|going down) on signal 15$/ ) {
       #$Kills++;
@@ -55,7 +65,7 @@ if ($Starts and ($Detail >=10) ) {
 
 if (keys %OtherList) {
    print "\n**** Unmatched entries ****\n";
-   foreach $Error (keys %OtherList) {
+   foreach my $Error (keys %OtherList) {
       print "    $Error : $OtherList{$Error} Times\n";
    }
 }
