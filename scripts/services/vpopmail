@@ -26,13 +26,28 @@
 ## contributions to this script and want to claim
 ## copyright please contact logwatch-devel@lists.sourceforge.net.
 #########################################################
+use strict;
 
-$Detail = $ENV{'LOGWATCH_DETAIL_LEVEL'} || 0;
-$IgnoreUnmatched = $ENV{'vpopmail_ignore_unmatched'} || 0;
+my $Detail = $ENV{'LOGWATCH_DETAIL_LEVEL'} || 0;
+my $IgnoreUnmatched = $ENV{'vpopmail_ignore_unmatched'} || 0;
 
-$ShowSuccessfulLogins = $ENV{'successful_logins'};
+my $ShowSuccessfulLogins = $ENV{'successful_logins'};
+#Obj style hash counter/container
+my $SuccessfulLogin;
+#Init string containers
+my (
+$Account,   $Bounce,    $Email,
+$IP,        $NoUser,    $Type,
+$VirtAccount
+);
+#Init arrays
+my @OtherList = ();
+#Init Hashes
+my (
+%NoAccount,     %NoUserFound,   %PasswordFail,
+);
 
-while (defined($ThisLine = <STDIN>)) {
+while (defined(my $ThisLine = <STDIN>)) {
    if (
 		( $ThisLine =~	/vpop_mail/ )
       ) {
@@ -59,9 +74,9 @@ while (defined($ThisLine = <STDIN>)) {
 if ($ShowSuccessfulLogins) {
 	if (keys %{$SuccessfulLogin}) {
 		print "\nSuccessful Logins:\n";
-		foreach	$Line (sort {$a cmp $b} keys %{$SuccessfulLogin}) {
-			foreach $Type (sort {$a cmp $b} keys %{$SuccessfulLogin->{$Line}}) {
-				foreach $Detail (sort {$a cmp $b} keys %{$SuccessfulLogin->{$Line}->{$Type}}) {
+		foreach	my$Line (sort {$a cmp $b} keys %{$SuccessfulLogin}) {
+			foreach my $Type (sort {$a cmp $b} keys %{$SuccessfulLogin->{$Line}}) {
+				foreach my $Detail (sort {$a cmp $b} keys %{$SuccessfulLogin->{$Line}->{$Type}}) {
 					print "\t".$Line." ( from " . $Detail . " using " . $Type . " ) - " . $SuccessfulLogin->{$Line}->{$Type}->{$Detail} . " Time(s)\n";
 				}
 			}
@@ -71,21 +86,21 @@ if ($ShowSuccessfulLogins) {
 
 if ( (keys %PasswordFail) ) {
    print "\nPassword Failures:\n";
-   foreach $Line (sort {$a cmp $b} keys %PasswordFail) {
+   foreach my $Line (sort {$a cmp $b} keys %PasswordFail) {
       print "\t" . $Line . " - ". $PasswordFail{$Line} . " Time(s)\n";
    }
 }
 
 if ( (keys %NoAccount) ) {
    print "\nNo Account Found:\n";
-   foreach $Line (sort {$a cmp $b} keys %NoAccount) {
+   foreach my $Line (sort {$a cmp $b} keys %NoAccount) {
       print "\t" . $Line . " - ". $NoAccount{$Line} . " Time(s)\n";
    }
 }
 
 if ( (keys %NoUserFound) ) {
    print "\nNo Such User Found:\n";
-   foreach $Line (sort {$a cmp $b} keys %NoUserFound) {
+   foreach my $Line (sort {$a cmp $b} keys %NoUserFound) {
       print "\t" . $Line . " - ". $NoUserFound{$Line} . " Time(s)\n";
    }
 }
