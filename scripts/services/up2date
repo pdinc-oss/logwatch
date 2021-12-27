@@ -29,16 +29,26 @@
 ## contributions to this script and want to claim
 ## copyright please contact logwatch-devel@lists.sourceforge.net.
 #########################################################
+use strict;
 
-$Debug = $ENV{'LOGWATCH_DEBUG'} || 0;
-#$Detail = $ENV{'LOGWATCH_DETAIL_LEVEL'} || 0;
+my $Debug = $ENV{'LOGWATCH_DEBUG'} || 0;
+#my $Detail = $ENV{'LOGWATCH_DETAIL_LEVEL'} || 0;
+
+my $DebugCounter = 0;
+my $RHNRegistration = 0;
+my @OtherList = ();
+
+#Init Hashes
+my (
+%PackageInstalled,      %PackageAddedToProfile,         %PackageRemovedFromProfile,
+);
 
 if ( $Debug >= 5 ) {
    print STDERR "\n\nDEBUG: Inside up2date Filter \n\n";
    $DebugCounter = 1;
 }
 
-while (defined($ThisLine = <STDIN>)) {
+while (defined(my $ThisLine = <STDIN>)) {
    if ( $Debug >= 5 ) {
       print STDERR "DEBUG($DebugCounter): $ThisLine";
       $DebugCounter++;
@@ -90,19 +100,19 @@ while (defined($ThisLine = <STDIN>)) {
 
 if (keys %PackageInstalled) {
    print "\nPackage Installed:\n";
-   foreach $ThisOne (keys %PackageInstalled) {
+   foreach my $ThisOne (keys %PackageInstalled) {
       print "   " . $ThisOne;
    }
 }
 if (keys %PackageAddedToProfile) {
    print "\nPackage Added To Profile:\n";
-   foreach $ThisOne (keys %PackageAddedToProfile) {
+   foreach my $ThisOne (keys %PackageAddedToProfile) {
       print "   " . $ThisOne;
    }
 }
 if (keys %PackageRemovedFromProfile) {
    print "\nPackage Removed From Profile:\n";
-   foreach $ThisOne (keys %PackageRemovedFromProfile) {
+   foreach my $ThisOne (keys %PackageRemovedFromProfile) {
        print "   ". $ThisOne;
    }
 }
