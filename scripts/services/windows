@@ -35,14 +35,29 @@
 #########################################################
 
 use Logwatch ':all';
+use strict;
 
 my $detail = $ENV{'LOGWATCH_DETAIL_LEVEL'} || 0;
+
+#Init Hashes
+my (
+%accountChanged,        %accountDeleted,        %accountEnabled,
+%accountTypeChange,     %auditLogCleared,       %auditPolChange,
+%changePasswordAttempt, %domainPolicyChanged,   %firewall,
+%groupMemberAdded,      %groupMemberRemoved,    %ikeSecNegFail,
+%krbAuthFailByAccount,  %krbAuthFailByHost,     %lockedOut,
+%loginFailByAccount,    %loginFailByHost,       %loginSuccess,
+%newAccount,            %newDomainTrust,        %passwordSet,
+%renewed,               %rightsAdded,           %rightsRemoved,
+%rmDomainTrust,         %second_total,          %sgtGranted,
+%tgtGranted,            %third_total,           %unmatchedFail,
+);
 
 my ($month, $day, $time, $host, $process, $eventid, $msg);
 
 # Loop through the given input and parse it first to make sure we need to,
 # then to sort it into various categories.
-while (defined($line = <STDIN>)) {
+while (defined(my $line = <STDIN>)) {
 
 	($month, $day, $time, $host, $process, $eventid, $msg) = split(/\s+/, $line, 7);
 
@@ -346,14 +361,14 @@ sub printLevel2 {
 	my %data = %{$_[1]};
 
 	print "\n\t---- $msg ----\n\n";
-	foreach $first (sort(keys %data)) {
-		$total = 0;
-		foreach $second (keys %{$data{$first}}) {
+	foreach my $first (sort(keys %data)) {
+		my $total = 0;
+		foreach my $second (keys %{$data{$first}}) {
 			$total += $data{$first}{$second};
 		}
 
 		print "\t" . LookupIP($first) . "  $total Time(s)\n";
-		foreach $second (sort(keys %{$data{$first}})) {
+		foreach my $second (sort(keys %{$data{$first}})) {
 			print  "\t\t" . LookupIP($second) . "  " . $data{$first}{$second} . " Time(s)\n";
 		}
 		print "\n";
@@ -366,20 +381,20 @@ sub printLevel3 {
 	my %data = %{$_[1]};
 
 	print "\n\t---- $msg ----\n\n";
-	foreach $first (sort(keys %data)) {
-		$first_total = 0;
-		foreach $second (keys %{$data{$first}}) {
+	foreach my $first (sort(keys %data)) {
+		my $first_total = 0;
+		foreach my $second (keys %{$data{$first}}) {
 			$second_total{$second} = 0;
-			foreach $third (keys %{$data{$first}{$second}}) {
+			foreach my $third (keys %{$data{$first}{$second}}) {
 				$second_total{$second} += $data{$first}{$second}{$third};
 			}
 			$first_total += $second_total{$second};
 		}
 
 		print "\t" . LookupIP($first) . ":  $first_total Time(s)\n";
-		foreach $second (sort(keys %{$data{$first}})) {
+		foreach my $second (sort(keys %{$data{$first}})) {
 			print "\t\t" . LookupIP($second) . ":  $second_total{$second} Time(s)\n";
-			foreach $third (sort(keys %{$data{$first}{$second}})) {
+			foreach my $third (sort(keys %{$data{$first}{$second}})) {
 				print "\t\t\t" . LookupIP($third) . "  $data{$first}{$second}{$third} Time(s)\n";
 			}
 		}
@@ -393,13 +408,13 @@ sub printLevel4 {
 	my %data = %{$_[1]};
 
 	print "\n\t---- $msg ----\n\n";
-	foreach $first (sort(keys %data)) {
-		$first_total = 0;
-		foreach $second (keys %{$data{$first}}) {
+	foreach my $first (sort(keys %data)) {
+		my $first_total = 0;
+		foreach my $second (keys %{$data{$first}}) {
 			$second_total{$second} = 0;
-			foreach $third (keys %{$data{$first}{$second}}) {
+			foreach my $third (keys %{$data{$first}{$second}}) {
 				$third_total{$second}{$third} = 0;
-				foreach $fourth (keys %{$data{$first}{$second}{$third}}) {
+				foreach my $fourth (keys %{$data{$first}{$second}{$third}}) {
 					$third_total{$second}{$third} += $data{$first}{$second}{$third}{$fourth};
 				}
 				$second_total{$second} += $third_total{$second}{$third};
@@ -408,11 +423,11 @@ sub printLevel4 {
 		}
 
 		print "\t" . LookupIP($first) . ":  $first_total Time(s)\n";
-		foreach $second (sort(keys %{$data{$first}})) {
+		foreach my $second (sort(keys %{$data{$first}})) {
 			print "\t\t" . LookupIP($second) . ":  $second_total{$second} Time(s)\n";
-			foreach $third (sort(keys %{$data{$first}{$second}})) {
+			foreach my $third (sort(keys %{$data{$first}{$second}})) {
 				print "\t\t\t" . LookupIP($third) . ":  $third_total{$second}{$third} Time(s)\n";
-				foreach $fourth (sort(keys %{$data{$first}{$second}{$third}})) {
+				foreach my $fourth (sort(keys %{$data{$first}{$second}{$third}})) {
 					print "\t\t\t\t" . LookupIP($fourth) . "  $data{$first}{$second}{$third}{$fourth} Time(s)\n";
 				}
 			}
