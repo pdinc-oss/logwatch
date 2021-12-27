@@ -29,10 +29,13 @@
 ## contributions to this script and want to claim
 ## copyright please contact logwatch-devel@lists.sourceforge.net.
 #########################################################
+use strict;
 
-$Detail = $ENV{'LOGWATCH_DETAIL_LEVEL'} || 0;
+my $Detail = $ENV{'LOGWATCH_DETAIL_LEVEL'} || 0;
+my $Started = 0;
+my %OtherList;
 
-while (defined($ThisLine = <STDIN>)) {
+while (defined(my $ThisLine = <STDIN>)) {
    if ( ($ThisLine =~ /^Daemon is running.$/) or
          ($ThisLine =~ /^Listener created on port .*$/) or
          ($ThisLine =~ /^sshd2$/) ) {
@@ -55,7 +58,7 @@ if ( ($Detail >= 10) and ($Started) ) {
 
 if (keys %OtherList) {
    print "\n**Unmatched Entries**\n";
-   foreach $ThisOne (keys %OtherList) {
+   foreach my $ThisOne (keys %OtherList) {
       print "$ThisOne: $OtherList{$ThisOne} Time(s)\n";
    }
 }
