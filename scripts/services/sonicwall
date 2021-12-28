@@ -32,11 +32,42 @@
 ## copyright please contact logwatch-devel@lists.sourceforge.net.
 #########################################################
 
-use Logwatch ':all';
+#use Logwatch ':all';
+use strict;
 
 my $Debug = $ENV{'LOGWATCH_DEBUG'} || 0;
 my $Detail = $ENV{'LOGWATCH_DETAIL_LEVEL'} || 0;
+my $DebugCounter = 0;
 
+#Init String Containers
+my (
+$Msg,               $Temp,              $args,
+$dst_ip,            $dst_name,          $host_id,
+$host_sn,           $http_result,       $interface,
+$interface_dst,     $interface_src,     $ip_proto,
+$number,            $op_type,           $pad,
+$port_dst,          $port_src,          $src_ip,
+$src_name,          $url,               $xfer_byte,
+$xfer_byte_rcvd,    $xfer_byte_sent,    $xfer_port_type,
+$xfer_way,
+);
+#Init Array
+my @OtherList = (); 
+
+#Init Hashes
+my (
+%AccessRuleAdded,       %BadAdminLogins,        %BadLogins,
+%ByteReceived,          %ByteSent,              %DNSRefreshed,
+%ICMP_dropped,          %IllegalUsers,          %Msg,
+%NTPFailed,             %NTPUpdated,            %PortPacketReceived,
+%PortPacketSent,        %ProtoPacketReceived,   %ProtoPacketSent,
+%ReloadRequested,       %Restarted,             %Started,
+%SysCfgSaved,           %SyslogFacility,        %SyslogHost,
+%TCP_NULL_scan,         %TCP_dropped,           %TotalProtoByteReceived,
+%TotalProtoByteSent,    %UDP_dropped,           %URL_GET,
+%URL_HEAD,              %URL_OTHER,             %URL_POST,
+%Users,
+);
 my %configConvert = (
     'human-readable'    => 0,
     'Human-readable'    => 1,
@@ -86,7 +117,7 @@ if ( $Debug >= 5 ) {
 
 my ($month,$day,$time,$host_ip,$host,$conn,$msg,$message);
 
-while (defined($ThisLine = <STDIN>)) {
+while (defined(my $ThisLine = <STDIN>)) {
     if ( $Debug >= 30 ) {
 	print STDERR "DEBUG($DebugCounter): $ThisLine";
 	$DebugCounter++;
@@ -333,9 +364,9 @@ else {
 
 if (keys %Started) {
    print "\nDevice started :\n";
-   foreach $ThisOne (keys %Started) {
+   foreach my $ThisOne (keys %Started) {
       print "   " . $ThisOne . ":\n";
-      foreach $ThatOne (keys %{$Started{$ThisOne}}) {
+      foreach my $ThatOne (keys %{$Started{$ThisOne}}) {
          print "\t Started" .$ThatOne . "\t: " . $Started{$ThisOne}{$ThatOne} . "{ Time(s)\n";
       }
    }
@@ -343,9 +374,9 @@ if (keys %Started) {
 
 if (keys %UDP_dropped) {
    print "\nDevice where ip UDP packets have been dropped  :\n";
-   foreach $ThisOne (keys %UDP_dropped) {
+   foreach my $ThisOne (keys %UDP_dropped) {
       print "   " . $ThisOne . ":\n";
-      foreach $ThatOne (keys %{$UDP_dropped{$ThisOne}}) {
+      foreach my $ThatOne (keys %{$UDP_dropped{$ThisOne}}) {
          print "\t " .$ThatOne . "\t: " . $UDP_dropped{$ThisOne}{$ThatOne} . " Time(s)\n";
       }
    }
@@ -353,9 +384,9 @@ if (keys %UDP_dropped) {
 
 if (keys %TCP_dropped) {
    print "\nDevice where ip TCP packets have been dropped  :\n";
-   foreach $ThisOne (keys %TCP_dropped) {
+   foreach my $ThisOne (keys %TCP_dropped) {
       print "   " . $ThisOne . ":\n";
-      foreach $ThatOne (keys %{$TCP_dropped{$ThisOne}}) {
+      foreach my $ThatOne (keys %{$TCP_dropped{$ThisOne}}) {
          print "\t " .$ThatOne . "\t: " . $TCP_dropped{$ThisOne}{$ThatOne} . " Time(s)\n";
       }
    }
@@ -363,9 +394,9 @@ if (keys %TCP_dropped) {
 
 if (keys %ICMP_dropped) {
    print "\nDevice where ip ICMP packets have been dropped  :\n";
-   foreach $ThisOne (keys %ICMP_dropped) {
+   foreach my $ThisOne (keys %ICMP_dropped) {
       print "   " . $ThisOne . ":\n";
-      foreach $ThatOne (keys %{$ICMP_dropped{$ThisOne}}) {
+      foreach my $ThatOne (keys %{$ICMP_dropped{$ThisOne}}) {
          print "\t " .$ThatOne . "\t: " . $ICMP_dropped{$ThisOne}{$ThatOne} . " Time(s)\n";
       }
    }
@@ -373,9 +404,9 @@ if (keys %ICMP_dropped) {
 
 if (keys %Msg) {
    print "\nDevice others message  :\n";
-   foreach $ThisOne (keys %Msg) {
+   foreach my $ThisOne (keys %Msg) {
       print "   " . $ThisOne . ":\n";
-      foreach $ThatOne (keys %{$Msg{$ThisOne}}) {
+      foreach my $ThatOne (keys %{$Msg{$ThisOne}}) {
          print "\t " .$ThatOne . "\t: " . $Msg{$ThisOne}{$ThatOne} . " Time(s)\n";
       }
    }
@@ -383,9 +414,9 @@ if (keys %Msg) {
 
 if ( ( $Detail >= 5 ) and (keys %URL_GET) ) {
    print "\nDevice URL GET :\n";
-   foreach $ThisOne (keys %URL_GET) {
+   foreach my $ThisOne (keys %URL_GET) {
       print "   " . $ThisOne . ":\n";
-      foreach $ThatOne (keys %{$URL_GET{$ThisOne}}) {
+      foreach my $ThatOne (keys %{$URL_GET{$ThisOne}}) {
          print "\t " .$ThatOne . "\t: " . $URL_GET{$ThisOne}{$ThatOne} . " times(s)\n";
       }
    }
@@ -393,9 +424,9 @@ if ( ( $Detail >= 5 ) and (keys %URL_GET) ) {
 
 if ( ( $Detail >= 5 ) and (keys %URL_POST) ) {
    print "\nDevice URL POST :\n";
-   foreach $ThisOne (keys %URL_POST) {
+   foreach my $ThisOne (keys %URL_POST) {
       print "   " . $ThisOne . ":\n";
-      foreach $ThatOne (keys %{$URL_POST{$ThisOne}}) {
+      foreach my $ThatOne (keys %{$URL_POST{$ThisOne}}) {
          print "\t " .$ThatOne . "\t: " . $URL_POST{$ThisOne}{$ThatOne} . " times(s)\n";
       }
    }
@@ -403,9 +434,9 @@ if ( ( $Detail >= 5 ) and (keys %URL_POST) ) {
 
 if ( ( $Detail >= 5 ) and (keys %URL_HEAD) ) {
    print "\nDevice URL HEAD :\n";
-   foreach $ThisOne (keys %URL_HEAD) {
+   foreach my $ThisOne (keys %URL_HEAD) {
       print "   " . $ThisOne . ":\n";
-      foreach $ThatOne (keys %{$URL_HEAD{$ThisOne}}) {
+      foreach my $ThatOne (keys %{$URL_HEAD{$ThisOne}}) {
          print "\t " .$ThatOne . "\t: " . $URL_HEAD{$ThisOne}{$ThatOne} . " times(s)\n";
       }
    }
@@ -413,9 +444,9 @@ if ( ( $Detail >= 5 ) and (keys %URL_HEAD) ) {
 
 if ( ( $Detail >= 5 ) and (keys %URL_OTHER) ) {
    print "\nDevice URL OTHER :\n";
-   foreach $ThisOne (keys %URL_OTHER) {
+   foreach my $ThisOne (keys %URL_OTHER) {
       print "   " . $ThisOne . ":\n";
-      foreach $ThatOne (keys %{$URL_OTHER{$ThisOne}}) {
+      foreach my $ThatOne (keys %{$URL_OTHER{$ThisOne}}) {
          print "\t " .$ThatOne . "\t: " . $URL_OTHER{$ThisOne}{$ThatOne} . " times(s)\n";
       }
    }
@@ -423,9 +454,9 @@ if ( ( $Detail >= 5 ) and (keys %URL_OTHER) ) {
 
 if ( ( $Detail >= 5 ) and (keys %ProtoPacketReceived) ) {
    print "\nDevice Total packets received by protocols :\n";
-   foreach $ThisOne (keys %ProtoPacketReceived) {
+   foreach my $ThisOne (keys %ProtoPacketReceived) {
       print "   " . $ThisOne . ":\n";
-      foreach $ThatOne (keys %{$ProtoPacketReceived{$ThisOne}}) {
+      foreach my $ThatOne (keys %{$ProtoPacketReceived{$ThisOne}}) {
          print "\t " .$ThatOne . "\t: " . $ProtoPacketReceived{$ThisOne}{$ThatOne} . " packet(s)\n";
       }
    }
@@ -433,9 +464,9 @@ if ( ( $Detail >= 5 ) and (keys %ProtoPacketReceived) ) {
 
 if ( ( $Detail >= 5 ) and (keys %PortPacketReceived) ) {
    print "\nDevice Total packets received by ports :\n";
-   foreach $ThisOne (keys %PortPacketReceived) {
+   foreach my $ThisOne (keys %PortPacketReceived) {
       print "   " . $ThisOne . ":\n";
-      foreach $ThatOne (keys %{$PortPacketReceived{$ThisOne}}) {
+      foreach my $ThatOne (keys %{$PortPacketReceived{$ThisOne}}) {
          print "\t " .$ThatOne . "\t: " . $PortPacketReceived{$ThisOne}{$ThatOne} . " packet(s)\n";
       }
    }
@@ -443,9 +474,9 @@ if ( ( $Detail >= 5 ) and (keys %PortPacketReceived) ) {
 
 if ( ( $Detail >= 5 ) and (keys %TotalProtoByteReceived) ) {
    print "\nDevice Total Bytes received by protocols :\n";
-   foreach $ThisOne (keys %TotalProtoByteReceived) {
+   foreach my $ThisOne (keys %TotalProtoByteReceived) {
       print "   " . $ThisOne . ":\n";
-      foreach $ThatOne (keys %{$TotalProtoByteReceived{$ThisOne}}) {
+      foreach my $ThatOne (keys %{$TotalProtoByteReceived{$ThisOne}}) {
          print "\t " .$ThatOne . "\t: " . _convert($TotalProtoByteReceived{$ThisOne}{$ThatOne}, %configConvert ) . " Byte(s)\n";
       }
    }
@@ -453,9 +484,9 @@ if ( ( $Detail >= 5 ) and (keys %TotalProtoByteReceived) ) {
 
 if ( ( $Detail >= 5 ) and (keys %ByteReceived) ) {
    print "\nDevice Total Bytes received by ports :\n";
-   foreach $ThisOne (keys %ByteReceived) {
+   foreach my $ThisOne (keys %ByteReceived) {
       print "   " . $ThisOne . ":\n";
-      foreach $ThatOne (keys %{$ByteReceived{$ThisOne}}) {
+      foreach my $ThatOne (keys %{$ByteReceived{$ThisOne}}) {
          print "\t " .$ThatOne . "\t: " .  _convert($ByteReceived{$ThisOne}{$ThatOne}, %configConvert ) . " Byte(s)\n";
       }
    }
@@ -464,9 +495,9 @@ if ( ( $Detail >= 5 ) and (keys %ByteReceived) ) {
 
 if ( ( $Detail >= 5 ) and (keys %ProtoPacketSent) ) {
    print "\nDevice Total packets sent by protocols :\n";
-   foreach $ThisOne (keys %ProtoPacketSent) {
+   foreach my $ThisOne (keys %ProtoPacketSent) {
       print "   " . $ThisOne . ":\n";
-      foreach $ThatOne (keys %{$ProtoPacketSent{$ThisOne}}) {
+      foreach my $ThatOne (keys %{$ProtoPacketSent{$ThisOne}}) {
          print "\t " .$ThatOne . "\t: " . $ProtoPacketSent{$ThisOne}{$ThatOne} . " packet(s)\n";
       }
    }
@@ -474,9 +505,9 @@ if ( ( $Detail >= 5 ) and (keys %ProtoPacketSent) ) {
 
 if ( ( $Detail >= 5 ) and (keys %PortPacketSent) ) {
    print "\nDevice Total packets sent by ports :\n";
-   foreach $ThisOne (keys %PortPacketSent) {
+   foreach my $ThisOne (keys %PortPacketSent) {
       print "   " . $ThisOne . ":\n";
-      foreach $ThatOne (keys %{$PortPacketSent{$ThisOne}}) {
+      foreach my $ThatOne (keys %{$PortPacketSent{$ThisOne}}) {
          print "\t " .$ThatOne . "\t: " . $PortPacketSent{$ThisOne}{$ThatOne} . " packet(s)\n";
       }
    }
@@ -484,9 +515,9 @@ if ( ( $Detail >= 5 ) and (keys %PortPacketSent) ) {
 
 if ( ( $Detail >= 5 ) and (keys %TotalProtoByteSent) ) {
    print "\nDevice Total Bytes sent by protocols :\n";
-   foreach $ThisOne (keys %TotalProtoByteSent) {
+   foreach my $ThisOne (keys %TotalProtoByteSent) {
       print "   " . $ThisOne . ":\n";
-      foreach $ThatOne (keys %{$TotalProtoByteSent{$ThisOne}}) {
+      foreach my $ThatOne (keys %{$TotalProtoByteSent{$ThisOne}}) {
          print "\t " .$ThatOne . "\t: " . _convert($TotalProtoByteSent{$ThisOne}{$ThatOne},  %configConvert ) . " Byte(s)\n";
       }
    }
@@ -494,9 +525,9 @@ if ( ( $Detail >= 5 ) and (keys %TotalProtoByteSent) ) {
 
 if ( ( $Detail >= 5 ) and (keys %ByteSent) ) {
    print "\nDevice Total Bytes sent by ports :\n";
-   foreach $ThisOne (keys %ByteSent) {
+   foreach my $ThisOne (keys %ByteSent) {
       print "   " . $ThisOne . ":\n";
-      foreach $ThatOne (keys %{$ByteSent{$ThisOne}}) {
+      foreach my $ThatOne (keys %{$ByteSent{$ThisOne}}) {
          print "\t " .$ThatOne . "\t: " . _convert($ByteSent{$ThisOne}{$ThatOne}, %configConvert ) . " Byte(s)\n";
       }
    }
@@ -506,9 +537,9 @@ if ( ( $Detail >= 5 ) and (keys %ByteSent) ) {
 
 if (keys %NTPUpdated) {
    print "\nDevice where The system clock has been updated through NTP :\n";
-   foreach $ThisOne (keys %NTPUpdated) {
+   foreach my $ThisOne (keys %NTPUpdated) {
       print "   " . $ThisOne . ":\n";
-      foreach $ThatOne (keys %{$NTPUpdated{$ThisOne}}) {
+      foreach my $ThatOne (keys %{$NTPUpdated{$ThisOne}}) {
          print "\t " .$ThatOne . "\t: " . $NTPUpdated{$ThisOne}{$ThatOne} . " Time(s)\n";
       }
    }
@@ -516,9 +547,9 @@ if (keys %NTPUpdated) {
 
 if (keys %NTPFailed) {
    print "\nDevice where failed to get clock through NTP :\n";
-   foreach $ThisOne (keys %NTPFailed) {
+   foreach my $ThisOne (keys %NTPFailed) {
       print "   " . $ThisOne . ":\n";
-      foreach $ThatOne (keys %{$NTPFailed{$ThisOne}}) {
+      foreach my $ThatOne (keys %{$NTPFailed{$ThisOne}}) {
          print "\t " .$ThatOne . "\t: " . $NTPFailed{$ThisOne}{$ThatOne} . " Time(s)\n";
       }
    }
@@ -526,9 +557,9 @@ if (keys %NTPFailed) {
 
 if (keys %DNSRefreshed) {
    print "\nDevice where DNS have been refreshed  :\n";
-   foreach $ThisOne (keys %DNSRefreshed) {
+   foreach my $ThisOne (keys %DNSRefreshed) {
       print "   " . $ThisOne . ":\n";
-      foreach $ThatOne (keys %{$DNSRefreshed{$ThisOne}}) {
+      foreach my $ThatOne (keys %{$DNSRefreshed{$ThisOne}}) {
          print "\t " .$ThatOne . "\t: " . $DNSRefreshed{$ThisOne}{$ThatOne} . " Time(s)\n";
       }
    }
@@ -536,9 +567,9 @@ if (keys %DNSRefreshed) {
 
 if (keys %SyslogFacility) {
    print "\nDevice where Syslog facility has been changed  :\n";
-   foreach $ThisOne (keys %SyslogFacility) {
+   foreach my $ThisOne (keys %SyslogFacility) {
       print "   " . $ThisOne . ":\n";
-      foreach $ThatOne (keys %{$SyslogFacility{$ThisOne}}) {
+      foreach my $ThatOne (keys %{$SyslogFacility{$ThisOne}}) {
          print "\t " .$ThatOne . "\t: " . $SyslogFacility{$ThisOne}{$ThatOne} . " Time(s)\n";
       }
    }
@@ -546,9 +577,9 @@ if (keys %SyslogFacility) {
 
 if (keys %SyslogHost) {
    print "\nDevice where Syslog have been mail successfully :\n";
-   foreach $ThisOne (keys %SyslogHost) {
+   foreach my $ThisOne (keys %SyslogHost) {
       print "   " . $ThisOne . ":\n";
-      foreach $ThatOne (keys %{$SyslogHost{$ThisOne}}) {
+      foreach my $ThatOne (keys %{$SyslogHost{$ThisOne}}) {
          print "\t " .$ThatOne . "\t: " . $SyslogHost{$ThisOne}{$ThisOne} . " Time(s)\n";
       }
    }
@@ -557,9 +588,9 @@ if (keys %SyslogHost) {
 
 if (keys %Restarted) {
    print "\nDevice restarted :\n";
-   foreach $ThisOne (keys %Restarted) {
+   foreach my $ThisOne (keys %Restarted) {
       print "   " . $ThisOne . ":\n";
-      foreach $ThatOne (keys %{$Restarted{$ThisOne}}) {
+      foreach my $ThatOne (keys %{$Restarted{$ThisOne}}) {
          print "\t " .$ThatOne . "\t: " . $Restarted{$ThisOne}{$ThatOne} . " Time(s)\n";
       }
    }
@@ -567,9 +598,9 @@ if (keys %Restarted) {
 
 if (keys %AccessRuleAdded) {
    print "\nDevice where rules have been added :\n";
-   foreach $ThisOne (keys %AccessRuleAdded) {
+   foreach my $ThisOne (keys %AccessRuleAdded) {
       print "   " . $ThisOne . ":\n";
-      foreach $ThatOne (keys %{$AccessRuleAdded{$ThisOne}}) {
+      foreach my $ThatOne (keys %{$AccessRuleAdded{$ThisOne}}) {
          print "\t " .$ThatOne . "\t: " . $AccessRuleAdded{$ThisOne}{$ThatOne} . " Time(s)\n";
       }
    }
@@ -577,9 +608,9 @@ if (keys %AccessRuleAdded) {
 
 if (keys %ReloadRequested) {
    print "\nDevice reload requested :\n";
-   foreach $ThisOne (keys %ReloadRequested) {
+   foreach my $ThisOne (keys %ReloadRequested) {
       print "   " . $ThisOne . ":\n";
-      foreach $ThatOne (keys %{$ReloadRequested{$ThisOne}}) {
+      foreach my $ThatOne (keys %{$ReloadRequested{$ThisOne}}) {
          print "\t " .$ThatOne . "\t: " . $ReloadRequested{$ThisOne}{$ThatOne} . " Time(s)\n";
       }
    }
@@ -587,9 +618,9 @@ if (keys %ReloadRequested) {
 
 if (keys %SysCfgSaved) {
    print "\nDevice where system config have been saved :\n";
-   foreach $ThisOne (keys %SysCfgSaved) {
+   foreach my $ThisOne (keys %SysCfgSaved) {
       print "   " . $ThisOne . ":\n";
-      foreach $ThatOne (keys %{$SysCfgSaved{$ThisOne}}) {
+      foreach my $ThatOne (keys %{$SysCfgSaved{$ThisOne}}) {
          print "\t " .$ThatOne . "\t: " . $SysCfgSaved{$ThisOne}{$ThatOne} . " Time(s)\n";
       }
    }
@@ -599,72 +630,70 @@ if (keys %SysCfgSaved) {
 
 if (keys %BadLogins) {
     print "\nFailed logins from these:\n";
-    foreach $ThisOne (keys %BadLogins) {
-	print "   " . $ThisOne . ":\n";
-	for (sort keys %{$BadLogins{$ThisOne}}) {
-	    print "\t   $_: $BadLogins{$ThisOne}{$_} Time(s)\n";
-	}
+    foreach my $ThisOne (keys %BadLogins) {
+	    print "   " . $ThisOne . ":\n";
+	    for (sort keys %{$BadLogins{$ThisOne}}) {
+	        print "\t   $_: $BadLogins{$ThisOne}{$_} Time(s)\n";
+	    }
     }
 }
 
 if (keys %TCP_NULL_scan) {
     print "\nDevice whcih had been ports scanned :\n";
-    foreach $ThisOne (keys %TCP_NULL_scan) {
-	print "   " . $ThisOne . ":\n";
-	for (sort keys %{$TCP_NULL_scan{$ThisOne}}) {
-	    print "\t   $_: $TCP_NULL_scan{$ThisOne}{$_} Time(s)\n";
-	}
+    foreach my $ThisOne (keys %TCP_NULL_scan) {
+	    print "   " . $ThisOne . ":\n";
+	    for (sort keys %{$TCP_NULL_scan{$ThisOne}}) {
+	        print "\t   $_: $TCP_NULL_scan{$ThisOne}{$_} Time(s)\n";
+	    }
     }
 }
 
 if (keys %BadAdminLogins) {
     print "\nFailed administrator logins from these:\n";
-    foreach $ThisOne (keys %BadAdminLogins) {
-	print "   " . $ThisOne . ":\n";
-	for (sort keys %{$BadAdminLogins{$ThisOne}}) {
-	    print "\t   $_: $BadAdminLogins{$ThisOne}{$_} Time(s)\n";
-	}
+    foreach my $ThisOne (keys %BadAdminLogins) {
+	    print "   " . $ThisOne . ":\n";
+	    for (sort keys %{$BadAdminLogins{$ThisOne}}) {
+	        print "\t   $_: $BadAdminLogins{$ThisOne}{$_} Time(s)\n";
+	    }
     }
 }
 
 if (keys %IllegalUsers) {
     print "\nIllegal users from these:\n";
-    foreach $ThisOne (keys %IllegalUsers) {
-	print "   " . $ThisOne . ":\n";
-	for (sort keys %{$IllegalUsers{$ThisOne}}) {
-	    print "\t   $_: $IllegalUsers{$ThisOne}{$_} Time(s)\n";
-
-	}
+    foreach my $ThisOne (keys %IllegalUsers) {
+	    print "   " . $ThisOne . ":\n";
+	    for (sort keys %{$IllegalUsers{$ThisOne}}) {
+	        print "\t   $_: $IllegalUsers{$ThisOne}{$_} Time(s)\n";
+	    }
     }
 }
 
 
 if (keys %Users) {
     print "\nUsers logging in through :\n";
-foreach $ThisOne (keys %Users) {
-    print "   " . $ThisOne . ":\n";
-
-foreach $user (sort {$a cmp $b} keys %{$Users{$ThisOne}}) {
-    print "   $user:\n";
-    my $totalSort = TotalCountOrder(%{$Users{$ThisOne}{$user}}, \&SortIP);
-    foreach my $ip (sort $totalSort keys %{$Users{$ThisOne}{$user}}) {
-	my $name = LookupIP($ip);
-	if ($Detail >= 20) {
-            print "      $name:\n";
-            my $sort = CountOrder(%{$Users{$ThisOne}{$user}{$ip}});
-            foreach my $method (sort $sort keys %{$Users{$ThisOne}{$user}{$ip}}) {
-		my $val = $Users{$ThisOne}{$user}{$ip}{$method};
-		my $plural = ($val > 1) ? "s" : "";
-		print "         $method: $val time$plural\n";
+    foreach my $ThisOne (keys %Users) {
+        print "   " . $ThisOne . ":\n";
+        foreach my $user (sort {$a cmp $b} keys %{$Users{$ThisOne}}) {
+            print "   $user:\n";
+            my $totalSort = TotalCountOrder(%{$Users{$ThisOne}{$user}}, \&SortIP);
+            foreach my $ip (sort $totalSort keys %{$Users{$ThisOne}{$user}}) {
+	            my $name = LookupIP($ip);
+	            if ($Detail >= 20) {
+                    print "      $name:\n";
+                    my $sort = CountOrder(%{$Users{$ThisOne}{$user}{$ip}});
+                    foreach my $method (sort $sort keys %{$Users{$ThisOne}{$user}{$ip}}) {
+		                my $val = $Users{$ThisOne}{$user}{$ip}{$method};
+		                my $plural = ($val > 1) ? "s" : "";
+		                print "         $method: $val time$plural\n";
+                    }
+	            } else {
+                    my $val = (values %{$Users{$ThisOne}{$user}{$ip}})[0];
+                    my $plural = ($val > 1) ? "s" : "";
+                    print "      $name: $val time$plural\n";
+	            }
             }
-	} else {
-            my $val = (values %{$Users{$ThisOne}{$user}{$ip}})[0];
-            my $plural = ($val > 1) ? "s" : "";
-            print "      $name: $val time$plural\n";
-	}
+        }
     }
-}
-}
 }
 
 
