@@ -29,8 +29,9 @@
 #########################################################
 
 use Socket;
+use strict;
 
-$Detail = $ENV{'LOGWATCH_DETAIL_LEVEL'} || 0;
+my $Detail = $ENV{'LOGWATCH_DETAIL_LEVEL'} || 0;
 
 my $separator = "-------------------------------------------------------\n";
 
@@ -40,6 +41,7 @@ my (@portscanlines, @genlines, @otherlines, $begin, $end);
 my $psl = 0;
 my $gl = 0;
 my $ol = 0;
+
 while (my $line = <STDIN>) {
    $line =~ s/netgear RAS: //;
    unless ($begin) {
