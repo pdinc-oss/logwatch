@@ -22,23 +22,49 @@
 ## contributions to this script and want to claim
 ## copyright please contact logwatch-devel@lists.sourceforge.net.
 #########################################################
+use strict;
 
-$Debug = $ENV{'LOGWATCH_DEBUG'};
-$Detail = $ENV{'LOGWATCH_DETAIL_LEVEL'} || 0;
-$SocketReadError = 0;
-$SocketWriteError = 0;
-$DbOpenFail = 0;
-$DbCorrupt = 0;
-$GetDomainMasterStatusFail = 0;
-%SIDnotvalid;
-%RefConnect;
-%CrFile;
+my $Debug = $ENV{'LOGWATCH_DEBUG'};
+my $Detail = $ENV{'LOGWATCH_DETAIL_LEVEL'} || 0;
+#Init Counters
+my $SocketReadError = 0;
+my $SocketWriteError = 0;
+my $DbOpenFail = 0;
+my $DbCorrupt = 0;
+my $GetDomainMasterStatusFail = 0;
+#Init String containers
+my (
+$Addr,          $Browser,           $Command,
+$CurrentHost,   $Directory,         $Error,
+$Group,         $Host,              $Ip,
+$Location,      $Name,              $NoService,
+$Reason,        $SID,               $Server,
+$Service,       $Share,             $Signal,
+$Subnet,        $Temp,              $User,
+$Version,       $Where,             $dir,
+$dsid,          $file,              $function,
+$ip,            $read,              $user,
+$write
+);
+#Init Hashes
+my (
+%AccountDisabled,       %BeLocalMaster,     %CantChangeDir,
+%CantGetGroup,          %Connect,           %Crash,
+%CrFile,                %Denied,            %DiscardWins,
+%FailedRegister,        %ForceElection,     %GetBackupList,
+%InvalidUser,           %LockDbError,       %NoServ,
+%NotFoundUser,          %NotImplemented,    %OpenFile,
+%OtherList,             %PermissionDenied,  %PrinterStatus,
+%RefConnect,            %RejectRegister,    %RejectedUser,
+%ReloadAfter,           %RootLoggedIn,      %SIDnotvalid,
+%SubnetFail,            %UnicastRegister,   %WrongPassword,
+);
 
 if ( $Debug >= 5 ) {
    print STDERR "\n\nDEBUG: Inside Samba Filter \n\n";
 }
 
-while (defined($ThisLine = <STDIN>)) {
+while (defined(my $ThisLine = <STDIN>)) {
    chomp($ThisLine);
    if (
       ($ThisLine =~ /smbd\/server\.c:open_sockets_smbd\(\d+\)  Reloading services after SIGHUP/) or
@@ -234,7 +260,7 @@ while (defined($ThisLine = <STDIN>)) {
 if (keys %Crash) {
 	print "\nWARNING!!!!!!\n";
 	print "Server crashed:\n";
-	foreach $Dead (sort {$a cmp $b} keys %Crash) {
+	foreach my $Dead (sort {$a cmp $b} keys %Crash) {
 		print "   $Dead : $Crash{$Dead} Time(s)\n";
 	}
 }
@@ -242,7 +268,7 @@ if (keys %Crash) {
 if (keys %SubnetFail) {
    print "\nWARNING!!!!!!\n";
    print "Errors when creating subnets:\n";
-   foreach $Error (sort {$a cmp $b} keys %SubnetFail) {
+   foreach my $Error (sort {$a cmp $b} keys %SubnetFail) {
       print "   $Error : $SubnetFail{$Error} Time(s)\n";
    }
 }
@@ -256,25 +282,25 @@ if (keys %ReloadAfter) {
 
 if (keys %DiscardWins) {
    print "\nDiscarded invalid wins.dat file with version:\n";
-   foreach $Version (sort {$a cmp $b} keys %DiscardWins) {
+   foreach my $Version (sort {$a cmp $b} keys %DiscardWins) {
       print "   $Version : $DiscardWins{$Version} Time(s)\n";
    }
 }
 
 if (($Detail >= 5) and (keys %Connect)) {
    print "\nOpened Sessions:\n";
-   foreach $Serv (sort {$a cmp $b} keys %Connect) {
+   foreach my $Serv (sort {$a cmp $b} keys %Connect) {
       print "   Service $Serv as user:\n";
-      foreach $Us (sort {$a cmp $b} keys %{$Connect{$Serv}}) {
+      foreach my $Us (sort {$a cmp $b} keys %{$Connect{$Serv}}) {
          print "      $Us " . (" " x (10 - length ($Us))) . "from host";
-         $size = keys %{$Connect{$Serv}{$Us}};
+         my $size = keys %{$Connect{$Serv}{$Us}};
          if ($size >= 2) {
             print ":\n";
-            foreach $Ho (sort {$a cmp $b} keys %{$Connect{$Serv}{$Us}}) {
+            foreach my $Ho (sort {$a cmp $b} keys %{$Connect{$Serv}{$Us}}) {
                print "         $Ho : $Connect{$Serv}{$Us}{$Ho} Time(s)\n";
             }
          } else {
-            foreach $Ho (keys %{$Connect{$Serv}{$Us}}) {
+            foreach my $Ho (keys %{$Connect{$Serv}{$Us}}) {
                print " $Ho " . (" " x (25 - length($Ho))) . ":
                $Connect{$Serv}{$Us}{$Ho} Time(s)\n";
             }
@@ -285,12 +311,12 @@ if (($Detail >= 5) and (keys %Connect)) {
 
 if (($Detail >= 5) and (keys %OpenFile)) {
    print "\nOpened Files:\n";
-   foreach $Host (sort {$a cmp $b} keys %OpenFile) {
+   foreach my $Host (sort {$a cmp $b} keys %OpenFile) {
       print "   Host $Host:\n";
-      foreach $User (sort {$a cmp $b} keys %{$OpenFile{$Host}}) {
-         foreach $File (sort {$a cmp $b} keys %{$OpenFile{$Host}{$User}}) {
+      foreach my $User (sort {$a cmp $b} keys %{$OpenFile{$Host}}) {
+         foreach my $File (sort {$a cmp $b} keys %{$OpenFile{$Host}{$User}}) {
             print "     File \"$File\"";
-            foreach $Mode (sort {$a cmp $b} keys %{$OpenFile{$Host}{$User}{$File}}) {
+            foreach my $Mode (sort {$a cmp $b} keys %{$OpenFile{$Host}{$User}{$File}}) {
                print " $Mode: $OpenFile{$Host}{$User}{$File}{$Mode} Time(s)";
             }
             print "\n";
@@ -301,30 +327,30 @@ if (($Detail >= 5) and (keys %OpenFile)) {
 
 if (keys %Denied) {
    print "\nConnections Denied:\n";
-   foreach $Line (sort {$a cmp $b} keys %Denied) {
+   foreach my $Line (sort {$a cmp $b} keys %Denied) {
       print "   $Line : $Denied{$Line} Time(s)\n";
    }
 }
 
 if (keys %RefConnect) {
    print "\nConnections Refused\n";
-   foreach $Line (keys %RefConnect) {
+   foreach my $Line (keys %RefConnect) {
       print "   Connection refused by $Line : $RefConnect{$Line} Time(s)\n";
    }
 }
 
 if (keys %CrFile) {
   print "\nCreated files\n";
-  foreach $Line (keys %CrFile) {
+  foreach my $Line (keys %CrFile) {
      print "   file $Line did not exist. File successfully created: $CrFile{$Line} Time(s)\n";
   }
 }
 
 if (($Detail >= 5) and (keys %PermissionDenied)) {
    print "\nPermission denied:\n";
-   foreach $user (sort {$a cmp $b} keys %PermissionDenied) {
-      foreach $ip (sort {$a cmp $b} keys %{$PermissionDenied{$user}}) {
-         foreach $dir (sort {$a cmp $b} keys %{$PermissionDenied{$user}{$ip}}) {
+   foreach my $user (sort {$a cmp $b} keys %PermissionDenied) {
+      foreach my $ip (sort {$a cmp $b} keys %{$PermissionDenied{$user}}) {
+         foreach my $dir (sort {$a cmp $b} keys %{$PermissionDenied{$user}{$ip}}) {
 	    print "   Permission denied (user $user from $ip) directory $dir: $PermissionDenied{$user}{$ip}{$dir} Time(s)\n";
          }
       }
@@ -333,9 +359,9 @@ if (($Detail >= 5) and (keys %PermissionDenied)) {
 
 if (keys %PrinterStatus) {
    print "\nPrinter Errors:\n";
-   foreach $Share (sort {$a cmp $b} keys %PrinterStatus) {
+   foreach my $Share (sort {$a cmp $b} keys %PrinterStatus) {
       print "   $Share:\n";
-      foreach $Reason (sort {$a cmp $b} keys %{$PrinterStatus{$Share}}) {
+      foreach my $Reason (sort {$a cmp $b} keys %{$PrinterStatus{$Share}}) {
          print "      $Reason : $PrinterStatus{$Share}{$Reason} Time(s)\n";
       }
    }
@@ -343,15 +369,15 @@ if (keys %PrinterStatus) {
 
 if (($Detail >= 5) and (keys %RootLoggedIn)) {
    print "\nAdmin logins (root privileges):\n";
-   foreach $user (sort {$a cmp $b} keys %RootLoggedIn) {
+   foreach my $user (sort {$a cmp $b} keys %RootLoggedIn) {
       print "   User $user: $RootLoggedIn{$user} Time(s)\n";
    }
 }
 
 if (($Detail >= 9) and (keys %NotImplemented)) {
    print "\nNot implemented functions:\n";
-   foreach $file (sort {$a cmp $b} keys %NotImplemented) {
-      foreach $func (sort {$a cmp $b} keys %{$NotImplemented{$file}}) {
+   foreach my $file (sort {$a cmp $b} keys %NotImplemented) {
+      foreach my $func (sort {$a cmp $b} keys %{$NotImplemented{$file}}) {
           print "   Function $func in $file: $NotImplemented{$file}{$func} Time(s)\n";
       }
    }
@@ -360,9 +386,9 @@ if (($Detail >= 9) and (keys %NotImplemented)) {
 
 if (keys %ForceElection) {
 	print "\nForced Election:\n";
-	foreach $Group (sort {$a cmp $b} keys %ForceElection) {
+	foreach my $Group (sort {$a cmp $b} keys %ForceElection) {
 		print "   In workgroup $Group when announced server was:\n";
-		foreach $Host (sort {$a cmp $b} keys %{$ForceElection{$Group}}) {
+		foreach my $Host (sort {$a cmp $b} keys %{$ForceElection{$Group}}) {
 			print "      $Host : $ForceElection{$Group}{$Host} Time(s)\n";
 		}
 	}
@@ -370,11 +396,11 @@ if (keys %ForceElection) {
 
 if (keys %BeLocalMaster) {
 	print "\nChanged Local Master Browser:\n";
-	foreach $Subnet (sort {$a cmp $b} keys %BeLocalMaster) {
+	foreach my $Subnet (sort {$a cmp $b} keys %BeLocalMaster) {
 		print "   On subnet $Subnet:\n";
-		foreach $Group (sort {$a cmp $b} keys %{$BeLocalMaster{$Subnet}}) {
+		foreach my $Group (sort {$a cmp $b} keys %{$BeLocalMaster{$Subnet}}) {
 			print "      For workgroup $Group:\n";
-			foreach $Name (sort {$a cmp $b} keys %{$BeLocalMaster{$Subnet}{$Group}}) {
+			foreach my $Name (sort {$a cmp $b} keys %{$BeLocalMaster{$Subnet}{$Group}}) {
 				print "         $Name : $BeLocalMaster{$Subnet}{$Group}{$Name} Time(s)\n";
 			}
 		}
@@ -383,7 +409,7 @@ if (keys %BeLocalMaster) {
 
 if (keys %CantGetGroup) {
 	print "\nCannot get workgroup name from domain name browser:\n";
-	foreach $Ip (sort {$a cmp $b} keys %CantGetGroup) {
+	foreach my $Ip (sort {$a cmp $b} keys %CantGetGroup) {
 		print "   $Ip : $CantGetGroup{$Ip} Time(s)\n";
 	}
 }
@@ -394,16 +420,16 @@ if ($GetDomainMasterStatusFail > 0) {
 
 if (keys %GetBackupList) {
    print "\nBackup list requests:\n";
-   foreach $Request (sort {$a cmp $b} keys %GetBackupList) {
+   foreach my $Request (sort {$a cmp $b} keys %GetBackupList) {
       print "   $Request : $GetBackupList{$Request} Time(s)\n";
    }
 }
 
 if (($Detail >= 5) and (keys %NoServ)) {
    print "\nCouldn't find services:\n";
-   foreach $Host (sort {$a cmp $b} keys %NoServ) {
+   foreach my $Host (sort {$a cmp $b} keys %NoServ) {
       print "   Host: $Host\n";
-      foreach $ThisOne (sort {$a cmp $b} keys %{$NoServ{$Host}}) {
+      foreach my $ThisOne (sort {$a cmp $b} keys %{$NoServ{$Host}}) {
          print "      $ThisOne : $NoServ{$Host}{$ThisOne} Time(s)\n";
       }
    }
@@ -411,16 +437,16 @@ if (($Detail >= 5) and (keys %NoServ)) {
 
 if (($Detail >= 5) and (keys %UnicastRegister)) {
 	print "\nUnicast name requests:\n";
-	foreach $ThisOne (sort {$a cmp $b} keys %UnicastRegister) {
+	foreach my $ThisOne (sort {$a cmp $b} keys %UnicastRegister) {
 		print "   $ThisOne : $UnicastRegister{$ThisOne} Time(s)\n";
 	}
 }
 
 if (keys %FailedRegister) {
 	print "\nFailed to register/refresh:\n";
-	foreach $Subnet (sort {$a cmp $b} keys %FailedRegister) {
+	foreach my $Subnet (sort {$a cmp $b} keys %FailedRegister) {
 		print "   On subnet $Subnet:\n";
-		foreach $Group (sort {$a cmp $b} keys %{$FailedRegister{$Subnet}}) {
+		foreach my $Group (sort {$a cmp $b} keys %{$FailedRegister{$Subnet}}) {
 			print "      $Group : $FailedRegister{$Subnet}{$Group} Time(s)\n";
 		}
 	}
@@ -428,9 +454,9 @@ if (keys %FailedRegister) {
 
 if (keys %RejectRegister) {
 	print "\nRejected our name registration:\n";
-	foreach $Group (sort {$a cmp $b} keys %RejectRegister) {
+	foreach my $Group (sort {$a cmp $b} keys %RejectRegister) {
 		print "   Name $Group at IP:\n";
-		foreach $Ip (sort {$a cmp $b} keys %{$RejectRegister{$Group}}) {
+		foreach my $Ip (sort {$a cmp $b} keys %{$RejectRegister{$Group}}) {
 			print "      $Ip : $RejectRegister{$Group}{$Ip} Time(s)\n";
 		}
 	}
@@ -446,14 +472,14 @@ if ($DbCorrupt > 0) {
 
 if (keys %InvalidUser) {
    print "\nInvalid Users:\n";
-   foreach $Line (sort {$a cmp $b} keys %InvalidUser) {
+   foreach my $Line (sort {$a cmp $b} keys %InvalidUser) {
       print "   $Line : $InvalidUser{$Line} Time(s)\n";
    }
 }
 
 if (keys %WrongPassword) {
    print "\nWrong Passwords:\n";
-   foreach $Line (sort {$a cmp $b} keys %WrongPassword) {
+   foreach my $Line (sort {$a cmp $b} keys %WrongPassword) {
       print "   $Line : $WrongPassword{$Line} Time(s)\n";
    }
 }
@@ -461,32 +487,32 @@ if (keys %WrongPassword) {
 
 if (keys %NotFoundUser) {
    print "\nUsers not found in UNIX Database:\n";
-   foreach $Line (sort {$a cmp $b} keys %NotFoundUser) {
+   foreach my $Line (sort {$a cmp $b} keys %NotFoundUser) {
       print "   $Line : $NotFoundUser{$Line} Time(s)\n";
    }
 }
 
 if (keys %RejectedUser) {
    print "\nRejected Users:\n";
-   foreach $Line (sort {$a cmp $b} keys %RejectedUser) {
+   foreach my $Line (sort {$a cmp $b} keys %RejectedUser) {
       print "   $Line : $RejectedUser{$Line} Time(s)\n";
    }
 }
 
 if (keys %AccountDisabled) {
     print "\nAccounts disabled:\n";
-    foreach $User (sort {$a cmp $b} keys %AccountDisabled) {
+    foreach my $User (sort {$a cmp $b} keys %AccountDisabled) {
         print "   $User : $AccountDisabled{$User} Time(s)\n";
     }
 }
 
 if (keys %CantChangeDir) {
    print "\nCan't change directory while browsing:\n";
-   foreach $Directory (sort {$a cmp $b} keys %CantChangeDir) {
+   foreach my $Directory (sort {$a cmp $b} keys %CantChangeDir) {
       print "   $Directory:\n";
-      foreach $Reason (sort {$a cmp $b} keys %{$CantChangeDir{$Directory}}) {
+      foreach my $Reason (sort {$a cmp $b} keys %{$CantChangeDir{$Directory}}) {
          print "      $Reason:\n";
-         foreach $Entry (sort {$a cmp $b} keys %{$CantChangeDir{$Directory}{$Reason}}) {
+         foreach my $Entry (sort {$a cmp $b} keys %{$CantChangeDir{$Directory}{$Reason}}) {
             print "         $Entry : $CantChangeDir{$Directory}{$Reason}{$Entry} Time(s)\n";
          }
       }
@@ -499,15 +525,15 @@ if ($SocketReadError > 0) {
 
 if (keys %LockDbError) {
    print "\nLocking Database error:\n";
-   foreach $Error (sort {$a cmp $b} keys %LockDbError) {
+   foreach my $Error (sort {$a cmp $b} keys %LockDbError) {
       print "   $Error : $LockDbError{$Error} Time(s)\n";
    }
 }
 
 if (keys %SIDnotvalid) {
   print ("\nSID is not valid for the domain\n");
-  foreach $SIDLog (keys %SIDnotvalid) {
-    ($SID,$dsid) = split(",",$SIDLog);
+  foreach my $SIDLog (keys %SIDnotvalid) {
+    my ($SID,$dsid) = split(",",$SIDLog);
     print "   User administrator Primary Group SID ($SID) conflicts with the domain sid ($dsid): $SIDnotvalid{$SIDLog} Time(s) \n";
   }
 }
@@ -515,7 +541,7 @@ if (keys %SIDnotvalid) {
 
 if (($Detail >= 10) and keys %OtherList) {
 	print "\n**Unmatched Entries**\n";
-	foreach $Line (sort {$a cmp $b} keys %OtherList) {
+	foreach my $Line (sort {$a cmp $b} keys %OtherList) {
 		print "$Line : $OtherList{$Line} Time(s)\n";
 	}
 }
