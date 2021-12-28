@@ -22,25 +22,61 @@
 ## contributions to this script and want to claim
 ## copyright please contact logwatch-devel@lists.sourceforge.net.
 #########################################################
-
-$Detail = $ENV{'LOGWATCH_DETAIL_LEVEL'} || 0;
-#$DoLookup = $ENV{'secure_ip_lookup'};
-$Ignore = $ENV{'ignore_services'} || 0;
-$Summarize = $ENV{'summarize_connections'} || 0;
-$ConsoleLock = 0;
-$spop3d_opened=0;
-$spop3d_errors=0;
-$pwd_file_unknown = 0;
-$pwd_file_too_short = 0;
-$Executed_app = 0;
-$PwdChange = 0;
-$RequestKeyFailures = 0;
-%OtherList = ();
-%RootkitHunter = ();
-%sshguardAttackers = ();
+use strict;
 use Logwatch ':ip';
 
-while (defined($ThisLine = <STDIN>)) {
+my $Detail = $ENV{'LOGWATCH_DETAIL_LEVEL'} || 0;
+#my $DoLookup = $ENV{'secure_ip_lookup'};
+my $Ignore = $ENV{'ignore_services'} || 0;
+my $Summarize = $ENV{'summarize_connections'} || 0;
+#Init Counters
+my $ConsoleLock = 0;
+my $spop3d_opened=0;
+my $spop3d_errors=0;
+my $pwd_file_unknown = 0;
+my $pwd_file_too_short = 0;
+my $Executed_app = 0;
+my $PwdChange = 0;
+my $RequestKeyFailures = 0;
+#Init String Containers
+my (
+$Client,        $Connections,       $DeletedGroups,
+$DeletedUsers,  $Display,           $Err,
+$FailedLogins,  $FailedSaver,       $From,
+$GID,           $Group,             $Host,
+$IP,            $Library,           $Message,
+$Module,        $Name,              $Name1,
+$Name2,         $NewGroups,         $NewName,
+$NewUsers,      $NoIP,              $PID,
+$Pid,           $PopErr,            $PopUser,
+$Reason,        $Refused,           $RootLoginTTY,
+$RootLoginXVC,  $Service,           $SetGroupMembers,
+$Su,            $Su_msg,            $To,
+$UID1,          $UID2,              $User,
+$Username,      $from,              $service,
+$user,
+);
+#Init Arrays
+my @RemoveFromGroup = ();
+#Init Hashes
+my (
+%AccountExpiry,     %AddToGroup,        %ChangedGID,
+%ChangedShell,      %ChangedUID,        %ChangedUserName,
+%ChkPasswdPam,      %DeniedAccess,      %DeprecateModule,
+%Error,             %Executed_app,      %FailedAddUsers,
+%Failures,
+%GidChange,         %GroupChanged,      %GroupRenamed,
+%HomeChange,        %KerbList,          %MissingLib,
+%NameVerifyFail,    %NoIP,              %OtherList,
+%PasswordExpiry,
+%PopErrors,         %PopLogin,          %PwdChange,
+%RootkitHunter,     %ShellChange,       %Su_User,
+%Successes,
+%TallyOverflow,     %UidChange,         %UnknownUser,
+%UserInfChange,     %UserLogin,         %XauthMessage,
+%cvs_passwd_mismatch, %sshguardAttackers,
+);
+while (defined(my $ThisLine = <STDIN>)) {
    chomp($ThisLine);
    $ThisLine =~ s/^... .. ..:..:.. [^ ]+ //;
    #Solaris ID filter -mgt
@@ -161,17 +197,17 @@ while (defined($ThisLine = <STDIN>)) {
    ) {
       # Ignore these entries
    } elsif ($ThisLine =~ /^spop3d/ || $ThisLine =~ /^pop\(\w+\)\[\d+\]:/) {
-      @line=split(": ",$ThisLine);
+      my @line=split(": ",$ThisLine);
       if ($line[1]=~/^session opened for user/) {
          $spop3d_opened++;
-         @bzz=split(" ",$line[1]);
+         my @bzz=split(" ",$line[1]);
          $PopUser= $bzz[4];
          $PopLogin{$PopUser}++;
       } if ($line[1]=~/^authentication failure;/) {
          # authentication failure; logname= uid=0 euid=0 tty=
          # ruser= rhost=  user=xavier
          $spop3d_errors++;
-         @bzz=split(" user=",$line[1]);
+         my @bzz=split(" user=",$line[1]);
          $PopErr=$bzz[1];
          $PopErrors{$PopErr}++;
       }
@@ -447,7 +483,7 @@ if ($DeletedUsers) {
 
 if (keys %FailedAddUsers) {
    print "Failed adding users:\n";
-   foreach $User (keys %FailedAddUsers) {
+   foreach my $User (keys %FailedAddUsers) {
       print "   $User: ". $FailedAddUsers{$User}. " Time(s)\n";
    }
    print"\n";
@@ -463,23 +499,23 @@ if ($DeletedGroups) {
 
 if (keys %GroupRenamed) {
    print "Renamed groups:\n";
-   foreach $Group (sort {$a cmp $b} keys %GroupRenamed) {
+   foreach my $Group (sort {$a cmp $b} keys %GroupRenamed) {
       print "   $Group\n";
    }
 }
 
 if (keys %GroupChanged) {
    print "Changed groups:\n";
-   foreach $Group (sort {$a cmp $b} keys %GroupChanged) {
+   foreach my $Group (sort {$a cmp $b} keys %GroupChanged) {
       print "   $Group\n";
    }
 }
 
 if (keys %AddToGroup) {
    print "\nAdded User to group:\n";
-   foreach $Group (sort {$a cmp $b} keys %AddToGroup) {
+   foreach my $Group (sort {$a cmp $b} keys %AddToGroup) {
       print "   $Group:\n";
-      foreach $User (sort {$a cmp $b} keys %{$AddToGroup{$Group}}) {
+      foreach my $User (sort {$a cmp $b} keys %{$AddToGroup{$Group}}) {
          print "      $User\n";
       }
    }
@@ -495,10 +531,10 @@ if (@RemoveFromGroup) {
 
 if (keys %HomeChange) {
    print "\nChanged users home directory:\n";
-   foreach $User (sort {$a cmp $b} keys %HomeChange) {
+   foreach my $User (sort {$a cmp $b} keys %HomeChange) {
       print "   $User:\n";
       # No sorting here - show it by time...
-      foreach $Home (keys %{$HomeChange{$User}}) {
+      foreach my $Home (keys %{$HomeChange{$User}}) {
          print "      $Home\n";
       }
    }
@@ -506,9 +542,9 @@ if (keys %HomeChange) {
 
 if (keys %ShellChange) {
    print "\nChanged shell:\n";
-   foreach $User (sort {$a cmp $b} keys %ShellChange) {
+   foreach my $User (sort {$a cmp $b} keys %ShellChange) {
       # No sorting here - show it by time...
-      foreach $Shell (keys %{$ShellChange{$User}}) {
+      foreach my $Shell (keys %{$ShellChange{$User}}) {
          print "      $User: $Shell\n";
       }
    }
@@ -516,28 +552,28 @@ if (keys %ShellChange) {
 
 if (keys %UidChange) {
    print "\nChanged users UID:\n";
-   foreach $Entry (sort {$a cmp $b} keys %UidChange) {
+   foreach my $Entry (sort {$a cmp $b} keys %UidChange) {
       print "   $Entry\n";
    }
 }
 
 if (keys %GidChange) {
    print "\nChanged users GID:\n";
-   foreach $Entry (sort {$a cmp $b} keys %GidChange) {
+   foreach my $Entry (sort {$a cmp $b} keys %GidChange) {
       print "   $Entry\n";
    }
 }
 
 if (keys %PwdChange) {
    print "\nChanged users password:\n";
-   foreach $Entry (keys %PwdChange) {
+   foreach my $Entry (keys %PwdChange) {
       print "   $Entry changed password: $PwdChange{$Entry} Time(s)\n";
    }
 }
 
 if (keys %UnknownUser) {
    print "\nUnknown users:\n";
-   foreach $User (sort {$a cmp $b} keys %UnknownUser) {
+   foreach my $User (sort {$a cmp $b} keys %UnknownUser) {
       print "   $User : $UnknownUser{$User} Time(s)\n";
    }
 }
@@ -552,22 +588,22 @@ if ($pwd_file_too_short > 0) {
 
 if (keys %{$Connections}) {
    print "\nConnections:\n";
-   foreach $ThisOne (keys %{$Connections}) {
+   foreach my $ThisOne (keys %{$Connections}) {
       if ($Summarize =~ /\Q$ThisOne\E/) {
          print "   Service " . $ThisOne . ": " . $Connections->{$ThisOne} . " Connection(s)\n";
       } else {
          my $service_check = 0;
          if ($ENV{"secure_$ThisOne"}) {
-         $service_check = $ENV{"secure_$ThisOne"};
-         print "   Service " . $ThisOne . " [Connection(s) more than $service_check per day]:\n";
+            $service_check = $ENV{"secure_$ThisOne"};
+            print "   Service " . $ThisOne . " [Connection(s) more than $service_check per day]:\n";
          } else {
-         print "   Service " . $ThisOne . " [Connection(s) per day]:\n";
+            print "   Service " . $ThisOne . " [Connection(s) per day]:\n";
          }
          my $Total_Con = 0;
-         foreach $OtherOne (sort SortIP keys %{$Connections->{$ThisOne}}) {
+         foreach my $OtherOne (sort SortIP keys %{$Connections->{$ThisOne}}) {
             $Total_Con = $Total_Con + $Connections->{$ThisOne}->{$OtherOne};
             if ( $Connections->{$ThisOne}->{$OtherOne} >= $service_check) {
-            print "      " . $OtherOne . ": " . $Connections->{$ThisOne}->{$OtherOne} . " Time(s)\n";
+                print "      " . $OtherOne . ": " . $Connections->{$ThisOne}->{$OtherOne} . " Time(s)\n";
             }
          }
             print "      Total Connections: $Total_Con\n";
@@ -577,9 +613,9 @@ if (keys %{$Connections}) {
 
 if (keys %{$Refused}) {
    print "\nRefused Connections:\n";
-   foreach $ThisOne (sort {$a cmp $b} keys %{$Refused}) {
+   foreach my $ThisOne (sort {$a cmp $b} keys %{$Refused}) {
       print "   Service " . $ThisOne . ":\n";
-      foreach $OtherOne (sort SortIP keys %{$Refused->{$ThisOne}}) {
+      foreach my $OtherOne (sort SortIP keys %{$Refused->{$ThisOne}}) {
          print "      " . $OtherOne . ": " . $Refused->{$ThisOne}->{$OtherOne} . " Time(s)\n";
       }
    }
@@ -587,9 +623,9 @@ if (keys %{$Refused}) {
 
 if (keys %{$FailedLogins}) {
    print "\nFailed logins:\n";
-   foreach $ThisOne (sort {$a cmp $b} keys %{$FailedLogins}) {
+   foreach my $ThisOne (sort {$a cmp $b} keys %{$FailedLogins}) {
       print "   User " . $ThisOne . ":\n";
-      foreach $OtherOne (sort {$a cmp $b} keys %{$FailedLogins->{$ThisOne}}) {
+      foreach my $OtherOne (sort {$a cmp $b} keys %{$FailedLogins->{$ThisOne}}) {
          print "      " . $OtherOne . ": " . $FailedLogins->{$ThisOne}->{$OtherOne} . " Time(s)\n";
       }
    }
@@ -597,9 +633,9 @@ if (keys %{$FailedLogins}) {
 
 if (keys %{$FailedSaver}) {
    print "\nFailed screensaver disable:\n";
-   foreach $User (sort {$a cmp $b} keys %{$FailedSaver}) {
+   foreach my $User (sort {$a cmp $b} keys %{$FailedSaver}) {
       print "   User $User on displays:\n";
-      foreach $Display (sort {$a cmp $b} keys %{$FailedSaver->{$User}}) {
+      foreach my $Display (sort {$a cmp $b} keys %{$FailedSaver->{$User}}) {
          print "      $Display : " . $FailedSaver->{$User}->{$Display} . " Time(s)\n";
       }
    }
@@ -615,14 +651,14 @@ if (keys %DeniedAccess) {
 
 if (keys %NoIP) {
    print "\nCouldn't get client IPs for connections to:\n";
-   foreach $ThisOne (sort {$a cmp $b} keys %NoIP) {
+   foreach my $ThisOne (sort {$a cmp $b} keys %NoIP) {
       print "   $ThisOne: $NoIP{$ThisOne} Time(s)\n";
    }
 }
 
 if (keys %NameVerifyFail) {
    print "\nHostname verification failed:\n";
-   foreach $Service (sort {$a cmp $b} keys %NameVerifyFail) {
+   foreach my $Service (sort {$a cmp $b} keys %NameVerifyFail) {
       print "   Service $Service:\n";
       foreach my $Namev (sort {$a cmp $b} keys %{$NameVerifyFail{$Service}}) {
          print "      $Namev:  $NameVerifyFail{$Service}{$Namev} Time(s)\n";
@@ -632,9 +668,9 @@ if (keys %NameVerifyFail) {
 
 if (keys %Error) {
    print "\nErrors:\n";
-   foreach $Service (sort {$a cmp $b} keys %Error) {
+   foreach my $Service (sort {$a cmp $b} keys %Error) {
       print "   Service $Service:\n";
-      foreach $Err (sort {$a cmp $b} keys %{$Error{$Service}}) {
+      foreach my $Err (sort {$a cmp $b} keys %{$Error{$Service}}) {
          print "      $Err: $Error{$Service}{$Err} Time(s)\n";
       }
    }
@@ -650,16 +686,16 @@ if ($RootLoginXVC) {
 
 if (keys %UserLogin) {
    print "\nUser Logins:\n";
-   foreach $User (sort {$a cmp $b} keys %UserLogin) {
+   foreach my $User (sort {$a cmp $b} keys %UserLogin) {
       print "   $User : $UserLogin{$User} Time(s)\n";
    }
 }
 
 if (keys %Su_User) {
    print "\nUsers performing Su Changes:\n";
-      foreach $User (sort {$a cmp $b} keys %Su_User) {
+      foreach my $User (sort {$a cmp $b} keys %Su_User) {
          print "    $User:\n";
-            foreach $Su ( keys %{$Su_User{$User}}) {
+            foreach my $Su ( keys %{$Su_User{$User}}) {
                my $val = $Su_User{$User}{$Su};
                print "         $Su $val time(s)\n";
             }
@@ -672,42 +708,42 @@ if ($ConsoleLock > 0) {
 
 if (keys %AccountExpiry) {
    print "\nChanged account expiry for users:\n";
-   foreach $User (sort {$a cmp $b} keys %AccountExpiry) {
+   foreach my $User (sort {$a cmp $b} keys %AccountExpiry) {
       print "   $User : $AccountExpiry{$User} Time(s)\n";
    }
 }
 
 if (keys %PasswordExpiry) {
    print "\nChanged password expiry for users:\n";
-   foreach $User (sort {$a cmp $b} keys %PasswordExpiry) {
+   foreach my $User (sort {$a cmp $b} keys %PasswordExpiry) {
       print "   $User : $PasswordExpiry{$User} Time(s)\n";
    }
 }
 
 if (keys %UserInfChange) {
    print "\nChanged user information:\n";
-   foreach $User (sort {$a cmp $b} keys %UserInfChange) {
+   foreach my $User (sort {$a cmp $b} keys %UserInfChange) {
       print "   $User : $UserInfChange{$User} Time(s)\n";
    }
 }
 
 if (keys %XauthMessage) {
    print "\nReported by call_xauth:\n";
-   foreach $Message (sort {$a cmp $b} keys %XauthMessage) {
+   foreach my $Message (sort {$a cmp $b} keys %XauthMessage) {
       print "   $Message : $XauthMessage{$Message} Time(s)\n";
    }
 }
 
 if (keys %PopLogin) {
    print "\nspop3d user connections:\n";
-   foreach $PopUser (sort {$a cmp $b} keys %PopLogin) {
+   foreach my $PopUser (sort {$a cmp $b} keys %PopLogin) {
       print "   $PopUser\:\t$PopLogin{$PopUser} Time(s)\n";
    }
 }
 
 if (keys %PopErrors) {
    print "\nspop3d  connection failures:\n";
-   foreach $PopErr (sort {$a cmp $b} keys %PopErrors) {
+   foreach my $PopErr (sort {$a cmp $b} keys %PopErrors) {
       print "   $PopErr\:\t$PopErrors{$PopErr} Time(s)\n";
    }
 }
@@ -722,24 +758,24 @@ if ($spop3d_errors > 0) {
 
 if (keys %ChkPasswdPam) {
    print "\ncheckpassword-pam (SUID root PAM client):\n";
-   foreach $PID (sort {$a cmp $b} keys %ChkPasswdPam) {
-      $ServiceUsernamePair = $ChkPasswdPam{$PID}{'Username'}.' => '.$ChkPasswdPam{$PID}{'Service'};
+   foreach my $PID (sort {$a cmp $b} keys %ChkPasswdPam) {
+      my $ServiceUsernamePair = $ChkPasswdPam{$PID}{'Username'}.' => '.$ChkPasswdPam{$PID}{'Service'};
       if ($ChkPasswdPam{$PID}{'Success'} eq 'true') {
          $Successes{$ServiceUsernamePair}++;
       } else {
          $Failures{$ServiceUsernamePair}++;
       }
    }
-   foreach $ServiceUsernamePair (sort {$a cmp $b} keys %Successes) {
-      $S = $Successes{$ServiceUsernamePair} ? $Successes{$ServiceUsernamePair} : 0;
-      $F = $Failures{$ServiceUsernamePair} ? $Failures{$ServiceUsernamePair} : 0;
+   foreach my $ServiceUsernamePair (sort {$a cmp $b} keys %Successes) {
+      my $S = $Successes{$ServiceUsernamePair} ? $Successes{$ServiceUsernamePair} : 0;
+      my $F = $Failures{$ServiceUsernamePair} ? $Failures{$ServiceUsernamePair} : 0;
       print "   $ServiceUsernamePair : $S success(es), $F failure(s)\n";
    }
 }
 
 if (keys %TallyOverflow) {
    print "\nTally overflowed for user:\n";
-   foreach $User (sort {$a cmp $b} keys %TallyOverflow) {
+   foreach my $User (sort {$a cmp $b} keys %TallyOverflow) {
       print "   $User : $TallyOverflow{$User} Time(s)\n";
    }
 }
@@ -747,18 +783,19 @@ if (keys %TallyOverflow) {
 if (keys %Executed_app) {
    print "\nUserhelper executed applications:\n";
    foreach (keys %Executed_app) {
-     ($longapp,$asuser,$user) = split ",";
-     $longapp_orig = $longapp;
-     $i = index($longapp, " ");
+     my ($longapp,$asuser,$user) = split ",";
+     my $longapp_orig = $longapp;
+     my $i = index($longapp, " ");
      if ($i > 0) {
         $longapp = substr($longapp, 0, $i);
      }
-     $app = substr($longapp,rindex($longapp,"/")+1);
+     my $app = substr($longapp,rindex($longapp,"/")+1);
      print "   $user -> $app as $asuser:  ".$Executed_app{"$longapp_orig,$asuser,$user"}." Time(s)\n";
    }
 }
 
 if (keys %ChangedUserName) {
+   my $ChangedUserName; #I think this bug -mgt
    print "\nChanged users names:\n";
    foreach (keys %ChangedUserName) {
      ($Name1,$Name2) = split ",";
@@ -798,7 +835,7 @@ if (keys %ChangedGID) {
 if (keys %cvs_passwd_mismatch) {
    print "\ncvs:";
    print "\n   Authentication Failures:\n";
-   foreach $User (keys %cvs_passwd_mismatch) {
+   foreach my $User (keys %cvs_passwd_mismatch) {
       print "      $User : $cvs_passwd_mismatch{$User} Time(s)\n";
    }
 }
@@ -854,7 +891,7 @@ if (keys %RootkitHunter) {
 
 if (keys %sshguardAttackers) {
    print "\nSSHGuard blocked:\n";
-   foreach $attacker (sort {$a cmp $b} keys %sshguardAttackers) {
+   foreach my $attacker (sort {$a cmp $b} keys %sshguardAttackers) {
       my $details = $sshguardAttackers{$attacker};
       print "   $attacker: $details\n";
    }
@@ -862,14 +899,14 @@ if (keys %sshguardAttackers) {
 
 if (keys %OtherList) {
    print "\n**Unmatched Entries**\n";
-   foreach $line (sort {$a cmp $b} keys %OtherList) {
+   foreach my $line (sort {$a cmp $b} keys %OtherList) {
       print "   $line: $OtherList{$line} Time(s)\n";
    }
 }
 
 if (keys %MissingLib) {
    print "\n Missing libraries:\n";
-   foreach $Lib (keys %MissingLib) {
+   foreach my $Lib (keys %MissingLib) {
       print "   $Lib : $MissingLib{$Lib} Time(s)\n";
    }
 }
