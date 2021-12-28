@@ -38,16 +38,28 @@
 #########################################################
 
 use Logwatch ':all';
+use strict;
 
-$Debug = $ENV{'LOGWATCH_DEBUG'} || 0;
-$Detail = $ENV{'LOGWATCH_DETAIL_LEVEL'} || 0;
+my $Debug = $ENV{'LOGWATCH_DEBUG'} || 0;
+my $Detail = $ENV{'LOGWATCH_DETAIL_LEVEL'} || 0;
+my $DebugCounter = 0;
+
+#Init Counters
+my $Errors=             my $Starts=             my $Kills=
+my $ReceivedEvent=      my $ForwardConfirm=     my $QueueEvent=
+my $SyncsProcessed=     my $CleanupThread=
+0;
+
+#Init Arrays
+my @ErrorList = ();
+my @OtherList = ();
 
 if ( $Debug >= 5 ) {
          print STDERR "\n\nDEBUG: Inside SLON Filter \n\n";
          $DebugCounter = 1;
 }
 
-while (defined($ThisLine = <STDIN>)) {
+while (defined(my $ThisLine = <STDIN>)) {
     if ( $Debug >= 5 ) {
        print STDERR "DEBUG($DebugCounter): $ThisLine";
        $DebugCounter++;
