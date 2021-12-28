@@ -48,13 +48,12 @@ $IP,            $Library,           $Message,
 $Module,        $Name,              $Name1,
 $Name2,         $NewGroups,         $NewName,
 $NewUsers,      $NoIP,              $PID,
-$Pid,           $PopErr,            $PopUser,
+$PopErr,        $PopUser,
 $Reason,        $Refused,           $RootLoginTTY,
 $RootLoginXVC,  $Service,           $SetGroupMembers,
 $Su,            $Su_msg,            $To,
 $UID1,          $UID2,              $User,
 $Username,      $from,              $service,
-$user,
 );
 #Init Arrays
 my @RemoveFromGroup = ();
@@ -334,9 +333,9 @@ while (defined(my $ThisLine = <STDIN>)) {
    } elsif ( ($service, $from) = ($ThisLine =~ /^xinetd\[\d+\]: FAIL: (.+) (?:address|libwrap|service_limit|connections per second) from=([\d.]+)/)) {
       if ($Ignore =~ /\b\Q$service\E\b/i) { next; }
       $Refused->{$service}->{$from}++;
-   } elsif ( ($from, $service, $user) = ($ThisLine =~ /^pam_abl\[\d+\]: Blocking access from (.+) to service (.+), user (.+)/)) {
+   } elsif ( ($from, $service, $User) = ($ThisLine =~ /^pam_abl\[\d+\]: Blocking access from (.+) to service (.+), user (.+)/)) {
       if ($Detail >= 5) {
-         $Refused->{$service}->{$from."/".$user}++;
+         $Refused->{$service}->{$from."/".$User}++;
       } else {
          $Refused->{$service}->{$from}++;
       }
@@ -354,15 +353,15 @@ while (defined(my $ThisLine = <STDIN>)) {
       $GroupChanged{"$ThisLine"}++;
    } elsif ( $ThisLine =~ s/^groupmod\[\d+\]: group changed in \/etc\/group \(group (.+)\/\d+, new name: (.+)\).*/$1 -> $2/) {
       $GroupChanged{"$ThisLine"}++;
-   } elsif ( ($Pid,$User,$From,$To) = ($ThisLine =~ /^usermod(\[\d+\])?: ?change user [`'](.*)' home from [`'](.*)' to [`'](.*)'/)) {
+   } elsif ( ($PID,$User,$From,$To) = ($ThisLine =~ /^usermod(\[\d+\])?: ?change user [`'](.*)' home from [`'](.*)' to [`'](.*)'/)) {
       $HomeChange{$User}{"$From -> $To"}++;
-   } elsif ( ($Pid,$User,$From,$To) = ($ThisLine =~ /^usermod(\[\d+\])?: ?change user [`'](.*)' shell from [`'](.*)' to [`'](.*)'/)) {
+   } elsif ( ($PID,$User,$From,$To) = ($ThisLine =~ /^usermod(\[\d+\])?: ?change user [`'](.*)' shell from [`'](.*)' to [`'](.*)'/)) {
       $ShellChange{$User}{"$From -> $To"}++;
-   } elsif ( ($Pid,$User,$From,$To) = ($ThisLine =~ /^usermod(\[\d+\])?: ?change user [`'](.*)' UID from [`'](.*)' to [`'](.*)'/)) {
+   } elsif ( ($PID,$User,$From,$To) = ($ThisLine =~ /^usermod(\[\d+\])?: ?change user [`'](.*)' UID from [`'](.*)' to [`'](.*)'/)) {
       $UidChange{"$User: $From -> $To"}++;
-   } elsif ( ($Pid,$User,$From,$To) = ($ThisLine =~ /^usermod(\[\d+\])?: ?change user [`'](.*)' GID from [`'](.*)' to [`'](.*)'/)) {
+   } elsif ( ($PID,$User,$From,$To) = ($ThisLine =~ /^usermod(\[\d+\])?: ?change user [`'](.*)' GID from [`'](.*)' to [`'](.*)'/)) {
       $GidChange{"$User: $From -> $To"}++;
-   } elsif ( ($Pid,$User,$From,$To) = ($ThisLine =~ /^usermod(\[\d+\])?: ?change user [`'](.*)' expiration from [`'](.*)' to [`'](.*)'/)) {
+   } elsif ( ($PID,$User,$From,$To) = ($ThisLine =~ /^usermod(\[\d+\])?: ?change user [`'](.*)' expiration from [`'](.*)' to [`'](.*)'/)) {
       $AccountExpiry{"$User: $From -> $To"}++;
    # checkpassword-pam
    } elsif ( ($PID) = ($ThisLine =~ /^checkpassword-pam\[(\d+)\]: Reading username and password/)) {
