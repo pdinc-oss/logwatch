@@ -29,15 +29,23 @@
 # This was written by:
 #    Paweł Gołaszewski <blues@pld-linux.org>
 ########################################################
+use strict;
 
 my $Detail = $ENV{'LOGWATCH_DETAIL_LEVEL'} || 0;
 my $Debug = $ENV{'LOGWATCH_DEBUG'} || 0;
 
-$AuthFailures = 0;
-$Startups = 0;
-$Shutdowns = 0;
+#Init Counters
+my $AuthFailures = 0;
+my $Startups = 0;
+my $Shutdowns = 0;
+#Init Array
+my @OtherList = ();
+#Init Hashes
+my (
+%AuthFail,      %AuthFailRealmCount,        %AuthFailServiceCount,
+);
 
-while (defined($ThisLine = <STDIN>)) {
+while (defined(my $ThisLine = <STDIN>)) {
    if (
       ( $ThisLine =~ m/^DEBUG: / ) or
       ( $ThisLine =~ m/^ipc_init        : listening on socket:/ ) or
@@ -45,7 +53,7 @@ while (defined($ThisLine = <STDIN>)) {
       ( $ThisLine =~ m/^pam_\w+\(\w+:auth\): / )
    ) {
       # We don't care about these
-   } elsif ( ($User,$Service,$Realm,$Mechanism,$Reason) = ($ThisLine =~ /^do_auth         : auth failure: \[user=(.*)\] \[service=([^ ]*)\] \[realm=([^ ]*)\] \[mech=([^ ]*)\] \[reason=(.*)\]$/) ) {
+   } elsif ( my ($User,$Service,$Realm,$Mechanism,$Reason) = ($ThisLine =~ /^do_auth         : auth failure: \[user=(.*)\] \[service=([^ ]*)\] \[realm=([^ ]*)\] \[mech=([^ ]*)\] \[reason=(.*)\]$/) ) {
       $AuthFailures++;
       $AuthFailServiceCount{"$Service ($Mechanism)"}++;
       $AuthFailRealmCount{"$Service ($Mechanism)"}{$Realm}++;
@@ -71,11 +79,11 @@ if ($Shutdowns > 0) {
 
 if (keys %AuthFail) {
    print "\nSASL Authentications failed $AuthFailures Time(s)\n";
-   foreach $Service (sort {$a cmp $b} keys %AuthFail) {
+   foreach my $Service (sort {$a cmp $b} keys %AuthFail) {
       print "Service $Service - $AuthFailServiceCount{$Service} Time(s):\n";
-      foreach $Realm (sort {$a cmp $b} keys %{$AuthFail{$Service}} ) {
+      foreach my $Realm (sort {$a cmp $b} keys %{$AuthFail{$Service}} ) {
          print "   Realm $Realm - $AuthFailRealmCount{$Service}{$Realm} Time(s):\n";
-         foreach $User (sort {$a cmp $b} keys %{$AuthFail{$Service}{$Realm}} ) {
+         foreach my $User (sort {$a cmp $b} keys %{$AuthFail{$Service}{$Realm}} ) {
             print "      User: $User - $AuthFail{$Service}{$Realm}{$User} Time(s):\n";
          }
       }
