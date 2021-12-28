@@ -23,9 +23,14 @@
 ## contributions to this script and want to claim
 ## copyright please contact logwatch-devel@lists.sourceforge.net.
 #########################################################
+use strict;
 
 my $Detail = $ENV{'LOGWATCH_DETAIL_LEVEL'} || 0;
+#Init Hashes
 my %IgnoreActions;
+my %InvalidCertificate;
+my %OtherList;
+
 if (defined($ENV{'rsyslogd_ignore_actions'})) {
    foreach my $action (split(";",$ENV{'rsyslogd_ignore_actions'})) {
       $IgnoreActions{$action} = 1;
@@ -51,7 +56,7 @@ my %DaemonActions;
 my %InvalidCerts;
 
 LINE:
-while (defined($ThisLine = <STDIN>)) {
+while (defined(my $ThisLine = <STDIN>)) {
    chomp($ThisLine);
    foreach $Message (keys %IgnoreMessages) {
       next LINE if $ThisLine =~ /$Message/i;
@@ -125,7 +130,7 @@ if (($Detail >=10) and (keys %DaemonActions) ) {
 
 if (keys %OtherList) {
    print "**** Unmatched entries ****\n";
-   foreach $Error (keys %OtherList) {
+   foreach my $Error (keys %OtherList) {
       print "    $Error : $OtherList{$Error} Times\n";
    }
 }
