@@ -22,7 +22,8 @@
 # contributions to this script and want to claim
 # copyright please contact logwatch-devel@lists.sourceforge.net.
 ########################################################
-
+use strict;
+my ($print, $time);
 while (defined($_ = <STDIN>)) {
    chomp;
    $print = 0;
