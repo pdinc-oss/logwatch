@@ -30,15 +30,27 @@
 ## contributions to this script and want to claim
 ## copyright please contact logwatch-devel@lists.sourceforge.net.
 #########################################################
+use strict;
 
 ## Initial initialization:
-$DelayIncCount = 0;
-$DelayDecCount = 0;
-$MaxDelay = 0;
-$MinDelay = 0;
-$TooOldSoft = 0;
+my $DelayIncCount = 0;
+my $DelayDecCount = 0;
+my $MaxDelay = 0;
+my $MinDelay = 0;
+my $TooOldSoft = 0;
 
-while (defined($ThisLine = <STDIN>)) {
+#Init String Containers
+my (
+$Delay,     $Direction,     $Ip
+);
+
+#Init Hashes
+my (
+%BandwidthControl,  %DecreasingDelay,   %IncreasingDelay,
+%OtherList,         %RemovingClass,
+);
+
+while (defined(my $ThisLine = <STDIN>)) {
    chomp($ThisLine);
    if (
       ($ThisLine =~ m/^upload ip: /) or
@@ -83,7 +95,7 @@ if ($TooOldSoft > 0) {
 }
 
 if (keys %IncreasingDelay) {
-   foreach $Delay (keys %IncreasingDelay) {
+   foreach my $Delay (keys %IncreasingDelay) {
       if ($Delay > $MaxDelay) {
          $MaxDelay = $Delay;
       }
@@ -92,7 +104,7 @@ if (keys %IncreasingDelay) {
 }
 
 if (keys %DecreasingDelay) {
-   foreach $Delay (keys %DecreasingDelay) {
+   foreach my $Delay (keys %DecreasingDelay) {
       if ($Delay < $MinDelay) {
          $MinDelay = $Delay;
       }
@@ -102,9 +114,9 @@ if (keys %DecreasingDelay) {
 
 if (keys %BandwidthControl) {
    print "\nCan't control bandwidth:\n";
-   foreach $Direction (sort {$a cmp $b} keys %BandwidthControl) {
+   foreach my $Direction (sort {$a cmp $b} keys %BandwidthControl) {
       print "   $Direction:\n";
-      foreach $Ip (sort {$a cmp $b} keys %{$BandwidthControl{$Direction}}) {
+      foreach my $Ip (sort {$a cmp $b} keys %{$BandwidthControl{$Direction}}) {
          print "      $Ip : $BandwidthControl{$Direction}{$Ip} Time(s)\n";
       }
    }
@@ -112,9 +124,9 @@ if (keys %BandwidthControl) {
 
 if (keys %RemovingClass) {
    print "\nRemoving class for:\n";
-   foreach $Direction (sort {$a cmp $b} keys %RemovingClass) {
+   foreach my $Direction (sort {$a cmp $b} keys %RemovingClass) {
       print "   $Direction:\n";
-      foreach $Ip (sort {$a cmp $b} keys %{$RemovingClass{$Direction}}) {
+      foreach my $Ip (sort {$a cmp $b} keys %{$RemovingClass{$Direction}}) {
          print "      $Ip : $RemovingClass{$Direction}{$Ip} Time(s)\n";
       }
    }
@@ -122,7 +134,7 @@ if (keys %RemovingClass) {
 
 if (keys %OtherList) {
    print "\n**Unmatched Entries**\n";
-   foreach $line (sort {$a cmp $b} keys %OtherList) {
+   foreach my $line (sort {$a cmp $b} keys %OtherList) {
       print "$line: $OtherList{$line} Time(s)\n";
    }
 }
