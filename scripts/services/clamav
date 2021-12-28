@@ -78,6 +78,7 @@ while (defined(my $ThisLine = <STDIN>)) {
        ( $ThisLine =~ /Bytecode: Security mode set to /) or
        ( $ThisLine =~ /^No stats for Database check/ ) or
        ( $ThisLine =~ /^Received \d+ file descriptor\(s\) from systemd\.$/) or
+       ( $ThisLine =~ /^Activating the newly loaded database/i ) or
        0 # This line prevents blame shifting as lines are added above
        ) {
        # We do not care about these.
