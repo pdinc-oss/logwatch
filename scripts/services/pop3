@@ -27,19 +27,38 @@
 ## contributions to this script and want to claim
 ## copyright please contact logwatch-devel@lists.sourceforge.net.
 #########################################################
+use strict;
 
 my $Debug = $ENV{'LOGWATCH_DEBUG'};
 my $Detail = $ENV{'LOGWATCH_DETAIL_LEVEL'};
 
-$ReadSocketError = 0;
-$WriteSocketError = 0;
-$Startups = 0;
-$Shutdowns = 0;
-$AuthDrivers = 0;
+#Init Counters
+my $ReadSocketError = 0;
+my $WriteSocketError = 0;
+my $Startups = 0;
+my $Shutdowns = 0;
+my $AuthDrivers = 0;
+my $sslTempkey = 0;
+my $OutOfMemory = 0;
 
-$sslTempkey = 0;
-$OutOfMemory = 0;
-
+#Init String Containers
+my (
+$Box,           $DownloadSize,  $DownloadSize1,
+$DownloadSize2, $Downloaded,    $Drivers,
+$File,          $Host,          $Iface,
+$Left,          $LeftSize,      $Listen,
+$Mbox,          $Mechanism,     $Size,
+$Startups,      $User,          $dummy
+);
+#Init Hashes
+my (
+%AutoLogout,        %Connect,               %Connection,
+%DamagedMbox,       %DownloadedMessages,    %DownloadedMessagesSize,
+%ListenOn,          %Login,                 %LoginFailed,
+%Logout,            %Logout2,               %MboxSize,
+%MessagesLeft,      %NoApopSecret,          %OtherList,
+%PermissionDenied,  %sslMechanism
+);
 #Make pseudo IPv6 to IPv4
 sub LookupIPv46 {
    my $IPv4Addr;
@@ -56,7 +75,7 @@ if ( $Debug >= 5 ) {
     print STDERR "\n\nDEBUG \n\n";
 }
 
-while (defined($ThisLine = <STDIN>)) {
+while (defined(my $ThisLine = <STDIN>)) {
    if (
       ($ThisLine =~ /^auth: PAM error: Authentication failure$/) or
       ($ThisLine =~ /^authcontext_new_user_pass: began session for/) or
@@ -211,7 +230,7 @@ if ($Startups > 0) {
    } else { print "\n"; }
    if (keys %ListenOn) {
       print "Listening on:\n";
-      foreach $Listen (sort {$a cmp $b} keys %ListenOn) {
+      foreach my $Listen (sort {$a cmp $b} keys %ListenOn) {
          print "   $Listen\n";
       }
    }
@@ -224,7 +243,7 @@ if ($Shutdowns > 0) {
 if ( ( $Detail >= 0 ) and (keys %PermissionDenied)) {
    print "WARNING:\n";
    print "Can't open or create files:\n";
-   foreach $File (sort {$a cmp $b} keys %PermissionDenied) {
+   foreach my $File (sort {$a cmp $b} keys %PermissionDenied) {
       print "   $File: $PermissionDenied{$File} Time(s)\n";
    }
 }
@@ -232,7 +251,7 @@ if ( ( $Detail >= 0 ) and (keys %PermissionDenied)) {
 if ( ( $Detail >= 0 ) and (keys %DamagedMbox)) {
    print "WARNING:\n";
    print "Damaged mailbox in your system:\n";
-   foreach $Mbox (sort {$a cmp $b} keys %DamagedMbox) {
+   foreach my $Mbox (sort {$a cmp $b} keys %DamagedMbox) {
       print "   $Mbox: $DamagedMbox{$Mbox} Time(s)\n";
    }
 }
@@ -240,7 +259,7 @@ if ( ( $Detail >= 0 ) and (keys %DamagedMbox)) {
 if ( ( $Detail >= 0 ) and (keys %DamagedMbox)) {
    print "WARNING:\n";
    print "Damaged mailbox in your system:\n";
-   foreach $Mbox (sort {$a cmp $b} keys %DamagedMbox) {
+   foreach my $Mbox (sort {$a cmp $b} keys %DamagedMbox) {
       print "   $Mbox: $DamagedMbox{$Mbox} Time(s)\n";
    }
 }
@@ -255,9 +274,9 @@ if ( ( $Detail >= 0 ) and (keys %LoginFailed)) {
              "\n                                                  Host (user) |          # ".
              "\n------------------------------------------------------------- | -----------";
 
-   $ConnCount = 0;
-   foreach $Host (sort keys %LoginFailed) {
-      $Conns = $LoginFailed{$Host};
+   my $ConnCount = 0;
+   foreach my $Host (sort keys %LoginFailed) {
+      my $Conns = $LoginFailed{$Host};
       printf "\n%61s | %11.0f", $Host, $Conns;
       $ConnCount += $Conns;
    }
@@ -271,9 +290,9 @@ if ( ( $Detail >= 5 ) and (keys %Connection)) {
              "\n                                                         Host | Connections".
              "\n------------------------------------------------------------- | -----------";
 
-   $ConnCount = 0;
+   my $ConnCount = 0;
    foreach $Host (sort keys %Connection) {
-      $Conns = $Connection{$Host};
+      my $Conns = $Connection{$Host};
       printf "\n%61s | %11.0f", $Host, $Conns;
       $ConnCount += $Conns;
    }
@@ -289,13 +308,13 @@ if (keys %Logout2) {
              "\n                                   User | Logouts | Downloaded |  Mbox Size".
              "\n--------------------------------------- | ------- | ---------- | ----------";
 
-   $ConnCount = 0;
-   $SizeAll = 0;
-   $DownAll = 0;
-   foreach $User (sort keys %Logout2) {
-      $Conns = $Logout2{$User};
-      $Down = $DownloadedMessagesSize{$User}/(1024*1024);
-      $Size = $MboxSize{$User}/(1024*1024);
+   my $ConnCount = 0;
+   my $SizeAll = 0;
+   my $DownAll = 0;
+   foreach my $User (sort keys %Logout2) {
+      my $Conns = $Logout2{$User};
+      my $Down = $DownloadedMessagesSize{$User}/(1024*1024);
+      my $Size = $MboxSize{$User}/(1024*1024);
       printf "\n%39s | %7d | ", $User, $Conns;
       if ($Down > 0) {
          printf "%10.2f | ",$Down;
@@ -318,12 +337,12 @@ if (keys %Logout2) {
 
 if ( ( $Detail >= 10 ) and (keys %Login)) {
    print "\n[POP3] Successful Logins:\n";
-   $LoginCount = 0;
+   my $LoginCount = 0;
    foreach my $User (keys %Login) {
       print "  User $User: \n";
-      $UserCount = 0;
+      my $UserCount = 0;
       foreach $Host (keys %{$Login{$User}}) {
-         $HostCount = $Login{$User}{$Host};
+         my $HostCount = $Login{$User}{$Host};
          print "    From $Host: $HostCount Time(s)\n";
          $UserCount += $HostCount;
       }
@@ -340,8 +359,8 @@ if ($sslTempkey > 0) {
 
 if ( ( $Detail >= 5 ) and (keys %sslMechanism)) {
    print "\nTLS Connection types:\n";
-   $TotalConnections = 0;
-   foreach $Mechanism (keys %sslMechanism) {
+   my $TotalConnections = 0;
+   foreach my $Mechanism (keys %sslMechanism) {
       print "   $Mechanism $sslMechanism{$Mechanism} Time(s)\n";
       $TotalConnections += $sslMechanism{$Mechanism};
    }
@@ -350,15 +369,15 @@ if ( ( $Detail >= 5 ) and (keys %sslMechanism)) {
 
 if ( ( $Detail >= 5 ) and (keys %AutoLogout)) {
    print "\nAutologout:\n";
-   foreach $Host (sort {$a cmp $b} keys %AutoLogout) {
+   foreach my $Host (sort {$a cmp $b} keys %AutoLogout) {
       print "   $Host: $AutoLogout{$Host} Time(s)\n";
    }
 }
 
 if ( ( $Detail >= 5 ) and (keys %NoApopSecret)) {
    print "\nCan't find APOP secret:\n";
-   $TotalAPOP = 0;
-   foreach $User (keys %NoApopSecret) {
+   my $TotalAPOP = 0;
+   foreach my $User (keys %NoApopSecret) {
       print "   $User: $NoApopSecret{$User} Time(s)\n";
       $TotalAPOP += $NoApopSecret{$User};
    }
@@ -383,9 +402,9 @@ if ( ( $Detail >= 5 ) and ( $WriteSocketError > 0 ) ) {
 
 if (keys %Connect) {
    print "\nConnection to interface:\n";
-   foreach $Iface (sort {$a cmp $b} keys %Connect) {
+   foreach my $Iface (sort {$a cmp $b} keys %Connect) {
       print "   $Iface:\n";
-      foreach $Host (sort {$a cmp $b} keys %{$Connect{$Iface}}) {
+      foreach my $Host (sort {$a cmp $b} keys %{$Connect{$Iface}}) {
          print "      $Host: $Connect{$Iface}{$Host} Time(s)\n";
       }
    }
@@ -393,7 +412,7 @@ if (keys %Connect) {
 
 if (keys %OtherList) {
    print "\n**Unmatched Entries**\n";
-   foreach $line (sort {$a cmp $b} keys %OtherList) {
+   foreach my $line (sort {$a cmp $b} keys %OtherList) {
       print "   $line: $OtherList{$line} Time(s)\n";
    }
 }
