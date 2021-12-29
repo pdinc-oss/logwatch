@@ -26,14 +26,31 @@
 ## contributions to this script and want to claim
 ## copyright please contact logwatch-devel@lists.sourceforge.net.
 #########################################################
+use strict;
 
-$Detail = $ENV{'LOGWATCH_DETAIL_LEVEL'} || 0;
-$IgnoreUnmatched = $ENV{'ftpd_ignore_unmatched'};
+my $Detail = $ENV{'LOGWATCH_DETAIL_LEVEL'} || 0;
+my $IgnoreUnmatched = $ENV{'ftpd_ignore_unmatched'};
 
-$NoEndpoints = 0;
-$UnmatchedEntries = 0;
-
-while (defined($ThisLine = <STDIN>)) {
+#Init Counters
+my $NoEndpoints = 0;
+my $UnmatchedEntries = 0;
+#Init String Containers
+my (
+$Email,     $Error,     $Host,
+$IP,        $Notice,    $Option,
+$Reason,    $Temp,      $User
+);
+#Init Arrays
+my @OtherList = ();
+#Init Hashes
+my (
+%AnonLogins,        %BadPasswds,        %BadShell,
+%BadUsers,          %ConnectionRefused, %DeletedFiles,
+%DeprecatedOptions, %ErrorLines,        %MaxLoginAttempts,
+%NoticeLines,       %RefusedPorts,      %RootLoginAttempt,
+%TransferTimeout,   %UserLogins
+);
+while (defined(my $ThisLine = <STDIN>)) {
    if (
          ( $ThisLine =~ /^FTP session closed/ ) or
          ( $ThisLine =~ /^(ANONYMOUS )?FTP login as \'.*\' from [^ ]+ \[.*\] to .*/ ) or
@@ -78,7 +95,7 @@ while (defined($ThisLine = <STDIN>)) {
    } elsif ( ($Host,$User) = ( $ThisLine =~ /\[(.*)\]\)(?:\:| \-) USER (.*) \(Login failed\): Invalid shell/ ) ) {
       $Temp = "   $Host : $User - ";
       $BadShell{$Temp}++;
-   } elsif ( ($Host,$Ip) = ( $ThisLine =~ /\((.*)\[(.*)\]\)(?:\:| \-) SECURITY VIOLATION: root login attempted/ ) ) {
+   } elsif ( ($Host,$IP) = ( $ThisLine =~ /\((.*)\[(.*)\]\)(?:\:| \-) SECURITY VIOLATION: root login attempted/ ) ) {
       $RootLoginAttempt{$Host}++;
    } elsif ( ($Host) = ( $ThisLine =~ /\(((.*)\[(.*)\])\)(?:\:| \-) Maximum login attempts .*exceeded/ ) ) {
       $MaxLoginAttempts{$Host}++;
@@ -107,21 +124,21 @@ while (defined($ThisLine = <STDIN>)) {
 
 if (keys %DeprecatedOptions) {
    print "\nDeprecated options in config:\n";
-   foreach $Option (sort {$a cmp $b} keys %DeprecatedOptions) {
+   foreach my $Option (sort {$a cmp $b} keys %DeprecatedOptions) {
       print "   $Option\n";
    }
 }
 
 if ( (keys %AnonLogins) and ($Detail >= 5) ) {
    print "\nAnonymous FTP Logins:\n";
-   foreach $ThisOne (sort {$a cmp $b} keys %AnonLogins) {
+   foreach my $ThisOne (sort {$a cmp $b} keys %AnonLogins) {
       print $ThisOne . $AnonLogins{$ThisOne} . " Time(s)\n";
    }
 }
 
 if ( (keys %DeletedFiles) and ($Detail >= 10) ) {
    print "\nFiles deleted through FTP:\n";
-   foreach $ThisOne (sort {$a cmp $b} keys %DeletedFiles) {
+   foreach my $ThisOne (sort {$a cmp $b} keys %DeletedFiles) {
       print $ThisOne;
       print @{$DeletedFiles{$ThisOne}};
    }
@@ -129,7 +146,7 @@ if ( (keys %DeletedFiles) and ($Detail >= 10) ) {
 
 if (keys %UserLogins) {
    print "\nUser FTP Logins:\n";
-   foreach $ThisOne (sort {$a cmp $b} keys %UserLogins) {
+   foreach my $ThisOne (sort {$a cmp $b} keys %UserLogins) {
       print $ThisOne . $UserLogins{$ThisOne} . " Time(s)\n";
    }
 }
@@ -137,23 +154,23 @@ if (keys %UserLogins) {
 if (keys %RootLoginAttempt) {
    print "\nSECURITY VIOLATION!!!!\n";
    print "Root login attempt from:\n";
-   foreach $Host (sort {$a cmp $b} keys %RootLoginAttempt) {
+   foreach my $Host (sort {$a cmp $b} keys %RootLoginAttempt) {
       print "  $Host : $RootLoginAttempt{$Host} Time(s)\n";
    }
 }
 
 if (keys %MaxLoginAttempts) {
    print "\nMaximum login attempts exceeded from hosts:\n";
-   foreach $Host (sort {$a cmp $b} keys %MaxLoginAttempts) {
+   foreach my $Host (sort {$a cmp $b} keys %MaxLoginAttempts) {
       print "  $Host : $MaxLoginAttempts{$Host} Time(s)\n";
    }
 }
 
 if (keys %ConnectionRefused) {
    print "\nConnection refused with reason:\n";
-   foreach $Reason (sort {$a cmp $b} keys %ConnectionRefused) {
+   foreach my $Reason (sort {$a cmp $b} keys %ConnectionRefused) {
       print "  $Reason :\n";
-      foreach $Host (sort {$a cmp $b} keys %{$ConnectionRefused{$Reason}}) {
+      foreach my $Host (sort {$a cmp $b} keys %{$ConnectionRefused{$Reason}}) {
          print "      $Host : $ConnectionRefused{$Reason}{$Host} Time(s)\n";
       }
    }
@@ -163,9 +180,9 @@ if ( ( (keys %BadUsers) or (keys %BadPasswds) ) and ($Detail >= 5) ) {
    print "\nFailed FTP Logins:\n";
    if ( (keys %BadUsers) and ($Detail >= 5) ) {
       print "\n  Invalid Username:\n";
-      foreach $User (sort {$a cmp $b} keys %BadUsers) {
+      foreach my $User (sort {$a cmp $b} keys %BadUsers) {
          print "    $User:\n";
-         foreach $Host (sort {$a cmp $b} keys %{$BadUsers{$User}}) {
+         foreach my $Host (sort {$a cmp $b} keys %{$BadUsers{$User}}) {
             print "      $Host : $BadUsers{$User}{$Host} Time(s)\n";
          }
       }
@@ -173,14 +190,14 @@ if ( ( (keys %BadUsers) or (keys %BadPasswds) ) and ($Detail >= 5) ) {
 
    if ( (keys %BadPasswds) and ($Detail >= 5) ) {
       print "\n  Incorrect Password:\n";
-      foreach $ThisOne (sort {$a cmp $b} keys %BadPasswds) {
+      foreach my $ThisOne (sort {$a cmp $b} keys %BadPasswds) {
          print $ThisOne . $BadPasswds{$ThisOne} . " Time(s)\n";
       }
    }
 
    if ( (keys %BadShell) and ($Detail >= 5) ) {
       print "\n  Invalid Shell:\n";
-      foreach $ThisOne (sort {$a cmp $b} keys %BadShell) {
+      foreach my $ThisOne (sort {$a cmp $b} keys %BadShell) {
          print $ThisOne . $BadShell{$ThisOne} . " Time(s)\n";
       }
    }
@@ -188,33 +205,33 @@ if ( ( (keys %BadUsers) or (keys %BadPasswds) ) and ($Detail >= 5) ) {
 
 if ( (keys %RefusedPorts) and ($Detail >= 5) ) {
    print "\nRefused PORTs:\n";
-   foreach $ThisOne (sort {$a cmp $b} keys %RefusedPorts) {
+   foreach my $ThisOne (sort {$a cmp $b} keys %RefusedPorts) {
       print $ThisOne . $RefusedPorts{$ThisOne} . " Time(s)\n";
    }
 }
 
 if ( (keys %TransferTimeout) and ($Detail >= 5) ) {
    print "\nData transfer stall timeout:\n";
-   foreach $Host (sort {$a cmp $b} keys %TransferTimeout) {
+   foreach my $Host (sort {$a cmp $b} keys %TransferTimeout) {
       print "   $Host : $TransferTimeout{$Host} Time(s)\n";
    }
 }
 
 if ( (keys %NoticeLines) and ($Detail >= 10) ) {
    print "\nNotices Reported by Host:\n";
-   foreach $Host (sort {$a cmp $b} keys %NoticeLines) {
+   foreach my $Host (sort {$a cmp $b} keys %NoticeLines) {
       print "    $Host:\n";
-         foreach $Notice (sort {$a cmp $b} keys %{$NoticeLines{$Host}}) {
-            print "      $Notices : $NoticeLines{$Host}{$Notice} Time(s)\n";
+         foreach my $Notice (sort {$a cmp $b} keys %{$NoticeLines{$Host}}) {
+            print "      $Notice : $NoticeLines{$Host}{$Notice} Time(s)\n";
          }
       }
 }
 
 if ( (keys %ErrorLines) and ($Detail >= 5) ) {
    print "\nErrors Reported by Host:\n";
-   foreach $Host (sort {$a cmp $b} keys %ErrorLines) {
+   foreach my $Host (sort {$a cmp $b} keys %ErrorLines) {
       print "    $Host:\n";
-         foreach $Errors (sort {$a cmp $b} keys %{$ErrorLines{$Host}}) {
+         foreach my $Errors (sort {$a cmp $b} keys %{$ErrorLines{$Host}}) {
             print "      $Errors : $ErrorLines{$Host}{$Errors} Time(s)\n";
          }
       }
