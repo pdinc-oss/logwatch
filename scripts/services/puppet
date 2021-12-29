@@ -22,20 +22,37 @@
 ## contributions to this script and want to claim
 ## copyright please contact logwatch-devel@lists.sourceforge.net.
 #########################################################
+use strict;
 
 # Detail level
-$Detail = $ENV{'LOGWATCH_DETAIL_LEVEL'} || 0;
+my $Detail = $ENV{'LOGWATCH_DETAIL_LEVEL'} || 0;
 
 # Config
 my $offline = $ENV{'puppet_offline_ok'};
 
 # Init counters
-$FailedRuns = 0;
-$SuccessfulRuns = 0;
-$ResourceFailures = 0;
-$DependencyFailures = 0;
+my $FailedRuns = 0;
+my $SuccessfulRuns = 0;
+my $ResourceFailures = 0;
+my $DependencyFailures = 0;
+#Init String containers
+my (
+$attr,      $content,   $file,
+$fileinfo,  $from,      $name,
+$source,    $target,    $to,
+$type
+);
+# Init hashes
+my (
+%Changed,           %ChangedPackages,   %Created,
+%Errors,            %ExecRuns,          %ExpiryChanged,
+%Failures,          %FileBucketed,      %InstalledPackages,
+%OtherList,         %PasswordChanged,   %Removed,
+%RemovedPackages,   %Reparsed,          %ScheduledRefresh,
+%ServiceStarts,     %ServiceStops
+);
 
-while (defined($ThisLine = <STDIN>)) {
+while (defined(my $ThisLine = <STDIN>)) {
    chomp($ThisLine);
    if ( 
       ($ThisLine =~ /Using cached catalog/) or
@@ -62,7 +79,7 @@ while (defined($ThisLine = <STDIN>)) {
       ($ThisLine =~ /Provider useradd does not support features manages/)
    ) {
       # Ignore
-   } elsif (($junk, $failure, $reason) = ($ThisLine =~ /^(\(.*\) |)Could not ([^:]*): (.*)/)) {
+   } elsif (my ($junk, $failure, $reason) = ($ThisLine =~ /^(\(.*\) |)Could not ([^:]*): (.*)/)) {
       if ($reason == "getaddrinfo: Name or service not known" && $offline) {
          $FailedRuns--;
       } else {
@@ -155,14 +172,14 @@ if ($FailedRuns > 0) {
 
 if (keys %Errors) {
    print "\nERRORS:\n";
-   foreach $ThisOne (keys %Errors) {
+   foreach my $ThisOne (keys %Errors) {
       print "    $ThisOne: $Errors{$ThisOne} Time(s)\n";
    }
 }
 
-foreach $failure (sort(keys %Failures)) {
+foreach my $failure (sort(keys %Failures)) {
    print "\nERROR: Could not $failure:\n";
-   foreach $ThisOne (keys %{$Failures{$failure}}) {
+   foreach my $ThisOne (keys %{$Failures{$failure}}) {
       print "    $ThisOne: $Failures{$failure}->{$ThisOne} Time(s)\n";
    }
 }
@@ -177,89 +194,89 @@ if ($DependencyFailures > 0) {
 
 if (keys %Reparsed) {
    print "\nReparsed:\n";
-   foreach $ThisOne (keys %Reparsed) {
+   foreach my $ThisOne (keys %Reparsed) {
       print "    $ThisOne: $Reparsed{$ThisOne} Time(s)\n";
    }
 }
 
 if (keys %FileBucketed and $Detail >= 5) {
    print "\nFileBucketed files:\n";
-   foreach $ThisOne (keys %FileBucketed) {
+   foreach my $ThisOne (keys %FileBucketed) {
       print "    $ThisOne\n";
    }
 }
 
 if (keys %InstalledPackages) {
    print "\nInstalled packages:\n";
-   foreach $ThisOne (keys %InstalledPackages) {
+   foreach my $ThisOne (keys %InstalledPackages) {
       print "    $ThisOne: $InstalledPackages{$ThisOne} Time(s)\n";
    }
 }
 
 if (keys %ChangedPackages) {
    print "\nChanged packages:\n";
-   foreach $ThisOne (keys %ChangedPackages) {
+   foreach my $ThisOne (keys %ChangedPackages) {
       print "    $ThisOne: $ChangedPackages{$ThisOne} Time(s)\n";
    }
 }
 
 if (keys %RemovedPackages) {
    print "\nRemoved packages:\n";
-   foreach $ThisOne (keys %RemovedPackages) {
+   foreach my $ThisOne (keys %RemovedPackages) {
       print "    $ThisOne: $RemovedPackages{$ThisOne} Time(s)\n";
    }
 }
 
 if (keys %ExecRuns) {
    print "\nExec runs:\n";
-   foreach $ThisOne (keys %ExecRuns) {
+   foreach my $ThisOne (keys %ExecRuns) {
       print "    $ThisOne: $ExecRuns{$ThisOne} Time(s)\n";
    }
 }
 
 if (keys %ServiceStarts) {
    print "\nService starts:\n";
-   foreach $ThisOne (keys %ServiceStarts) {
+   foreach my $ThisOne (keys %ServiceStarts) {
       print "    $ThisOne: $ServiceStarts{$ThisOne} Time(s)\n";
    }
 }
 
 if (keys %ServiceStops) {
    print "\nService stops:\n";
-   foreach $ThisOne (keys %ServiceStops) {
+   foreach my $ThisOne (keys %ServiceStops) {
       print "    $ThisOne: $ServiceStops{$ThisOne} Time(s)\n";
    }
 }
 
 if (keys %PasswordChanged) {
    print "\nPassword changed:\n";
-   foreach $ThisOne (keys %PasswordChanged) {
+   foreach my $ThisOne (keys %PasswordChanged) {
       print "    $ThisOne: $PasswordChanged{$ThisOne} Time(s)\n";
    }
 }
 
 if (keys %ExpiryChanged) {
    print "\nExpiry changed:\n";
-   foreach $ThisOne (keys %ExpiryChanged) {
+   foreach my $ThisOne (keys %ExpiryChanged) {
       print "    $ThisOne:\n";
-      foreach $date (keys %{${ExpiryChanged}{$ThisOne}}) {
+      foreach my $date (keys %{${ExpiryChanged}{$ThisOne}}) {
          print "        $date: $ExpiryChanged{$ThisOne}{$date} Time(s)\n";
       }
    }
 }
 
-foreach $Type (sort(keys %Created)) {
+foreach my $Type (sort(keys %Created)) {
    print "\n$Type created:\n";
-   foreach $Name (sort(keys %{$Created{$Type}})) {
+   foreach my $Name (sort(keys %{$Created{$Type}})) {
       print "    $Name: $Created{$Type}->{$Name} Time(s)\n";
    }
 }
 
-foreach $Type (sort(keys %Changed)) {
+foreach my $Type (sort(keys %Changed)) {
    print "\n$Type changed:\n";
-   foreach $Name (sort(keys %{$Changed{$Type}})) {
+   foreach my $Name (sort(keys %{$Changed{$Type}})) {
       print "    $Name:\n";
-      foreach $Attr (sort(keys %{$Changed{$Type}->{$Name}})) {
+      foreach my $Attr (sort(keys %{$Changed{$Type}->{$Name}})) {
          if ($Attr eq 'contents') {
             if ($Detail >= 3) {
                 print "        $Attr:";
@@ -277,23 +294,23 @@ foreach $Type (sort(keys %Changed)) {
    }
 }
 
-foreach $Type (sort(keys %Removed)) {
+foreach my $Type (sort(keys %Removed)) {
    print "\n$Type removed:\n";
-   foreach $Name (sort(keys %{$Removed{$Type}})) {
+   foreach my $Name (sort(keys %{$Removed{$Type}})) {
       print "    $Name: $Removed{$Type}->{$Name} Time(s)\n";
    }
 }
 
 if (keys %ScheduledRefresh) {
    print "\nScheduled refresh:\n";
-   foreach $ThisOne (keys %ScheduledRefresh) {
+   foreach my $ThisOne (keys %ScheduledRefresh) {
       print "    $ThisOne: $ScheduledRefresh{$ThisOne} Time(s)\n";
    }
 }
 
 if (keys %OtherList) {
    print "\n**Unmatched Entries**\n";
-   foreach $ThisOne (keys %OtherList) {
+   foreach my $ThisOne (keys %OtherList) {
       print "    $ThisOne: $OtherList{$ThisOne} Time(s)\n";
    }
 }
