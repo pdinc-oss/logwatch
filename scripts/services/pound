@@ -33,11 +33,20 @@
 ## contributions to this script and want to claim
 ## copyright please contact logwatch-devel@lists.sourceforge.net.
 #########################################################
+use strict;
 
-$Debug = $ENV{'LOGWATCH_DEBUG'};
-$DoLookup = $ENV{'pound_ip_lookup'};
-$Detail = $ENV{'LOGWATCH_DETAIL_LEVEL'} || 0;
+my $Debug = $ENV{'LOGWATCH_DEBUG'};
+my $DoLookup = $ENV{'pound_ip_lookup'};
+my $Detail = $ENV{'LOGWATCH_DETAIL_LEVEL'} || 0;
 
+#Init String Container
+my ($tmpcode, $tmphost);
+
+#Init Hashes
+my (
+%OtherList,     %error,     %ip,
+%user
+);
 $DoLookup = 1;
 sub LookupIP {
    my ($name, $a1, $a2,$a3,$a4,$PackedAddr,$Addr);
@@ -60,7 +69,7 @@ if ( $Debug >= 5 ) {
    print STDERR "\n\nDEBUG: Inside Pound Filter \n\n";
 }
 
-while (defined($ThisLine = <STDIN>)) {
+while (defined(my $ThisLine = <STDIN>)) {
    chomp($ThisLine);
    if ($ThisLine =~ /error read from ([\d|\.]+): Succes/) {
       $error{'read'}{$1}++;
@@ -80,10 +89,10 @@ while (defined($ThisLine = <STDIN>)) {
 
 if ( ( $Detail >= 5 ) and (keys %user) ) {
    print "\nUsage by user:\n";
-   foreach $host (keys %user) {
-      $rhost = LookupIP($host);
+   foreach my $host (keys %user) {
+      my $rhost = LookupIP($host);
       print "  $rhost:\n";
-      foreach $usr (keys %{$user{$host}}) {
+      foreach my $usr (keys %{$user{$host}}) {
          print "    $usr: $user{$host}{$usr}\n";
       }
    }
@@ -91,10 +100,10 @@ if ( ( $Detail >= 5 ) and (keys %user) ) {
 
 if ( ( $Detail >= 10 ) and (keys %ip) ) {
    print "\nUsage by host:\n";
-   foreach $host (keys %ip) {
-      $rhost = LookupIP($host);
+   foreach my $host (keys %ip) {
+      my $rhost = LookupIP($host);
       print "  $rhost: $ip{$host}{'total'}\n";
-      foreach $code (keys %{$ip{$host}}) {
+      foreach my $code (keys %{$ip{$host}}) {
          print "    $code: $ip{$host}{$code}\n" if ($code ne 'total');
       }
    }
@@ -102,15 +111,15 @@ if ( ( $Detail >= 10 ) and (keys %ip) ) {
 
 if ( ( $Detail >= 5 ) and (keys %error) ) {
    print "\nError read from - Succes message:\n";
-   foreach $host (keys %{$error{'read'}}) {
-      $rhost = LookupIP($host);
+   foreach my $host (keys %{$error{'read'}}) {
+      my $rhost = LookupIP($host);
       print "  $rhost: $error{'read'}{$host} \n";
    }
 }
 
 if (keys %OtherList) {
    print "\n**Unmatched Entries**\n";
-   foreach $line (sort {$a cmp $b} keys %OtherList) {
+   foreach my $line (sort {$a cmp $b} keys %OtherList) {
       print "   $line: $OtherList{$line} Time(s)\n";
    }
 }
