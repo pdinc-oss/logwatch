@@ -30,11 +30,33 @@ use Logwatch ':all';
 
 use POSIX qw(strftime);
 use Logwatch ':dates';
+use strict;
 
-$SearchDate = TimeFilter('%b %e %H:%M:%S');
+my $SearchDate = TimeFilter('%b %e %H:%M:%S');
 
-$Debug = $ENV{'LOGWATCH_DEBUG'} || 0;
-$Detail = $ENV{'LOGWATCH_DETAIL_LEVEL'} || 0;
+my $Debug = $ENV{'LOGWATCH_DEBUG'} || 0;
+my $Detail = $ENV{'LOGWATCH_DETAIL_LEVEL'} || 0;
+my $DebugCounter = 0;
+#Init String Containers
+my (
+$DNS_packets,       $FTP_packets,       $ICMP_packets,
+$IPV6_packets,      $NTP_packets,       $SSH_packets,
+$SYSLOG_packets,    $TELNET_packets,    $accesslist,
+$action,            $connection_id,     $count,
+$destination,       $destination_ip,    $destination_port,
+$icmp_type,         $packets,           $protocol,
+$source,            $source_ip,         $source_port,
+$testline
+);
+#Init Arrays
+my @testfields = ();
+#Init Hashes
+my (
+%ACL,       %ACTION,    %CONNECTION_ID,
+%DNS,       %FTP,       %ICMP,
+%NTP,       %OtherList, %SSH,
+%SYSLOG,    %TELNET
+);
 
 if ( $Debug >= 5 ) {
     print STDERR "\n\nDEBUG: Inside PIX  Filter \n\n";
@@ -43,7 +65,7 @@ if ( $Debug >= 5 ) {
 
 my ($month,$day,$time,$host,$process,$conn,$msg);
 
-while (defined($ThisLine = <STDIN>)) {
+while (defined(my $ThisLine = <STDIN>)) {
     if ($ThisLine =~ m/^$SearchDate/o) { # added
 
     if ( $Debug >= 30 ) {
@@ -83,7 +105,7 @@ while (defined($ThisLine = <STDIN>)) {
          $source_ip = @testfields[3];
          $source_port = @testfields[4];
          $destination_ip = @testfields[7];
-         $destination_port = @dfields[8];
+         $destination_port = @testfields[8];
       } elsif ($protocol =~ /icmp/) {
          $source = @testfields[3];
          $destination = @testfields[7];
@@ -99,7 +121,7 @@ while (defined($ThisLine = <STDIN>)) {
          $source_ip = @testfields[3];
          $source_port = @testfields[4];
          $destination_ip = @testfields[7];
-         $destination_port = @dfields[8];
+         $destination_port = @testfields[8];
       } else {
          $count = 0;
       }
@@ -319,7 +341,7 @@ while (defined($ThisLine = <STDIN>)) {
 }
 if (keys %ACL) {
    print "\nAccess Control Lists:\n";
-   foreach $ThisOne (sort keys %ACL) {
+   foreach my $ThisOne (sort keys %ACL) {
       print "   " . $ThisOne . " : " . $ACL{$ThisOne} . " Hit(s)\n";
    }
    print "   Total : " . $packets . " Hit(s)\n";
@@ -328,7 +350,7 @@ if (keys %ACL) {
 
 if (keys %ACTION) {
    print "\nActions:\n";
-   foreach $ThisOne (sort keys %ACTION) {
+   foreach my $ThisOne (sort keys %ACTION) {
       print "   " . $ThisOne . " : " . $ACTION{$ThisOne} . " Hit(s)\n";
    }
    print "   Total : " . $packets . " Hit(s)\n";
@@ -336,7 +358,7 @@ if (keys %ACTION) {
 }
 if (keys %ICMP) {
    print "\nICMP Requests:\n";
-   foreach $ThisOne (sort keys %ICMP) {
+   foreach my $ThisOne (sort keys %ICMP) {
       print "   " . $ThisOne . " : " . $ICMP{$ThisOne} . " Hit(s)\n";
    }
    print "   Total : " . $ICMP_packets . " Hit(s)\n";
@@ -344,7 +366,7 @@ if (keys %ICMP) {
 
 if (keys %SSH) {
    print "\nSSH access:\n";
-   foreach $ThisOne (sort keys %SSH) {
+   foreach my $ThisOne (sort keys %SSH) {
       print "   " . $ThisOne . " : " . $SSH{$ThisOne} . " Hit(s)\n";
    }
    print "   Total : " . $SSH_packets . " Hit(s)\n";
@@ -352,7 +374,7 @@ if (keys %SSH) {
 
 if (keys %TELNET) {
    print "\nTELNET access:\n";
-   foreach $ThisOne (sort keys %TELNET) {
+   foreach my $ThisOne (sort keys %TELNET) {
       print "   " . $ThisOne . " : " . $TELNET{$ThisOne} . " Hit(s)\n";
    }
    print "   Total : " . $TELNET_packets . " Hit(s)\n";
@@ -360,7 +382,7 @@ if (keys %TELNET) {
 
 if (keys %FTP) {
    print "\nFTP access:\n";
-   foreach $ThisOne (sort keys %FTP) {
+   foreach my $ThisOne (sort keys %FTP) {
       print "   " . $ThisOne . " : " . $FTP{$ThisOne} . " Hit(s)\n";
    }
    print "   Total : " . $FTP_packets . " Hit(s)\n";
@@ -368,21 +390,21 @@ if (keys %FTP) {
 
 if (keys %DNS) {
    print "\nDNS access:\n";
-   foreach $ThisOne (sort keys %DNS) {
+   foreach my $ThisOne (sort keys %DNS) {
       print "   " . $ThisOne . " : " . $DNS{$ThisOne} . " Hit(s)\n";
    }
    print "   Total : " . $DNS_packets . " Hit(s)\n";
 }
 if (keys %NTP) {
    print "\nNTP access:\n";
-   foreach $ThisOne (sort keys %NTP) {
+   foreach my $ThisOne (sort keys %NTP) {
       print "   " . $ThisOne . " : " . $NTP{$ThisOne} . " Hit(s)\n";
    }
    print "   Total : " . $NTP_packets . " Hit(s)\n";
 }
 if (keys %SYSLOG) {
    print "\nSYSLOG access:\n";
-   foreach $ThisOne (sort keys %SYSLOG) {
+   foreach my $ThisOne (sort keys %SYSLOG) {
       print "   " . $ThisOne . " : " . $SYSLOG{$ThisOne} . " Hit(s)\n";
    }
    print "   Total : " . $SYSLOG_packets. " Hit(s)\n";
