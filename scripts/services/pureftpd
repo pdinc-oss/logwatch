@@ -26,20 +26,35 @@
 ##########################################################################
 # Written & Maintained by Chris Smith (csmith@squiz.net)
 ##########################################################################
+use strict;
 
-$Detail = $ENV{'LOGWATCH_DETAIL_LEVEL'};
-$ShowLogins  = $ENV{'show_logins'};
-$ShowLogouts = $ENV{'show_logouts'};
-$ShowDataStats = $ENV{'show_data_stats'};
-$ShowDataTransfers = $ENV{'show_data_transfers'};
-$ShowNewConnections = $ENV{'show_new_connections'};
-$IgnoreUnmatched = $ENV{'pureftpd_ignore_unmatched'} || 0;
-$MinAvgSize = 200*1024 if (!defined ($MinAvgSize = $ENV{'min_avg_file_size'}));
-$TopPeopleNr = 3 if (!defined ($TopPeopleNr = $ENV{'top_people_nr'}));
+my $Detail = $ENV{'LOGWATCH_DETAIL_LEVEL'};
+my $ShowLogins  = $ENV{'show_logins'};
+my $ShowLogouts = $ENV{'show_logouts'};
+my $ShowDataStats = $ENV{'show_data_stats'};
+my $ShowDataTransfers = $ENV{'show_data_transfers'};
+my $ShowNewConnections = $ENV{'show_new_connections'};
+my $IgnoreUnmatched = $ENV{'pureftpd_ignore_unmatched'} || 0;
 
-$PureShutdown = 0;
+#Init Counters
+my $PureShutdown = 0;
+#Init String Containers (hash obj)
+my (
+$IP,                $j,                     $User,
+$ConnectionCount,   $Logins,                $MinAvgSize,
+$Stats,             $TooManyConnections,    $TopPeopleNr,
+$Transfers,
+);
+my $MinAvgSize = 200*1024 if (!defined ($MinAvgSize = $ENV{'min_avg_file_size'}));
+my $TopPeopleNr = 3 if (!defined ($TopPeopleNr = $ENV{'top_people_nr'}));
+#Init Arrays
+my @OtherList = ();
+#Init Hashes
+my (
+%Logouts,       %NewConnections,        %SecureAnon
+);
 
-while (defined($ThisLine = <STDIN>)) {
+while (defined(my $ThisLine = <STDIN>)) {
    if (
       ( $ThisLine =~ /last message repeated/ ) or
       ( $ThisLine =~ /Timeout/) or
@@ -61,7 +76,7 @@ while (defined($ThisLine = <STDIN>)) {
       $Logins->{$IP}->{$User}++;
    } elsif (($j,$ConnectionCount,$IP) = ($ThisLine =~ /(.*?)too many connections \((.*?)\) from this ip\: \[(.*?)\]/i )) {
       $TooManyConnections->{$ConnectionCount}->{$IP}++;
-   } elsif (($User,$Location,$File,$Direction, $Size, $Speed) = ($ThisLine =~ /\((.*?)\@(.*?)\)\s+\[\w+\]\s+(.*?)\s(downloaded|uploaded)\s+\((\d+) bytes, (.+)KB\/sec\)/)) {
+   } elsif (my ($User,$Location,$File,$Direction, $Size, $Speed) = ($ThisLine =~ /\((.*?)\@(.*?)\)\s+\[\w+\]\s+(.*?)\s(downloaded|uploaded)\s+\((\d+) bytes, (.+)KB\/sec\)/)) {
       $Transfers->{$Direction}->{$User}->{$Location}->{$File}++;
       $Stats->{$Direction}->{"files_count"}++;
       $Stats->{$Direction}->{"files_size"} += $Size;
@@ -90,7 +105,7 @@ if ($PureShutdown > 0) {
 if ($ShowNewConnections) {
    if (keys %NewConnections) {
       print "\nNew Connections:\n";
-      foreach $Line (sort {$a cmp $b} keys %NewConnections) {
+      foreach my $Line (sort {$a cmp $b} keys %NewConnections) {
          print "\t" . $Line . " - ". $NewConnections{$Line} . " Time(s)\n";
       }
    }
@@ -99,8 +114,8 @@ if ($ShowNewConnections) {
 if ($ShowLogins) {
    if (keys %{$Logins}) {
       print "\nSuccessful Logins:\n";
-      foreach $Line (sort {$a cmp $b} keys %{$Logins}) {
-         foreach $Detail (sort {$a cmp $b} keys %{$Logins->{$Line}}) {
+      foreach my $Line (sort {$a cmp $b} keys %{$Logins}) {
+         foreach my $Detail (sort {$a cmp $b} keys %{$Logins->{$Line}}) {
             print "\t" . $Detail. " (" . $Line . ") - ". $Logins->{$Line}->{$Detail} . " Time(s)\n";
          }
       }
@@ -109,15 +124,15 @@ if ($ShowLogins) {
 
 if (keys %{$TooManyConnections}) {
    print "\nToo Many Connections:\n";
-   foreach $Line (sort {$a cmp $b} keys %{$TooManyConnections}) {
-      foreach $Detail (sort {$a cmp $b} keys %{$TooManyConnections->{$Line}}) {
+   foreach my $Line (sort {$a cmp $b} keys %{$TooManyConnections}) {
+      foreach my $Detail (sort {$a cmp $b} keys %{$TooManyConnections->{$Line}}) {
          print "\t" . $Detail. " (" . $Line . " connections) - ". $TooManyConnections->{$Line}->{$Detail} . " Time(s)\n";
       }
    }
 }
 
 if ($ShowDataStats) {
-   foreach $Direction (keys %{$Stats}) {
+   foreach my $Direction (keys %{$Stats}) {
       print "\nTransfer statistics - $Direction files:\n";
 
       print "\t$Stats->{$Direction}->{files_count} $Direction files\n";
@@ -126,10 +141,10 @@ if ($ShowDataStats) {
          print "\t$Stats->{$Direction}->{speed}->{max}KB max speed\n";
          printf "\t%.2fKB/s average speed\n", $Stats->{$Direction}->{'speed'}->{'tmp_size'}/$Stats->{$Direction}->{'speed'}->{'tmp_time'}/1024;
       }
-      @top_people = sort { $Stats->{$Direction}->{'people'}->{$b} <=> $Stats->{$Direction}->{'people'}->{$a} } keys %{ $Stats->{$Direction}->{'people'} };
+      my @top_people = sort { $Stats->{$Direction}->{'people'}->{$b} <=> $Stats->{$Direction}->{'people'}->{$a} } keys %{ $Stats->{$Direction}->{'people'} };
       if (@top_people) {
          print "\tTop $TopPeopleNr people:\n";
-         foreach $User (splice @top_people, 0, $TopPeopleNr) {
+         foreach my $User (splice @top_people, 0, $TopPeopleNr) {
             printf "\t\t%7.2fMB $User\n", $Stats->{$Direction}->{'people'}->{$User}/1024/1024;
          }
       }
@@ -137,11 +152,11 @@ if ($ShowDataStats) {
 }
 
 if ($ShowDataTransfers) {
-   foreach $Direction (keys %{$Transfers}) {
+   foreach my $Direction (keys %{$Transfers}) {
       print "\nData $Direction:\n";
-      foreach $User (sort {$a cmp $b} keys %{ $Transfers->{$Direction} }) {
-         foreach $Location (sort {$a cmp $b} keys %{ $Transfers->{$Direction}->{$User} }) {
-            foreach $Filename (sort {$a cmp $b} keys %{ $Transfers->{$Direction}->{$User}->{$Location}}) {
+      foreach my $User (sort {$a cmp $b} keys %{ $Transfers->{$Direction} }) {
+         foreach my $Location (sort {$a cmp $b} keys %{ $Transfers->{$Direction}->{$User} }) {
+            foreach my $Filename (sort {$a cmp $b} keys %{ $Transfers->{$Direction}->{$User}->{$Location}}) {
                print "\tUser " . $User . " " . $Direction . " " . $Filename . " from " . $Location . " - ". $Direction->{$User}->{$Location}->{$Filename} . " Time(s)\n";
             }
          }
@@ -151,7 +166,7 @@ if ($ShowDataTransfers) {
 
 if (keys %SecureAnon) {
    print "\nUnsuccessful Secure Anonymous Connections:\n";
-   foreach $Line (sort {$a cmp $b} keys %SecureAnon) {
+   foreach my $Line (sort {$a cmp $b} keys %SecureAnon) {
       print "\t" . $Line . " - ". $SecureAnon{$Line} . " Time(s)\n";
    }
 }
@@ -159,7 +174,7 @@ if (keys %SecureAnon) {
 if ($ShowLogouts) {
    if (keys %Logouts) {
       print "\nLogouts:\n";
-      foreach $Line (sort {$a cmp $b} keys %Logouts) {
+      foreach my $Line (sort {$a cmp $b} keys %Logouts) {
          print "\t" . $Line . " - ". $Logouts{$Line} . " Time(s)\n";
       }
    }
