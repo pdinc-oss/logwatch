@@ -47,19 +47,41 @@
 ## contributions to this script and want to claim
 ## copyright please contact logwatch-devel@lists.sourceforge.net.
 #########################################################
+use strict;
 
+#Init String Container
+my (
+$baddelete,     $ipaddr,    $ipport,
+$lastattempt,   $oldinfo,   $phase2,
+$rest,          $stateinfo, $today,
+$vid
+);
+#Init Hashes
+my (
+%badexch,           %conns,                         %crlUpdate,
+%crlUpdateSince,    %ipsecSAs,                      %loglines,
+%maxattempts,       %peer,                          %peerID,
+%peerIP,            %quickmode,                     %rekeyfail,
+%rekeyfailI1,       %rekeyfailQI1,                  %rekeyfailQR1,
+%rekeyfailR1,       %rekeyfail_ICMPunreachable,     %rekeyfail_notknown,
+%rekeysuccess,      %relevantlog,                   %setupfail,
+%statechain,        %stateobjects,                  %xauthsuccess,
+%vendorID
+);
+
+my $debug=0;
 $vendorID{"p....}..&..i...5..............................."}="KAME/Racoon";
-$debug=0;
 
 while(<>) {
 # May  4 04:04:33 abigail Pluto[24170]: "abigail-istari" #1479: ISAKMP SA expired (LATEST!)
 
    chop;
-   ($month,$day,$time,$host,$process,$conn,$msg)=split(/ +/,$_,7);
+   my ($month,$day,$time,$host,$process,$conn,$msg)=split(/ +/,$_,7);
    $today="$month $day";
 
    next unless ($process =~ /pluto/i);
-   $iserror=0;
+   my $iserror=0;
+   my $junk;
 
    if ($conn eq "ERROR:") {
       $iserror = 1;
@@ -261,14 +283,14 @@ while(<>) {
 
 if (keys %loglines) {
    print "Overview summary of log files:\n";
-   foreach $day (keys %loglines) {
+   foreach my $day (keys %loglines) {
       print "\t $day had ".$loglines{$day}." entries of which ".$relevantlog{$day}." were relevant\n";
    }
 }
 
 if (keys %conns) {
    print "Summary by peer:\n";
-   foreach $conn (keys %conns) {
+   foreach my $conn (keys %conns) {
       print "  Peer $conn caused $conns{$conn} lines of output.\n";
       print "\tconnected from:".$peerIP{$conn}."\n";
       if(defined($peerID{$conn})) {
@@ -290,7 +312,7 @@ if (keys %conns) {
 
 if (keys %badexch) {
    print "Summary of bad peers\n";
-   foreach $badpeer (keys %badexch) {
+   foreach my $badpeer (keys %badexch) {
       print "\t".$badpeer." caused ".$badexch{$badpeer}." bad exchanges\n";
    }
 }
