@@ -22,10 +22,13 @@
 ## contributions to this script and want to claim
 ## copyright please contact logwatch-devel@lists.sourceforge.net.
 #########################################################
+use strict;
 
-$Detail = $ENV{'LOGWATCH_DETAIL_LEVEL'} || 0;
+my $Detail = $ENV{'LOGWATCH_DETAIL_LEVEL'} || 0;
+my @OtherList = ();
+my %FailedLogins;
 
-while (defined($ThisLine = <STDIN>)) {
+while (defined(my $ThisLine = <STDIN>)) {
     if ( ( $ThisLine =~ /^pam_get_user: no username obtained$/ ) or
          ( $ThisLine =~ /^pam_end: NULL pam handle passed/ ) ) {
         # We don't care about these
@@ -41,7 +44,7 @@ while (defined($ThisLine = <STDIN>)) {
 
 if ( (keys %FailedLogins) and ($Detail >= 10) ) {
    print "\nFailed Login Sessions:\n";
-   foreach $ThisOne (keys %FailedLogins) {
+   foreach my $ThisOne (keys %FailedLogins) {
       print "   " . $FailedLogins{$ThisOne} . " from " . $ThisOne;
    }
 }
