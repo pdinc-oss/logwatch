@@ -31,10 +31,18 @@
 #########################################################
 
 use Logwatch ':ip';
+use strict;
 
-$Detail = $ENV{'LOGWATCH_DETAIL_LEVEL'} || 0;
+my $Detail = $ENV{'LOGWATCH_DETAIL_LEVEL'} || 0;
+#Init String Containers
+my ($list, $prev, $port);
+#Init Hashes
+my (
+%Blocked,       %Exclude,   %Ignored,
+%Scans,         %Unknown
+);
 
-while (defined($ThisLine = <STDIN>)) {
+while (defined(my $ThisLine = <STDIN>)) {
    chomp($ThisLine);
    next if ($ThisLine eq "");
    if ( ( $ThisLine =~ /Starting portsentry/ ) or
@@ -42,7 +50,7 @@ while (defined($ThisLine = <STDIN>)) {
         ( $ThisLine =~ /Psionic PortSentry .* (starting|shutting)/ ) or
         ( $ThisLine =~ /portsentry shutdown/ ) ) {
        # don't care
-   } elsif( ($scan,$host,$proto,$port) = ( $ThisLine =~ m|attackalert: (.+) scan from host: [^/]+/(\S+) to (\w+) port: (\d+)| ) ){
+   } elsif( my ($scan,$host,$proto,$port) = ( $ThisLine =~ m|attackalert: (.+) scan from host: [^/]+/(\S+) to (\w+) port: (\d+)| ) ){
        $host = LookupIP($host);
        $Scans{$scan}{$host}{$port}++;
    } elsif ( ($host) = ( $ThisLine =~ /Host (\S+) has been blocked/ ) ){
@@ -50,7 +58,7 @@ while (defined($ThisLine = <STDIN>)) {
        $Blocked{$host}++;
    } elsif( ($host) = ( $ThisLine =~ /Host: (\S+) is already blocked/ ) ){
        # ignore
-   } elsif( ($mode,$proto,$port) = ( $ThisLine =~ /: (.+) scan detection mode activated. Ignored (\w+) port: (\d+)/ ) ){
+   } elsif( my ($mode,$proto,$port) = ( $ThisLine =~ /: (.+) scan detection mode activated. Ignored (\w+) port: (\d+)/ ) ){
        $Ignored{$mode}{$proto}{$port}++;
    } elsif( ($mode,$port) = ( $ThisLine =~ /: (.+) mode will manually exclude port: (\d+)/ ) ){
        $Exclude{$mode}{$port}++;
@@ -61,29 +69,29 @@ while (defined($ThisLine = <STDIN>)) {
 
 if (keys %Scans) {
    print "\nWarning: Portscans detected";
-   foreach $mode (sort {$a cmp $b} keys %Scans) {
+   foreach my $mode (sort {$a cmp $b} keys %Scans) {
       print "\n   " . $mode . " from:";
-      foreach $host (sort {$a cmp $b} keys %{$Scans{$mode}}) {
+      foreach my $host (sort {$a cmp $b} keys %{$Scans{$mode}}) {
          print "\n      " . $host . ": ports:";
-         $ports = $prev = $list = undef;
-         foreach $port (sort {$a <=> $b} keys %{$Scans{$mode}{$host}}) {
-  	  if ($prev && ($port-1) == $prev) {
-  	      $ports .= "-" if (!$list);
-  	      $list = 1;
-  	  } elsif ($list) {
-  	      $ports .= "$prev $port";
-  	      $list = undef;
-  	  } else {
-  	      $ports .= " $port";
-  	  }
-  	  $prev = $port;
+         my $ports = $prev = $list = undef;
+         foreach my $port (sort {$a <=> $b} keys %{$Scans{$mode}{$host}}) {
+  	        if ($prev && ($port-1) == $prev) {
+  	            $ports .= "-" if (!$list);
+  	            $list = 1;
+  	        } elsif ($list) {
+  	            $ports .= "$prev $port";
+  	            $list = undef;
+  	        } else {
+  	            $ports .= " $port";
+  	        }
+  	        $prev = $port;
          }
          $ports .= $prev if ($list);
          # don't display the port list if it doesn't fit on one line
          if (length($ports) > 55 && $Detail < 10) {
-  	  print " (too many, set Detail to High for complete list)";
+  	        print " (too many, set Detail to High for complete list)";
          } else {
-  	   print $ports;
+  	        print $ports;
          }
       }
    }
@@ -92,29 +100,29 @@ if (keys %Scans) {
 
 if (keys %Blocked) {
    print "\n";
-   foreach $host (keys %Blocked) {
+   foreach my $host (keys %Blocked) {
       print "Warning: Blocked route from/to $host $Blocked{$host} times(s).\n";
    }
 }
 
 if ( ($Detail >= 10) and (keys %Ignored) ) {
    print "\nIgnored following ports";
-   foreach $mode (sort {$a cmp $b} keys %Ignored) {
+   foreach my $mode (sort {$a cmp $b} keys %Ignored) {
       print "\n   " . $mode . ":";
-      foreach $proto (sort {$a cmp $b} keys %{$Ignored{$mode}}) {
+      foreach my $proto (sort {$a cmp $b} keys %{$Ignored{$mode}}) {
          print "\n      " . $proto . ": ports:";
-         $prev = $list = undef;
+         my $prev = $list = undef;
          foreach $port (sort {$a <=> $b} keys %{$Ignored{$mode}{$proto}}) {
-  	  if ($prev && ($port-1) == $prev) {
-  	      print "-" if (!$list);
-  	      $list = 1;
-  	  } elsif ($list) {
-  	      print "$prev $port";
-  	      $list = undef;
-  	  } else {
-  	      print " $port";
-  	  }
-  	  $prev = $port;
+  	        if ($prev && ($port-1) == $prev) {
+  	            print "-" if (!$list);
+  	            $list = 1;
+  	        } elsif ($list) {
+  	            print "$prev $port";
+  	            $list = undef;
+  	        } else {
+  	            print " $port";
+  	        }
+  	        $prev = $port;
          }
          print $prev if ($list);
       }
@@ -124,10 +132,10 @@ if ( ($Detail >= 10) and (keys %Ignored) ) {
 
 if ( ($Detail >= 10) and (keys %Exclude) ) {
    print "\nExcluded following ports";
-   foreach $mode (sort {$a cmp $b} keys %Exclude) {
+   foreach my $mode (sort {$a cmp $b} keys %Exclude) {
       print "\n   " . $mode . ": ports:";
-      $prev = $list = undef;
-      foreach $port (sort {$a <=> $b} keys %{$Exclude{$mode}}) {
+      my $prev = $list = undef;
+      foreach my $port (sort {$a <=> $b} keys %{$Exclude{$mode}}) {
          if ($prev && ($port-1) == $prev) {
              print "-" if (!$list);
              $list = 1;
@@ -146,7 +154,7 @@ if ( ($Detail >= 10) and (keys %Exclude) ) {
 
 if ( ($Detail >= 5) and (keys %Unknown) ) {
    print "\n**Unmatched entries**\n";
-   foreach $ThisOne (sort {$a cmp $b} keys %Unknown) {
+   foreach my $ThisOne (sort {$a cmp $b} keys %Unknown) {
       print $Unknown{$ThisOne} . " Time(s): " . $ThisOne . "\n";
    }
 }
