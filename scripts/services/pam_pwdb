@@ -24,10 +24,26 @@
 #########################################################
 
 # NOTE: This script is for older (6.X era) Red Hat boxes
+use strict;
 
-$Detail = $ENV{'LOGWATCH_DETAIL_LEVEL'} || 0;
+my $Detail = $ENV{'LOGWATCH_DETAIL_LEVEL'} || 0;
+#Init String Containers
+my (
+$EndName,       $From,          $Num,
+$Orig,          $RemoteHost,    $Service,
+$ServiceName,   $StartName,     $StartUID,
+$Temp,          $ThisKey,       $User
+);
+#Init Arrays
+my (@BadName, @Expired, @PWChanges) = ();
+#Init Hashes
+my (
+%AuthFailures,      %CouldNotIDPW,      %FailedLogins,
+%LocalLogins,       %OpenedSessions,    %OtherList,
+%RemoteLogins,      %RootLogins,        %SUList
+);
 
-while (defined($ThisLine = <STDIN>)) {
+while (defined(my $ThisLine = <STDIN>)) {
    if ( ( $ThisLine =~ /(.*) session closed for user .*$/ ) or
          ( $ThisLine =~ /^Logout user .* host .*$/ ) or
          ( $ThisLine =~ /^log: Password authentication/ ) or # apparently SSHD messages
@@ -122,44 +138,44 @@ while (defined($ThisLine = <STDIN>)) {
 
 if (keys %SUList) {
    print "\nSU Sessions:\n";
-   foreach $SU (keys %SUList) {
+   foreach my $SU (keys %SUList) {
       print "   " . $SU . " - " . $SUList{$SU} . " Time(s)\n";
    }
 }
 
 if (($Detail >= 10) and (keys %CouldNotIDPW)) {
       print "\nCould not identify password for:\n";
-      foreach $User (keys %CouldNotIDPW) {
+      foreach my $User (keys %CouldNotIDPW) {
          print "   " . $User . " - " . $CouldNotIDPW{$User} . " Time(s)\n";
       }
 }
 
 if (@PWChanges) {
    print "\nPassword Changes:\n";
-   foreach $Change (@PWChanges) {
+   foreach my $Change (@PWChanges) {
       print "   " . $Change . "\n";
    }
 }
 
 if (($Detail >= 5) and (@BadName)) {
       print "\nBad Usernames Received:\n";
-      foreach $User (@BadName) {
+      foreach my $User (@BadName) {
          print "   " . $User . "\n";
       }
 }
 
 if (@Expired) {
    print "\nExpired User Accounts:\n";
-   foreach $User (@Expired) {
+   foreach my $User (@Expired) {
       print "   " . $User . "\n";
    }
 }
 
 if (keys %OpenedSessions) {
    print "\nOpened Sessions:\n";
-   foreach $Service (keys %OpenedSessions) {
+   foreach my $Service (keys %OpenedSessions) {
       print "   Service: " . $Service . "\n";
-      foreach $User (keys %{$OpenedSessions{$Service}}) {
+      foreach my $User (keys %{$OpenedSessions{$Service}}) {
          print "      User " . $User . " - " . ${$OpenedSessions{$Service}}{$User} . " Time(s)\n";
       }
    }
@@ -167,9 +183,9 @@ if (keys %OpenedSessions) {
 
 if (keys %RemoteLogins) {
    print "\nRemote Logins:\n";
-   foreach $User (keys %RemoteLogins) {
+   foreach my $User (keys %RemoteLogins) {
       print "   User " . $User . ":\n";
-      foreach $Remote (keys %{$RemoteLogins{$User}} ) {
+      foreach my $Remote (keys %{$RemoteLogins{$User}} ) {
          print "      Remote Host " . $Remote . " - " . ${$RemoteLogins{$User}}{$Remote} . " Time(s)\n";
       }
    }
@@ -177,23 +193,23 @@ if (keys %RemoteLogins) {
 
 if (keys %LocalLogins) {
    print "\nLocal Logins:\n";
-   foreach $User (keys %LocalLogins) {
+   foreach my $User (keys %LocalLogins) {
       print "   " . $User . " - " . $LocalLogins{$User} . " Time(s)\n";
    }
 }
 
 if (keys %RootLogins) {
    print "\nRoot Logins:\n";
-   foreach $tty (keys %RootLogins) {
+   foreach my $tty (keys %RootLogins) {
       print "   " . $tty . ": " . $RootLogins{$tty} . " time(s)\n";
    }
 }
 
 if (($Detail >= 5) and (keys %AuthFailures)) {
    print "\nAuthentication Failures:\n";
-   foreach $Users (keys %AuthFailures) {
+   foreach my $Users (keys %AuthFailures) {
       print "   " . $Users . "\n";
-      foreach $Service (keys %{$AuthFailures{$Users}}) {
+      foreach my $Service (keys %{$AuthFailures{$Users}}) {
          print "      Service: " . $Service . ": " . ${$AuthFailures{$Users}}{$Service} . " time(s)\n";
       }
    }
@@ -201,9 +217,9 @@ if (($Detail >= 5) and (keys %AuthFailures)) {
 
 if (($Detail >= 5) and (keys %FailedLogins)) {
    print "\nLogin Failures:\n";
-   foreach $RemoteHost (keys %FailedLogins) {
+   foreach my $RemoteHost (keys %FailedLogins) {
       print "   " . $RemoteHost . ": ";
-      foreach $User ( @{$FailedLogins{$RemoteHost}} ) {
+      foreach my $User ( @{$FailedLogins{$RemoteHost}} ) {
          print $User . ", ";
       }
       print "\n";
@@ -212,7 +228,7 @@ if (($Detail >= 5) and (keys %FailedLogins)) {
 
 if (keys %OtherList) {
    print "\n**Unmatched Entries**\n";
-   foreach $line (sort {$a cmp $b} keys %OtherList) {
+   foreach my $line (sort {$a cmp $b} keys %OtherList) {
       print "$line: $OtherList{$line} Time(s)\n";
    }
 }
