@@ -19,14 +19,17 @@
 ## copyright please contact logwatch-devel@lists.sourceforge.net.
 #########################################################
 
+
 # This used to expand "Last Message Repeated n Times" messages in
 # standard syslog files.  Now, I have decided it is much better to
 # just ignore the repeats, as otherwise our temporary logfiles will
 # be too huge.
 
-$LastLine = "";
+use strict;
 
-while (defined($ThisLine = <STDIN>)) {
+my $LastLine = "";
+
+while (defined(my $ThisLine = <STDIN>)) {
    if ($ThisLine =~ m/last message repeated \d+ times?$/) {
       # Just ignore these lines
       #for ($i=0;$i<$1;$i++) {

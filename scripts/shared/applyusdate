@@ -18,18 +18,19 @@
 ## copyright please contact logwatch-devel@lists.sourceforge.net.
 #########################################################
 
+use strict;
 use Logwatch ':dates';
 
 my $Debug = $ENV{'LOGWATCH_DEBUG'} || 0;
 
-$SearchDate = TimeFilter('%m/%d/%y %H:%M:%S');
+my $SearchDate = TimeFilter('%m/%d/%y %H:%M:%S');
 
 if ( $Debug > 5 ) {
    print STDERR "DEBUG: Inside ApplyUSDate...\n";
    print STDERR "DEBUG: Looking For: " . $SearchDate . "\n";
 }
 
-while (defined($ThisLine = <STDIN>)) {
+while (defined(my $ThisLine = <STDIN>)) {
    if ($ThisLine =~ m/^$SearchDate /o) {
       print $ThisLine;
    }

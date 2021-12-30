@@ -19,15 +19,17 @@
 ## copyright please contact logwatch-devel@lists.sourceforge.net.
 #########################################################
 
+use strict;
+
 # This will pick out only the wanted service from a logfile
 # in the standard /var/log/messages format.  Case insensitive.
 
-$ServiceName = $ARGV[0];
+my $ServiceName = $ARGV[0];
 if ( $ENV{'LOGWATCH_DEBUG'} > 5 ) {
    print STDERR "DEBUG: Inside OnlyService for $ServiceName\n";
 }
 
-while (defined($ThisLine = <STDIN>)) {
+while (defined(my $ThisLine = <STDIN>)) {
     if ($ThisLine =~ m/^... .. ..:..:..[ ]*[^ ]* $ServiceName(\[[0123456789]*\])?:? /io) {
       print $ThisLine;
     }

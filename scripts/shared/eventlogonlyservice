@@ -32,12 +32,14 @@
 # copyright please contact logwatch-devel@lists.sourceforge.net.
 ########################################################
 
-$ServiceName = $ARGV[0];
+use strict;
+
+my $ServiceName = $ARGV[0];
 if ( $ENV{'LOGWATCH_DEBUG'} > 5 ) {
    print STDERR "DEBUG: Inside OnlyService for $ServiceName\n";
 }
 
-while (defined($ThisLine = <STDIN>)) {
+while (defined(my $ThisLine = <STDIN>)) {
     if ($ThisLine =~ m/^... .. ..:..:.. .* MSWinEventLog(\t\d+\t|\[\d+\]:)$ServiceName\t/oi) {
       print $ThisLine;
     }
