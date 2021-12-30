@@ -30,7 +30,7 @@
 ## contributions to this script and want to claim
 ## copyright please contact logwatch-devel@lists.sourceforge.net.
 #########################################################
-
+use strict;
 
 my $Detail = $ENV{'LOGWATCH_DETAIL_LEVEL'} || 0;
 
@@ -38,10 +38,11 @@ my %no_mail;
 my %messages_for;
 my %auth_fail;
 my %conn_fail;
+my %OtherList;
 
 #Inits
 
-while (defined($ThisLine = <STDIN>)) {
+while (defined(my $ThisLine = <STDIN>)) {
    chomp($ThisLine);
    $ThisLine =~ s/^[a-zA-Z0-9]+: //;
    if($ThisLine =~ s/^No mail for (\S+) at (\S+)//) {
@@ -109,7 +110,7 @@ if (keys %no_mail) {
 
 if (keys %OtherList) {
    print "\n**Unmatched Entries**\n";
-   foreach $line (sort {$OtherList{$b}<=>$OtherList{$a} } keys %OtherList) {
+   foreach my $line (sort {$OtherList{$b}<=>$OtherList{$a} } keys %OtherList) {
       print "   $line: $OtherList{$line} Time(s)\n";
    }
 }
