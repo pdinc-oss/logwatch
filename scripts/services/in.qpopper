@@ -32,10 +32,15 @@
 ## contributions to this script and want to claim
 ## copyright please contact logwatch-devel@lists.sourceforge.net.
 #########################################################
+use strict;
 
-$Detail = $ENV{'LOGWATCH_DETAIL_LEVEL'} || 0;
-
-while (defined($ThisLine = <STDIN>)) {
+my $Detail = $ENV{'LOGWATCH_DETAIL_LEVEL'} || 0;
+#Init Hashes
+my (
+%ApopConnections,   %Connections,   %FailedLogin,
+%OtherList,         %Stats
+);
+while (defined(my $ThisLine = <STDIN>)) {
     if ( ($ThisLine =~ /xsender/) or
          ( $ThisLine =~ /.drac.:/ ) or
          ( $ThisLine =~ /Timing/ ) or
@@ -50,14 +55,14 @@ while (defined($ThisLine = <STDIN>)) {
         # We don't care about these
     }
     ## Stats: <UserID> 0 0 0 0 <Host> <IP>
-    elsif (($UserID, $NumDeleted, $BytesDeleted, $NumLeft, $BytesLeft) = ( $ThisLine =~ /Stats: ([^ ]+) ([^ ]+) ([^ ]+) ([^ ]+) ([^ ]+)/ )) {
+    elsif (my ($UserID, $NumDeleted, $BytesDeleted, $NumLeft, $BytesLeft) = ( $ThisLine =~ /Stats: ([^ ]+) ([^ ]+) ([^ ]+) ([^ ]+) ([^ ]+)/ )) {
         $Stats{$UserID}{"Times"}++;
         $Stats{$UserID}{"NumDel"} += $NumDeleted;
         $Stats{$UserID}{"BytesDel"} += $BytesDeleted;
         $Stats{$UserID}{"NumLeft"} = $NumLeft;
         $Stats{$UserID}{"BytesLeft"} = $BytesLeft;
     }
-    elsif (($UserID) = ($ThisLine =~ /^\[AUTH\] Failed attempted login to ([^ ]+) from host/ )) {
+    elsif (my ($UserID) = ($ThisLine =~ /^\[AUTH\] Failed attempted login to ([^ ]+) from host/ )) {
         $FailedLogin{$UserID}++;
     }
     elsif ( $ThisLine =~ s/^connect from ([^ ]+)$/$1/ ) {
@@ -78,23 +83,24 @@ while (defined($ThisLine = <STDIN>)) {
 
 if ( (keys %Connections) and ($Detail >= 10) ) {
     print "\nPlaintext Connections:\n";
-    foreach $ThisOne (keys %Connections) {
+    foreach my $ThisOne (keys %Connections) {
         print "   " . $Connections{$ThisOne} . " from " . $ThisOne;
     }
 }
 
 if ( (keys %ApopConnections) and ($Detail >= 10) ) {
     print "\nAPOP Connections:\n";
-    foreach $ThisOne (keys %ApopConnections) {
+    foreach my $ThisOne (keys %ApopConnections) {
         print "   " . $ApopConnections{$ThisOne} . " from " . $ThisOne;
     }
 }
 
 if ((keys %Stats) and ($Detail >= 10)) {
+    my ($Times, $NumDel, $BytesDel, $NumLeft, $BytesLeft);
     print "\nUser Statistics:\n";
     print "                        |     Deleted    |      Kept      |\n";
     print "User Name        Times  |   Num  KBytes  |   Num  KBytes  |\n";
-    foreach $UserID (sort {$Stats{$b}{"BytesDel"}<=>$Stats{$a}{"BytesDel"}} keys %Stats)
+    foreach my $UserID (sort {$Stats{$b}{"BytesDel"}<=>$Stats{$a}{"BytesDel"}} keys %Stats)
     {
         printf("%-15s  %5d  | %5d  %6d  | %5d  %6d  |\n", $UserID, $Stats{$UserID}{"Times"}, $Stats{$UserID}{"NumDel"}, $Stats{$UserID}{"BytesDel"}/1024, $Stats{$UserID}{"NumLeft"}, $Stats{$UserID}{"BytesLeft"}/1024);
         $Times += $Stats{$UserID}{"Times"};
@@ -109,14 +115,14 @@ if ((keys %Stats) and ($Detail >= 10)) {
 
 if (keys %FailedLogin) {
    print "\nFailed Logins:\n";
-   foreach $UserID (sort {$FailedLogin{$b}<=>$FailedLogin{$a} } keys %FailedLogin) {
+   foreach my $UserID (sort {$FailedLogin{$b}<=>$FailedLogin{$a} } keys %FailedLogin) {
       print "  $UserID: $FailedLogin{$UserID} time(s).\n";
    }; # foreach
 }; # if
 
 if (keys %OtherList) {
    print "\n**Unmatched Entries**\n";
-   foreach $line (sort {$OtherList{$b}<=>$OtherList{$a} } keys %OtherList)
+   foreach my $line (sort {$OtherList{$b}<=>$OtherList{$a} } keys %OtherList)
    {
       print "   $line: $OtherList{$line} Time(s)\n";
    }
