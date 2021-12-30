@@ -19,18 +19,20 @@
 ## copyright please contact logwatch-devel@lists.sourceforge.net.
 #########################################################
 
+use strict;
+
 # This will pick out only the wanted service from a logfile
 # in the standard /var/log/messages format.  Case insensitive.
 
-@ServiceName = split(/,/,$ARGV[0]);
+my @ServiceName = split(/,/,$ARGV[0]);
 
 if ( $ENV{'LOGWATCH_DEBUG'} > 5 ) {
    print STDERR "DEBUG: Inside MultiService for $ServiceName[0]\n";
 }
 
-while (defined($ThisLine = <STDIN>)) {
+while (defined(my $ThisLine = <STDIN>)) {
 
-for $ServiceName (@ServiceName) {
+for my $ServiceName (@ServiceName) {
     if ($ThisLine =~ m/^... .. ..:..:.. [^ ]* $ServiceName\[[0123456789]*\]:/i) {
       print $ThisLine;
     }

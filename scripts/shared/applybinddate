@@ -37,12 +37,13 @@
 # on sourceforge.
 #############################################################################
 
+use strict;
 use Logwatch ':dates';
 
 # This will pick out only the wanted date from a logfile
 # in the format used by BIND 9.*.
 
-$SearchDate = TimeFilter('%d-%b-%Y %H:%M:%S');
+my $SearchDate = TimeFilter('%d-%b-%Y %H:%M:%S');
 
 if ( $ENV{'LOGWATCH_DEBUG'} > 5 ) {
    print STDERR "DEBUG: Inside ApplyBindDate...\n";
@@ -50,7 +51,7 @@ if ( $ENV{'LOGWATCH_DEBUG'} > 5 ) {
    print STDERR "DEBUG: Looking For: " . $SearchDate . "\n";
 }
 
-while (defined($ThisLine = <STDIN>)) {
+while (defined(my $ThisLine = <STDIN>)) {
    if ($ThisLine =~ m/^$SearchDate\.\d{3} /o) {
       print $ThisLine;
    }

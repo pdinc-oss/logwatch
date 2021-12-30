@@ -18,6 +18,8 @@
 ## copyright please contact logwatch-devel@lists.sourceforge.net.
 #########################################################
 
+use strict;
+
 # Just does a case-insensitive egrep ;)
 
 system("egrep -i \"@ARGV\"");

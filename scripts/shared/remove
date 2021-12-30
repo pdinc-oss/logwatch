@@ -18,6 +18,8 @@
 ## copyright please contact logwatch-devel@lists.sourceforge.net.
 #########################################################
 
+use strict;
+
 # Just a case-insensitive, inverse egrep
 
 #/bin/egrep -vi "$@"

@@ -14,12 +14,14 @@
 ## copyright please contact logwatch-devel@lists.sourceforge.net.
 #########################################################
 
+use strict;
+
 # Removes the beginning of each line of a standard /var/log/messages-style
 # logfile or a pattern passed as first argument to this script.
 
 my $RemovePattern = $ARGV[0] || '^... .. ..:..:.. [^ ]* [^\[:]*(?:\[\d*\])?: (?:\[\d+\.\d+\] )?';
 
-while (defined($ThisLine = <STDIN>)) {
+while (defined(my $ThisLine = <STDIN>)) {
     # remove standard syslog-style header or configurable pattern
     $ThisLine =~ s/$RemovePattern//;
     #First line is Solaris ID tag style -mgt
