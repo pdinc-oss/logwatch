@@ -34,16 +34,17 @@
 #########################################################
 
 use Logwatch ':dates';
+use strict;
 
 # Disable warnings about unused variables
-no warnings qw(once);
+#no warnings qw(once);
 
 my $Detail = $ENV{'LOGWATCH_DETAIL_LEVEL'} || 0;
 my $Debug = $ENV{'LOGWATCH_DEBUG'} || 0;
 my $SearchDate = TimeFilter('%d/%b/%Y:%H:%M:%S');
 my $within_range = 0;
 
-my %tmpEntry = ();
+my %tmpEntry = (); #This gets reset in STDIN loop perhaps in error
 my $count = 0;
 
 my %messages = ();
@@ -63,7 +64,7 @@ $tmpEntry{$count}{"hostname"} = "";
 $tmpEntry{$count}{"message"} = "";
 $tmpEntry{$count}{"ruleid"} = "";
 
-while (defined($ThisLine = <STDIN>)) {
+while (defined(my $ThisLine = <STDIN>)) {
     chomp($ThisLine);
 
     # Reset $check if line starts with two dashes
@@ -74,7 +75,7 @@ while (defined($ThisLine = <STDIN>)) {
 
     if ($check == 1) {
         if ($option eq "audit-log-header") {
-            ($timestamp, $transactionID, $sourceIP, $sourcePort, $destIP, $destPort ) = ($ThisLine =~ /\[(.*?)\] (.*?) (.*?) (.*?) (.*?) (.*?)$/ );
+            my ($timestamp, $transactionID, $sourceIP, $sourcePort, $destIP, $destPort ) = ($ThisLine =~ /\[(.*?)\] (.*?) (.*?) (.*?) (.*?) (.*?)$/ );
 
             $tmpEntry{$count}{"timestamp"} = $timestamp;
             $tmpEntry{$count}{"sourceIp"} = $sourceIP;
@@ -91,7 +92,7 @@ while (defined($ThisLine = <STDIN>)) {
         }
 
         if ($option eq "request-header") {
-            if ( ($method, $requestUri) = ($ThisLine =~ /^(POST|GET) (.*?)$/) ) {
+            if ( my ($method, $requestUri) = ($ThisLine =~ /^(POST|GET) (.*?)$/) ) {
                 $tmpEntry{$count}{"method"} = $method;
                 $tmpEntry{$count}{"uri"} = $requestUri;
 
@@ -100,7 +101,7 @@ while (defined($ThisLine = <STDIN>)) {
                     print STDERR "URI: " . $requestUri . "\n";
                 }
             }
-            elsif ( ($hostname) = ($ThisLine =~ /^Host: (.*?)$/) ) {
+            elsif ( my ($hostname) = ($ThisLine =~ /^Host: (.*?)$/) ) {
                 $tmpEntry{$count}{"hostname"} = $hostname;
 
                 if ( $Debug >= 5 ) {
@@ -110,6 +111,7 @@ while (defined($ThisLine = <STDIN>)) {
         }
         if ($option eq "audit-log-trailer") {
             if ( $ThisLine =~ /^Message:/ ) {
+                my ($ruleId, $msg);
                 if ( ($ruleId) = ($ThisLine =~ /\[id \"(.*?)\"\]/) ) {
                     if ( $Debug >= 5 ) {
                         print STDERR "Rule ID: " . $ruleId. "\n";
@@ -124,13 +126,13 @@ while (defined($ThisLine = <STDIN>)) {
                 $tmpEntry{$count}{"message"} = $msg;
             }
 
-            if ( ($action) = ($ThisLine =~ /^Action: (.*?)$/) ) {
+            if ( my ($action) = ($ThisLine =~ /^Action: (.*?)$/) ) {
                 $tmpEntry{$count}{"action"} = $action;
                 if ( $Debug >= 5 ) {
                     print STDERR "Action: " . $action. "\n";
                 }
             }
-            if ( ($engineMode) = ($ThisLine =~ /^Engine-Mode: (.*?)$/) ) {
+            if ( my ($engineMode) = ($ThisLine =~ /^Engine-Mode: (.*?)$/) ) {
                 $tmpEntry{$count}{"engine"} = $engineMode;
                 if ( $Debug >= 5 ) {
                     print STDERR "Engine mode: " . $engineMode. "\n";
@@ -171,7 +173,7 @@ while (defined($ThisLine = <STDIN>)) {
         $count++;
 
         # Reset values
-        $tmpEntry = ();
+        #$tmpEntry = ();
         $tmpEntry{$count}{"action"} = "";
         $tmpEntry{$count}{"hostname"} = "";
         $tmpEntry{$count}{"message"} = "";
