@@ -22,25 +22,26 @@
 ## contributions to this script and want to claim
 ## copyright please contact logwatch-devel@lists.sourceforge.net.
 #########################################################
+use strict;
 
 my %commands;
 my %stages;
 my %unknown;
 
-while (defined($ThisLine = <STDIN>)) {
+while (defined(my $ThisLine = <STDIN>)) {
     chomp($ThisLine);
 
     next if $ThisLine =~ /^starting up, listening on /;
     next if $ThisLine =~ /OPEN SESAME$/;
     next if $ThisLine =~ /: sequence timeout /;
 
-    ($name, $command) = $ThisLine =~ /^(.*?): running command: (.*)/;
+    my ($name, $command) = $ThisLine =~ /^(.*?): running command: (.*)/;
     if (defined($name)) {
         $commands{"$name: $command"}++;
         next;
     }
 
-    ($ip, $name, $stage) = $ThisLine =~ /^(\d+\.\d+\.\d+\.\d+): (.*?): Stage (\d+)/;
+    my ($ip, $name, $stage) = $ThisLine =~ /^(\d+\.\d+\.\d+\.\d+): (.*?): Stage (\d+)/;
     if (defined ($ip)) {
         $stages{$name}{$stage}{$ip}++;
         next;
