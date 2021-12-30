@@ -32,38 +32,47 @@
 ## contributions to this script and want to claim
 ## copyright please contact logwatch-devel@lists.sourceforge.net.
 #########################################################
+use strict;
 
 ## Initial initialization:
-$Startups = 0;
-$Shutdowns = 0;
-$LookupCount = 0;
-$LookupErrorCount = 0;
-$Connections = 0;
-$MasqLookupCount = 0;
+my $Startups = 0;
+my $Shutdowns = 0;
+my $LookupCount = 0;
+my $LookupErrorCount = 0;
+my $Connections = 0;
+my $MasqLookupCount = 0;
 
-while (defined($ThisLine = <STDIN>)) {
+#Init String
+my ($Host);
+
+#Init Hashes
+my (
+%Connection,    %ErrorLookup,   %Lookups,
+%OtherList,
+);
+while (defined(my $ThisLine = <STDIN>)) {
    chomp($ThisLine);
    if (
       ($ThisLine =~ m/^Continuous traffic control enabled/) or
       ($ThisLine =~ m/^Timeout for request -- Closing connection/)
    ) {
       #ignore these
-   } elsif ( ($Host,$Port,$User,$Identity) = ($ThisLine =~ /^\[([^ ]*)\] Successful lookup: \d+ , (\d+) : ([^ ]*) \(([^ ]*)\)$/)) {
-      $Temp = "$User announced as $Identity";
+   } elsif ( my ($Host,$Port,$User,$Identity) = ($ThisLine =~ /^\[([^ ]*)\] Successful lookup: \d+ , (\d+) : ([^ ]*) \(([^ ]*)\)$/)) {
+      my $Temp = "$User announced as $Identity";
       $Lookups{$Port}{$Temp}{$Host}++;
       $LookupCount++;
-   } elsif ( ($Host,$Port,$User) = ($ThisLine =~ /^\[([^ ]*)\] \(Masqueraded\) Successful lookup: \d+ , (\d+) : ([^ ]*)$/)) {
-      $Temp = "Masqueraded as $User";
+   } elsif ( my ($Host,$Port,$User) = ($ThisLine =~ /^\[([^ ]*)\] \(Masqueraded\) Successful lookup: \d+ , (\d+) : ([^ ]*)$/)) {
+      my $Temp = "Masqueraded as $User";
       $Lookups{$Port}{$Temp}{$Host}++;
       $LookupCount++;
       $MasqLookupCount++;
    } elsif (
-      (($Host) = ($ThisLine =~ /^Connection from ([^ ]* \([^ ]*\)):\d+$/)) or
-      (($Host) = ($ThisLine =~ /^Connection from ([^ ]*):\d+$/))
+      (my ($Host) = ($ThisLine =~ /^Connection from ([^ ]* \([^ ]*\)):\d+$/)) or
+      (my ($Host) = ($ThisLine =~ /^Connection from ([^ ]*):\d+$/))
       ) {
       $Connection{$Host}++;
       $Connections++;
-   } elsif ( ($Host,$Port) = ($ThisLine =~ /^\[([^ ]*)\] \d+ , (\d+) : ERROR : [^ ]*$/)) {
+   } elsif ( my ($Host,$Port) = ($ThisLine =~ /^\[([^ ]*)\] \d+ , (\d+) : ERROR : [^ ]*$/)) {
       $ErrorLookup{$Port}{$Host}++;
       $LookupErrorCount++;
    } elsif ( $ThisLine =~ /^oidentd startup\s+succeeded$/ ) {
@@ -98,11 +107,11 @@ if (keys %Lookups) {
    if ($MasqLookupCount > 0) {
       print "Masqueraded connections: $MasqLookupCount Time(s)\n";
    }
-   foreach $Port (sort {$a cmp $b} keys %Lookups) {
+   foreach my $Port (sort {$a cmp $b} keys %Lookups) {
       print "    Service on port $Port:\n";
-      foreach $User (sort {$a cmp $b} keys %{$Lookups{$Port}}) {
+      foreach my $User (sort {$a cmp $b} keys %{$Lookups{$Port}}) {
          print "      $User:\n";
-         foreach $Host (sort {$a cmp $b} keys %{$Lookups{$Port}{$User}}) {
+         foreach my $Host (sort {$a cmp $b} keys %{$Lookups{$Port}{$User}}) {
             print "         $Host: $Lookups{$Port}{$User}{$Host} Time(s)\n";
          }
       }
@@ -111,9 +120,9 @@ if (keys %Lookups) {
 
 if (keys %ErrorLookup) {
    print "\nErrors when lookup ident $LookupErrorCount Time(s)\n";
-   foreach $Port (sort {$a cmp $b} keys %ErrorLookup) {
+   foreach my $Port (sort {$a cmp $b} keys %ErrorLookup) {
       print "    Service on port $Port:\n";
-      foreach $Host (sort {$a cmp $b} keys %{$ErrorLookup{$Port}}) {
+      foreach my $Host (sort {$a cmp $b} keys %{$ErrorLookup{$Port}}) {
          print "      $Host: $ErrorLookup{$Port}{$Host} Time(s)\n"
       }
    }
@@ -121,7 +130,7 @@ if (keys %ErrorLookup) {
 
 if (keys %OtherList) {
    print "\n**Unmatched Entries**\n";
-   foreach $line (sort {$a cmp $b} keys %OtherList) {
+   foreach my $line (sort {$a cmp $b} keys %OtherList) {
       print "$line: $OtherList{$line} Time(s)\n";
    }
 }
