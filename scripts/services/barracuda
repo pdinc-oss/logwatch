@@ -30,6 +30,8 @@
 ## copyright please contact logwatch-devel@lists.sourceforge.net.
 #########################################################
 
+use strict;
+
 my $Detail = $ENV{'LOGWATCH_DETAIL_LEVEL'} || 0;
 my $Debug = $ENV{'LOGWATCH_DEBUG'} || 0;
 
@@ -41,6 +43,29 @@ sub Round {
    return $result;
 }
 
+#Init String Containers
+my (
+$RECVtime,  $SCANsize,  $SCANtime,
+$delivery,  $ip,        $reason,
+$size,      $time
+);
+#Init Array
+my @RSaction = ();
+my @Saction = ();
+my @Reason = ();
+my @OtherList = ();
+#Init Hashes
+my (
+%RECVReason,        %RECVReasons,           %RECVaction,
+%RECVreason,        %RECVreason_extra,      %RECVtime_div,
+%RECVtime_max,      %RECVtime_min,          %RECVtime_total,
+%SCANReason,        %SCANReasons,           %SCANaction,
+%SCANreason,        %SCANsize_div,          %SCANsize_total,
+%SCANtime_div,      %SCANtime_max,          %SCANtime_min,
+%SCANtime_total,    %SENDaction,            %SENDreason,
+%SENDresponse,      %score_div,             %score_max,
+%score_min,         %score_total
+);
 # Text messages for the RECV and SCAN action codes:
 $RSaction[0] = "Allowed Message(s)";
 $RSaction[1] = "Aborted Message(s)";
@@ -121,15 +146,15 @@ $Reason[58] = "Too Many Errors";
 $Reason[59] = "Need STARTTLS First";
 $Reason[60] = "Spam Fingerprint Found";
 
-while (defined($ThisLine = <STDIN>))
+while (defined(my $ThisLine = <STDIN>))
 {
-   if ( ($address, $id, $start_time, $end_time, $type, $info) = ($ThisLine =~ /([^\s]+)\s([^\s]+)\s(\d+)\s(\d+)\s(RECV|SCAN|SEND)\s(.*)$/) )
+   if ( my ($address, $id, $start_time, $end_time, $type, $info) = ($ThisLine =~ /([^\s]+)\s([^\s]+)\s(\d+)\s(\d+)\s(RECV|SCAN|SEND)\s(.*)$/) )
    {
       ($ip) = ($address =~ /\[(.*)\]/);
       $time = ($end_time - $start_time);
       if ( $type =~ /RECV/ )
       {
-         if ( ($sender, $recipient, $action, $reason, $reason_extra) = ($info =~ /([^\s]+)\s([^\s]+)\s(\d+)\s(\d+)\s(.*)$/) ) {
+         if ( my ($sender, $recipient, $action, $reason, $reason_extra) = ($info =~ /([^\s]+)\s([^\s]+)\s(\d+)\s(\d+)\s(.*)$/) ) {
             $RECVaction{$action}++;
             $RECVreason{$reason}++;
             $RECVreason_extra{$reason_extra}++;
@@ -154,7 +179,7 @@ while (defined($ThisLine = <STDIN>))
             push @OtherList,$ThisLine;
          }
       } elsif ( $type =~ /SCAN/ ) {
-         if ( ($enc, $sender, $recipient, $score, $action, $reason, $reason_extra, $subject) = ($info =~ /([^\s]+)\s([^\s]+)\s([^\s]+)\s([-\.\d+]+)\s(\d+)\s(\d+)\s(.*)\sSUBJ:(.*)$/) ) {
+         if ( my ($enc, $sender, $recipient, $score, $action, $reason, $reason_extra, $subject) = ($info =~ /([^\s]+)\s([^\s]+)\s([^\s]+)\s([-\.\d+]+)\s(\d+)\s(\d+)\s(.*)\sSUBJ:(.*)$/) ) {
             if ( ($size) = ($reason_extra =~ /\sSZ:(\d+)$/) ) {
                $reason_extra =~ s/\sSZ:(\d+)$//;
                $SCANsize_total{$action} = ($SCANsize_total{$action} + $size);
@@ -198,7 +223,7 @@ while (defined($ThisLine = <STDIN>))
             push @OtherList,$ThisLine;
          }
       } elsif ( $type =~ /SEND/ ) {
-         if ( ($enc, $action, $qid, $response) = ($info =~ /([^\s]+)\s(\d+)\s([^\s]+)\s(.*)$/) ) {
+         if ( my ($enc, $action, $qid, $response) = ($info =~ /([^\s]+)\s(\d+)\s([^\s]+)\s(.*)$/) ) {
             $SENDaction{$action}++;
             if (($delivery) = ($response =~/^(\d+)\s.*/) ) {
                $SENDresponse{$delivery}++;
@@ -224,28 +249,28 @@ if ($#OtherList >= 0)
 
 if (keys %RECVaction) {
    print "\nReceive actions:\n";
-   foreach $action (sort {$a cmp $b} keys %RECVaction) {
+   foreach my $action (sort {$a cmp $b} keys %RECVaction) {
       print '   ' . $RSaction[$action] . ": ". $RECVaction{$action} . "\n";
    }
 }
 
 if (keys %SCANaction) {
    print "\nScanning actions:\n";
-   foreach $action (sort {$a cmp $b} keys %SCANaction) {
+   foreach my $action (sort {$a cmp $b} keys %SCANaction) {
       print '   ' . $RSaction[$action] . ": ". $SCANaction{$action} . "\n";
    }
 }
 
 if (keys %SENDaction) {
    print "\nSending actions:\n";
-   foreach $action (sort {$a cmp $b} keys %SENDaction) {
+   foreach my $action (sort {$a cmp $b} keys %SENDaction) {
       print '   ' . $Saction[$action] . ": ". $SENDaction{$action} . "\n";
    }
 }
 
 if (keys %RECVreason) {
    print "\nBlocked incoming messages:\n";
-   foreach $reason (sort {$a cmp $b} keys %RECVreason) {
+   foreach my $reason (sort {$a cmp $b} keys %RECVreason) {
       if ($reason > 0) {
          print '   ' . $Reason[$reason] . " : ". $RECVreason{$reason} . "\n";
       }
@@ -254,14 +279,14 @@ if (keys %RECVreason) {
 
 if ( ($Detail >= 10) and (keys %RECVReasons) ) {
    print "\nDetails of blocked incoming messages :\n";
-   foreach $reason (sort {$a cmp $b} keys %RECVReasons) {
+   foreach my $reason (sort {$a cmp $b} keys %RECVReasons) {
       print '   ' . $Reason[$RECVReason{$reason}] . " : " . $reason . " : ". $RECVReasons{$reason} . "\n";
    }
 }
 
 if (keys %RECVtime_total) {
    print "\nReceive timing:\n";
-   foreach $action (sort {$a cmp $b} keys %RECVtime_total) {
+   foreach my $action (sort {$a cmp $b} keys %RECVtime_total) {
       $RECVtime = ($RECVtime_total{$action} / $RECVtime_div{$action});
       print '   ' . $RSaction[$action] . " :\n";
       print "\tMinimum : " . $RECVtime_min{$action} . "\n";
@@ -272,7 +297,7 @@ if (keys %RECVtime_total) {
 
 if (keys %SCANreason) {
    print "\nDecisions while scanning:\n";
-   foreach $reason (sort {$a cmp $b} keys %SCANreason) {
+   foreach my $reason (sort {$a cmp $b} keys %SCANreason) {
       print '   ' . $Reason[$reason] . " : ". $SCANreason{$reason} . "\n";
    }
 }
@@ -286,7 +311,7 @@ if ( ($Detail >= 10) and (keys %SCANReasons) ) {
 
 if (keys %SCANtime_total) {
    print "\nScan timing:\n";
-   foreach $action (sort {$a cmp $b} keys %SCANtime_total) {
+   foreach my $action (sort {$a cmp $b} keys %SCANtime_total) {
       $SCANtime = ($SCANtime_total{$action} / $SCANtime_div{$action});
       print '   ' . $RSaction[$action] . " :\n";
       print "\tMinimum : " . $SCANtime_min{$action} . "\n";
@@ -297,7 +322,7 @@ if (keys %SCANtime_total) {
 
 if (keys %SCANsize_total) {
    print "\nMessage sizes:\n";
-   foreach $action (sort {$a cmp $b} keys %SCANsize_total) {
+   foreach my $action (sort {$a cmp $b} keys %SCANsize_total) {
       $SCANsize = ($SCANsize_total{$action} / $SCANsize_div{$action});
       print '   ' . $RSaction[$action] . " :\n";
 #      print "\tMinimum : " . $SCANsize_min{$action} . "\n";
@@ -309,22 +334,22 @@ if (keys %SCANsize_total) {
 
 if (keys %SENDreason) {
    print "\nSending reasons:\n";
-   foreach $reason (sort {$a cmp $b} keys %SENDreason) {
+   foreach my $reason (sort {$a cmp $b} keys %SENDreason) {
       print '   ' . $Reason[$reason] . " : ". $SENDreason{$reason} . "\n";
    }
 }
 
 if (keys %SENDresponse) {
    print "\nSending responses:\n";
-   foreach $response (sort {$a cmp $b} keys %SENDresponse) {
+   foreach my $response (sort {$a cmp $b} keys %SENDresponse) {
       print '   ' . $response . ": ". $SENDresponse{$response} . "\n";
    }
 }
 
 if (keys %score_total) {
    print "\nScores:\n";
-   foreach $action (sort {$a cmp $b} keys %score_total) {
-      $score = ($score_total{$action} / $score_div{$action});
+   foreach my $action (sort {$a cmp $b} keys %score_total) {
+      my $score = ($score_total{$action} / $score_div{$action});
       print '   ' . $RSaction[$action] . " :\n";
       print "\tMinimum : " . $score_min{$action} . "\n";
       print "\tAverage : " . Round($score, 3) . "\n";
