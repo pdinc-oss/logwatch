@@ -24,47 +24,56 @@
 #########################################################
 
 use Logwatch ':ip';
+use strict;
 
-$Detail = $ENV{'LOGWATCH_DETAIL_LEVEL'} || 0;
+my $Detail = $ENV{'LOGWATCH_DETAIL_LEVEL'} || 0;
 
-while (defined($ThisLine = <STDIN>)) {
+#Init Array
+my @OtherList = ();
+#Init Hashes
+my (
+%Attempted,     %Mounted,   %NotFound,
+%Rejected,      %SignalExit
+);
+
+while (defined(my $ThisLine = <STDIN>)) {
    if ( ($ThisLine =~ /^Unauthorized access by NFS client .*$/ ) or
          ($ThisLine =~ /^NFS client [^ ]+ tried to access .*$/ ) or
          ($ThisLine =~ /^[^ ]* exported to both [0-9.]*\/[0-5]* and [0-9.]*\/[0-9]/) ) {
       # don't care about this, as the next line reports the IP again
    }
-   elsif ( ($IP,$Mount) = ($ThisLine =~ /^Blocked attempt of (\d+\.\d+\.\d+\.\d+) to mount (.*)$/) ) {
-      $Name = LookupIP ($IP);
+   elsif ( my ($IP,$Mount) = ($ThisLine =~ /^Blocked attempt of (\d+\.\d+\.\d+\.\d+) to mount (.*)$/) ) {
+      my $Name = LookupIP ($IP);
       $Mount = "      " . $Mount;
       $Rejected{$Name}{$Mount}++;
    }
-   elsif ( ($Name,$Mount) = ($ThisLine =~ /^refused mount request from (.+) for ([^ ]+)/) ) {
+   elsif ( my ($Name,$Mount) = ($ThisLine =~ /^refused mount request from (.+) for ([^ ]+)/) ) {
       $Mount = "      " . $Mount;
       $Rejected{$Name}{$Mount}++;
    }
-   elsif ( ($Mount) = ($ThisLine =~ /can.t stat exported dir (.*): No such file or directory/) ) {
+   elsif ( my ($Mount) = ($ThisLine =~ /can.t stat exported dir (.*): No such file or directory/) ) {
       $Mount = "      " . $Mount;
       $NotFound{$Mount}++;
    }
-   elsif ( ($Mount,$IP) = ($ThisLine =~ /^NFS mount of (.*) attempted from (\d+\.\d+\.\d+\.\d+) $/) ) {
+   elsif ( my ($Mount,$IP) = ($ThisLine =~ /^NFS mount of (.*) attempted from (\d+\.\d+\.\d+\.\d+) $/) ) {
       $Name = LookupIP ($IP);
       $Mount = "      " . $Mount;
       $Attempted{$Name}{$Mount}++;
    }
-   elsif ( ($Name,$Mount) = ($ThisLine =~ /^authenticated (?:un)?mount request from (.+):\d+ for ([^ ]+)/) ) {
+   elsif ( my ($Name,$Mount) = ($ThisLine =~ /^authenticated (?:un)?mount request from (.+):\d+ for ([^ ]+)/) ) {
       $Mount = "      " . $Mount;
       $Mounted{$Name}{$Mount}++;
    }
-   elsif ( ($Name) = ($ThisLine =~ /^authenticated (?:un)?mount request from ([\w:]+)/) ) {
+   elsif ( my ($Name) = ($ThisLine =~ /^authenticated (?:un)?mount request from ([\w:]+)/) ) {
       $Mount = "      unknown";
       $Mounted{$Name}{$Mount}++;
    }
-   elsif ( ($Mount,$IP) = ($ThisLine =~ /^(.*) has been mounted by (\d+\.\d+\.\d+\.\d+) $/) ) {
+   elsif ( my ($Mount,$IP) = ($ThisLine =~ /^(.*) has been mounted by (\d+\.\d+\.\d+\.\d+) $/) ) {
       $Name = LookupIP ($IP);
       $Mount = "      " . $Mount;
       $Mounted{$Name}{$Mount}++;
    }
-   elsif ( ($Number) = ($ThisLine =~ /Caught signal ([0-9]*), un-registering and exiting/) ) {
+   elsif ( my ($Number) = ($ThisLine =~ /Caught signal ([0-9]*), un-registering and exiting/) ) {
       $SignalExit{$Number}++;
    }
    else {
@@ -75,9 +84,9 @@ while (defined($ThisLine = <STDIN>)) {
 
 if (keys %Rejected) {
    print "\nRefused NFS mount attempts:\n";
-   foreach $ThisOne (keys %Rejected) {
+   foreach my $ThisOne (keys %Rejected) {
       print "   " . $ThisOne . ":\n";
-      foreach $ThatOne (keys %{$Rejected{$ThisOne}}) {
+      foreach my $ThatOne (keys %{$Rejected{$ThisOne}}) {
          print $ThatOne . ': ' . $Rejected{$ThisOne}{$ThatOne} . " Time(s)\n";
       }
    }
@@ -85,23 +94,23 @@ if (keys %Rejected) {
 
 if (keys %NotFound) {
    print "\nAttempts to mount nonexisting files or directories:\n";
-   foreach $ThisOne (keys %NotFound) {
+   foreach my $ThisOne (keys %NotFound) {
       print "   " . $ThisOne .":" . $NotFound{$ThisOne} . " Time(s)\n";
    }
 }
 
 if (keys %SignalExit) {
    printf "\nExit after catching signal:\n";
-   foreach $Number (keys %SignalExit) {
+   foreach my $Number (keys %SignalExit) {
       print "   Signal " . $Number. ": " . $SignalExit{$Number} . " Time(s)\n";
    }
 }
 
 if (($Detail >= 5) and (keys %Mounted)) {
    print "\nSuccessful NFS mounts:\n";
-   foreach $ThisOne (keys %Mounted) {
+   foreach my $ThisOne (keys %Mounted) {
       print "   " . $ThisOne . ":\n";
-      foreach $ThatOne (keys %{$Mounted{$ThisOne}}) {
+      foreach my $ThatOne (keys %{$Mounted{$ThisOne}}) {
          print $ThatOne . ': ' . $Mounted{$ThisOne}{$ThatOne} . " Time(s)\n";
       }
    }
@@ -109,9 +118,9 @@ if (($Detail >= 5) and (keys %Mounted)) {
 
 if (($Detail >= 10) and (keys %Attempted)) {
    print "\nAttempted NFS mounts:\n";
-   foreach $ThisOne (keys %Attempted) {
+   foreach my $ThisOne (keys %Attempted) {
       print "   " . $ThisOne . ":\n";
-      foreach $ThatOne (keys %{$Attempted{$ThisOne}}) {
+      foreach my $ThatOne (keys %{$Attempted{$ThisOne}}) {
          print $ThatOne . ': ' . $Attempted{$ThisOne}{$ThatOne} . " Time(s)\n";
       }
    }
