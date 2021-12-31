@@ -22,13 +22,24 @@
 ## contributions to this script and want to claim
 ## copyright please contact logwatch-devel@lists.sourceforge.net.
 #########################################################
+use strict;
 
-$Detail = $ENV{'LOGWATCH_DETAIL_LEVEL'} || 0;
-$IgnoreUnmatched = $ENV{'ftpd_ignore_unmatched'} || 0;
+my $Detail = $ENV{'LOGWATCH_DETAIL_LEVEL'} || 0;
+my $IgnoreUnmatched = $ENV{'ftpd_ignore_unmatched'} || 0;
 
 my $SegFault = 0;
+#Init String Containers
+my ($Temp, $Temp2);
+#Init Arrays
+my @OtherList = ();
+#Init Hashes
+my (
+%AnonLogins,        %DeletedFiles, %FailedLogins,
+%RefusedAnonLogins, %RefusedPorts, %SecurityViolations,
+%TimedOut,          %UserLogins
+);
 
-while (defined($ThisLine = <STDIN>)) {
+while (defined(my $ThisLine = <STDIN>)) {
    if ( ( $ThisLine =~ /FTP session closed$/ ) or
          ( $ThisLine =~ /^getpeername \(in.ftpd\): Transport endpoint is not connected$/ ) or
          ( $ThisLine =~ /^QUIT$/ ) or
@@ -63,49 +74,49 @@ while (defined($ThisLine = <STDIN>)) {
 
             # We don't care about any of these
 
-   } elsif ( ($Host,$IP,$Email) = ( $ThisLine =~ /^ANONYMOUS FTP LOGIN FROM ([^ ]+) \[(.*)\], (.*)$/ ) ) {
+   } elsif ( my ($Host,$IP,$Email) = ( $ThisLine =~ /^ANONYMOUS FTP LOGIN FROM ([^ ]+) \[(.*)\], (.*)$/ ) ) {
       $Temp = "   " . $Host . " (" . $IP . "): " . $Email . " - ";
       $AnonLogins{$Temp}++;
-   } elsif ( ($Host,$IP,$User) = ( $ThisLine =~ /FTP LOGIN FROM ([^ ]+) \[(.*)\], (.*)$/ ) ) {
+   } elsif ( my ($Host,$IP,$User) = ( $ThisLine =~ /FTP LOGIN FROM ([^ ]+) \[(.*)\], (.*)$/ ) ) {
       $Temp = "   " . $Host . " (" . $IP . "): " . $User . " - ";
       $UserLogins{$Temp}++;
-   } elsif ( ($Host,$IP,$User) = ( $ThisLine =~ /^FTP LOGIN REFUSED \(.+\) FROM ([^ ]+) \[(.*)\], (.*)$/ ) ) {
+   } elsif ( my ($Host,$IP,$User) = ( $ThisLine =~ /^FTP LOGIN REFUSED \(.+\) FROM ([^ ]+) \[(.*)\], (.*)$/ ) ) {
       $Temp = "   " . $Host . " (" . $IP . "): " . $User . " - ";
       $FailedLogins{$Temp}++;
-   } elsif ( ($Host,$IP,$User) = ( $ThisLine =~ /REFUSED .+ from ([^ ]+) \[(.*)\], (.*)$/i ) ) {
+   } elsif ( my ($Host,$IP,$User) = ( $ThisLine =~ /REFUSED .+ from ([^ ]+) \[(.*)\], (.*)$/i ) ) {
       $Temp = "   " . $Host . " (" . $IP . "): " . $User . " - ";
       $FailedLogins{$Temp}++;
-   } elsif ( ($Host,$IP,$User) = ( $ThisLine =~ /^failed login from ([^ ]+) \[(.*)\], (.*)$/ ) ) {
+   } elsif ( my ($Host,$IP,$User) = ( $ThisLine =~ /^failed login from ([^ ]+) \[(.*)\], (.*)$/ ) ) {
       $Temp = "   " . $Host . " (" . $IP . "): " . $User . " - ";
       $FailedLogins{$Temp}++;
-   } elsif ( ($Limit,$Class,$Host,$IP) = ( $ThisLine =~ /^ACCESS DENIED \(user limit (.*)\; class (.*)\) TO (.*) \[(.*)\]/ ) ) {
+   } elsif ( my ($Limit,$Class,$Host,$IP) = ( $ThisLine =~ /^ACCESS DENIED \(user limit (.*)\; class (.*)\) TO (.*) \[(.*)\]/ ) ) {
       $Temp = "   " . $Host . " (" . $IP . "): class " . $Class . " (Limit: " . $Limit . ") - ";
       $FailedLogins{$Temp}++;
-   } elsif ( ($Host,$IP) = ( $ThisLine =~ /^FTP ACCESS REFUSED \(anonymous password not rfc822\) from (.*) \[(.*)\]/ ) ) {
+   } elsif ( my ($Host,$IP) = ( $ThisLine =~ /^FTP ACCESS REFUSED \(anonymous password not rfc822\) from (.*) \[(.*)\]/ ) ) {
       $Temp = "   " . $Host . " (" . $IP . ") - ";
       $FailedLogins{$Temp}++;
-   } elsif ( ($Host,$IP,$User) = ( $ThisLine =~ /failed login from ([^ ]+) \[(.*)\]$/ ) ) {
+   } elsif ( my ($Host,$IP,$User) = ( $ThisLine =~ /failed login from ([^ ]+) \[(.*)\]$/ ) ) {
       $Temp = "   " . $Host . " (" . $IP . ") - ";
       $FailedLogins{$Temp}++;
-   } elsif ( ($IP,$Host) = ( $ThisLine =~ /^refused PORT ([\d.]+),\d+ from (.*)$/ ) ) {
+   } elsif ( my ($IP,$Host) = ( $ThisLine =~ /^refused PORT ([\d.]+),\d+ from (.*)$/ ) ) {
       $Temp = "   " . $Host . " (" . $IP . ") - ";
       $RefusedPorts{$Temp}++;
    } elsif ( $ThisLine =~ /^exiting on signal 11: Segmentation fault$/ ) {
       $SegFault++;
-   } elsif ( ($User,$Host,$IP,$File) = ( $ThisLine =~ /^([^ ]+) of ([^ ]*) \[(.*)\] deleted (.*)$/ ) ) {
+   } elsif ( my ($User,$Host,$IP,$File) = ( $ThisLine =~ /^([^ ]+) of ([^ ]*) \[(.*)\] deleted (.*)$/ ) ) {
       $Temp = "   " . $Host . " (" . $IP . "): " . $User . "\n";
       $Temp2 = "      " . $File . "\n";
       push @{$DeletedFiles{$Temp}}, $Temp2;
-   } elsif ( ($User,$Pass,$Host,$IP) = ( $ThisLine =~ /(.*)\((.*)\) of (.*) \[(.*)\] tried to/) ) {
+   } elsif ( my ($User,$Pass,$Host,$IP) = ( $ThisLine =~ /(.*)\((.*)\) of (.*) \[(.*)\] tried to/) ) {
       $Temp = "   " . $Host . " ($IP): " . $User . " ($Pass) - ";
       $SecurityViolations{$Temp}++;
-   } elsif ( ($Host,$User,$IP) = ( $ThisLine =~ /(.*)\: (.*)\: SITE .* \[(.*)\] tried to/) ) {
+   } elsif ( my ($Host,$User,$IP) = ( $ThisLine =~ /(.*)\: (.*)\: SITE .* \[(.*)\] tried to/) ) {
       $Temp = "   " . $Host . " ($IP): " . $User . " - ";
       $SecurityViolations{$Temp}++;
-   } elsif ( ($Host,$IP) = ( $ThisLine =~ /^FTP LOGIN FAILED \(cannot set guest privileges\) for ([^ ]+) \[(.*)\], ftp$/ ) ) {
+   } elsif ( my ($Host,$IP) = ( $ThisLine =~ /^FTP LOGIN FAILED \(cannot set guest privileges\) for ([^ ]+) \[(.*)\], ftp$/ ) ) {
       $Temp = "   " . $Host . " (" . $IP . "): - ";
       $RefusedAnonLogins{$Temp}++;
-   } elsif ( ($Host, $User) = ( $ThisLine =~ /^([^ ]+): ([^ ]+): IDLE\[\d+\]: User [^
+   } elsif ( my ($Host, $User) = ( $ThisLine =~ /^([^ ]+): ([^ ]+): IDLE\[\d+\]: User [^
 ]+ timed out after / ) ) {
       # dhcp024-208-136-047.insight.rr.com: visitor: IDLE[23195]: User visitor timed out after 900 seconds at Mon Jan 13 00:25:24 2003
       $TimedOut{"   " . $Host . " : " . $User}++;
@@ -117,14 +128,14 @@ while (defined($ThisLine = <STDIN>)) {
 
 if ( (keys %AnonLogins) and ($Detail >= 10) ) {
    print "\nAnonymous FTP Logins:\n";
-   foreach $ThisOne (keys %AnonLogins) {
+   foreach my $ThisOne (keys %AnonLogins) {
       print $ThisOne . $AnonLogins{$ThisOne} . " Time(s)\n";
    }
 }
 
 if ((keys %DeletedFiles) and ($Detail >= 10)) {
    print "\nFiles deleted through FTP:\n";
-   foreach $ThisOne (keys %DeletedFiles) {
+   foreach my $ThisOne (keys %DeletedFiles) {
       print $ThisOne;
       print @{$DeletedFiles{$ThisOne}};
    }
@@ -132,42 +143,42 @@ if ((keys %DeletedFiles) and ($Detail >= 10)) {
 
 if ((keys %UserLogins) and ($Detail >= 5)) {
    print "\nUser FTP Logins:\n";
-   foreach $ThisOne (keys %UserLogins) {
+   foreach my $ThisOne (keys %UserLogins) {
       print $ThisOne . $UserLogins{$ThisOne} . " Time(s)\n";
    }
 }
 
 if (keys %FailedLogins) {
    print "\nFailed FTP Logins:\n";
-   foreach $ThisOne (keys %FailedLogins) {
+   foreach my $ThisOne (keys %FailedLogins) {
       print $ThisOne . $FailedLogins{$ThisOne} . " Time(s)\n";
    }
 }
 
 if ( (keys %RefusedPorts) and ($Detail >= 10) ) {
    print "\nRefused PORTs:\n";
-   foreach $ThisOne (keys %RefusedPorts) {
+   foreach my $ThisOne (keys %RefusedPorts) {
       print $ThisOne . $RefusedPorts{$ThisOne} . " Time(s)\n";
    }
 }
 
 if (keys %TimedOut) {
    print "\nConnections timed out:\n";
-   foreach $ThisOne (keys %TimedOut) {
+   foreach my $ThisOne (keys %TimedOut) {
       print $ThisOne . $TimedOut{$ThisOne} . " Time(s)\n";
    }
 }
 
 if ( (keys %SecurityViolations) and ($Detail >= 5) ) {
    print "\nFailed filesystem violations:\n";
-   foreach $ThisOne (keys %SecurityViolations) {
+   foreach my $ThisOne (keys %SecurityViolations) {
       print $ThisOne . $SecurityViolations{$ThisOne} . " Time(s)\n";
    }
 }
 
 if (keys %RefusedAnonLogins) {
    print "\nRefused anonymous FTP Logins:\n";
-   foreach $ThisOne (keys %RefusedAnonLogins) {
+   foreach my $ThisOne (keys %RefusedAnonLogins) {
       print $ThisOne . $RefusedAnonLogins{$ThisOne} . " Time(s)\n";
    }
 }
