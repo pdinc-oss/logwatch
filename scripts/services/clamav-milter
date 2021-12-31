@@ -30,11 +30,21 @@
 ## contributions to this script and want to claim
 ## copyright please contact logwatch-devel@lists.sourceforge.net.
 #########################################################
+use strict;
 
-$Detail = $ENV{'LOGWATCH_DETAIL_LEVEL'};
+my $Detail = $ENV{'LOGWATCH_DETAIL_LEVEL'};
 my $IgnoreUnmatched = $ENV{'clamav_ignoreunmatched'} || 0;
 
-while (defined($ThisLine = <STDIN>)) {
+#Init Counters
+my (
+$CleanMessage,      $DaemonStart,       $DaemonStop,
+$DatabaseReloads,   $DatabaseViruses
+);
+#Init Hashes
+my (
+%MaxChildrenLimit,      %OtherList,     %VirusList
+);
+while (defined(my $ThisLine = <STDIN>)) {
 
    chomp($ThisLine);
    if (
@@ -61,13 +71,13 @@ while (defined($ThisLine = <STDIN>)) {
    } elsif (($ThisLine =~ /.*: (.+?) Intercepted virus/i ) or
             ($ThisLine =~ /Message from .* to .* infected by (.+)/)) {
       $VirusList{$1}++;
-   } elsif (($ChildLimit) = ($ThisLine =~ /hit max-children limit \((\d+ >= \d+)\): waiting for some to exit/)) {
+   } elsif (my ($ChildLimit) = ($ThisLine =~ /hit max-children limit \((\d+ >= \d+)\): waiting for some to exit/)) {
       $MaxChildrenLimit{$ChildLimit}++;
    } elsif (($ThisLine =~ /^Stopping/)) {
       $DaemonStop++;
    } elsif (($ThisLine =~ /^(Starting|\+\+\+ Started)/)) {
       $DaemonStart++;
-   } elsif (($Viruses) = ($ThisLine =~ /^Database correctly reloaded \((\d+) (signatures|viruses)\)/i )) {
+   } elsif (my ($Viruses) = ($ThisLine =~ /^Database correctly reloaded \((\d+) (signatures|viruses)\)/i )) {
       $DatabaseReloads++;
       $DatabaseViruses = $Viruses;
    } else {
@@ -90,7 +100,7 @@ if (($DatabaseReloads) and ($Detail >= 5)) {
 
 if (keys %MaxChildrenLimit) {
    print "\nHit max-children limit:\n";
-   foreach $Limit (sort {$a cmp $b} keys %MaxChildrenLimit) {
+   foreach my $Limit (sort {$a cmp $b} keys %MaxChildrenLimit) {
       print '   Limit ' . $Limit . ' children(s) exceeded ' . $MaxChildrenLimit{$Limit} . " Time(s)\n"
    }
 }
@@ -102,7 +112,7 @@ if ($CleanMessage) {
 if (keys %VirusList) {
    my $Total = 0;
    print "\nInfected messages:\n";
-   foreach $Virus (sort {$a cmp $b} keys %VirusList) {
+   foreach my $Virus (sort {$a cmp $b} keys %VirusList) {
       print '   ' . $Virus . ": ". $VirusList{$Virus} . " Message(s)\n";
       $Total += $VirusList{$Virus};
    }
