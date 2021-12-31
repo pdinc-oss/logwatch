@@ -22,8 +22,22 @@
 ## contributions to this script and want to claim
 ## copyright please contact logwatch-devel@lists.sourceforge.net.
 #########################################################
-
+use strict;
 use File::Basename qw(dirname);
+
+#Init String Containers
+my (
+$Temp,          $TotalKBytesIn,     $TotalKBytesOut,
+$TotalMBytesIn, $TotalMBytesOut
+);
+#Init Arrays
+my (
+@AnonIn,    @AnonOut,   @DeletedFiles,
+@GuestIn,   @GuestOut,  @OtherList,
+@UserIn,    @UserOut
+) = ();
+#Init Hashes
+my %FilesOut;
 
 sub remove_dups {
    my(@info)=sort @_;
@@ -45,15 +59,15 @@ sub remove_dups {
    return @out;
 }
 
-$Detail = $ENV{'LOGWATCH_DETAIL_LEVEL'} || 0;
-$FTPDetail = $ENV{'detail_transfer'};
+my $Detail = $ENV{'LOGWATCH_DETAIL_LEVEL'} || 0;
+my $FTPDetail = $ENV{'detail_transfer'};
 
-$TotalBytesOut = 0;
-$TotalBytesIn = 0;
+my $TotalBytesOut = 0;
+my $TotalBytesIn = 0;
 
-while (defined($ThisLine = <STDIN>)) {
+while (defined(my $ThisLine = <STDIN>)) {
    # Remove transfer time if it is there
-   if ( ($RemoteHost,$Size,$FileName,$Direction,$AccessMode,$UserName) =
+   if ( my ($RemoteHost,$Size,$FileName,$Direction,$AccessMode,$UserName) =
          ( $ThisLine =~ /^([^ ]+) (\d+) (.*) . . (.) (.) (.*) ftps? . .*$/ ) ) {
       if ($Detail < 15) {
          $FileName = dirname($FileName);
