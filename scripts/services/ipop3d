@@ -22,15 +22,16 @@
 ## contributions to this script and want to claim
 ## copyright please contact logwatch-devel@lists.sourceforge.net.
 #########################################################
+use strict;
 
-$Detail = $ENV{'LOGWATCH_DETAIL_LEVEL'} || 0;
+my $Detail = $ENV{'LOGWATCH_DETAIL_LEVEL'} || 0;
 
 my %Conn_loginok;
 my %Conn_loginfail;
 my %Connections;
 my %OtherList;
 
-while (defined($ThisLine = <STDIN>)) {
+while (defined(my $ThisLine = <STDIN>)) {
    chomp($ThisLine);
    #Solaris ID filter -mgt
    $ThisLine =~ s/\[ID [0-9]+ [a-z]+\.[a-z]+\] //;
@@ -85,7 +86,7 @@ while (defined($ThisLine = <STDIN>)) {
 
 if ( (keys %Connections) and ($Detail >= 15) ) {
    print "\nInitialized Connections:\n";
-   foreach $ThisOne (sort {$Connections{$b}<=>$Connections{$a}} keys %Connections) {
+   foreach my $ThisOne (sort {$Connections{$b}<=>$Connections{$a}} keys %Connections) {
       printf "   %4i from %s\n" , $Connections{$ThisOne} , $ThisOne;
    }
 }
