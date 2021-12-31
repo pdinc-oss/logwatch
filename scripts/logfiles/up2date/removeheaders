@@ -19,7 +19,8 @@
 ## copyright please contact logwatch-devel@lists.sourceforge.net.
 #########################################################
 
-while (defined($ThisLine = <STDIN>)) {
+use strict;
+while (defined(my $ThisLine = <STDIN>)) {
     $ThisLine =~ s/^\[... ... .. ..:..:.. ....\] up2date //;
     print $ThisLine;
 }

@@ -27,6 +27,7 @@
 ## copyright please contact logwatch-devel@lists.sourceforge.net.
 #########################################################
 
+use strict;
 use POSIX qw(strftime);
 use Logwatch ':dates';
 
@@ -34,15 +35,15 @@ my $Debug = $ENV{'LOGWATCH_DEBUG'} || 0;
 
 my $time = time;
 
-$SearchDate = TimeFilter('%m/%d/%y %H:%M:%S');
-$SearchDate2 = TimeFilter('%Y/%m/%d %H:%M:%S');
+my $SearchDate = TimeFilter('%m/%d/%y %H:%M:%S');
+my $SearchDate2 = TimeFilter('%Y/%m/%d %H:%M:%S');
 
 if ( $Debug > 5 ) {
    print STDERR "DEBUG: Inside ApplyDate (samba)...\n";
    print STDERR "DEBUG: Looking For: $SearchDate or $SearchDate2\n";
 }
 
-$ThisLine = <STDIN>;
+my $ThisLine = <STDIN>;
 mainloop: while ($ThisLine) {
    if ($ThisLine =~ m/^$SearchDate /o) {
       print $ThisLine;

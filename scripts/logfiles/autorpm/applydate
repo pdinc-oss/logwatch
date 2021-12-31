@@ -19,21 +19,22 @@
 ## copyright please contact logwatch-devel@lists.sourceforge.net.
 #########################################################
 
+use strict;
 use POSIX qw(strftime);
 use Logwatch ':dates';
 
 my $time = time;
 my $Debug = $ENV{'LOGWATCH_DEBUG'} || 0;
 
-$SearchDate = TimeFilter('%a %b %e %H:..:.. [^ ]+ %Y - ');
+my $SearchDate = TimeFilter('%a %b %e %H:..:.. [^ ]+ %Y - ');
 
 if ($Debug > 5) {
    print STDERR "DEBUG: Inside ApplyDate (autorpm)...\n";
-   print STDERR "DEBUG: Looking For: $SearchDate or $SearchYear\n";
+   print STDERR "DEBUG: Looking For: $SearchDate\n";
 }
 
 
-while (defined($ThisLine = <STDIN>)) {
+while (defined(my $ThisLine = <STDIN>)) {
    if ($ThisLine =~ s/$SearchDate//o) {
       print $ThisLine;
    }

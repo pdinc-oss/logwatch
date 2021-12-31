@@ -19,6 +19,7 @@
 ## copyright please contact logwatch-devel@lists.sourceforge.net.
 #########################################################
 
+use strict;
 use POSIX qw(strftime);
 use Logwatch ':dates';
 
@@ -26,14 +27,14 @@ my $Debug = $ENV{'LOGWATCH_DEBUG'} || 0;
 
 my $time = time;
 
-$SearchDate = TimeFilter('%a %b %e %H:%M:%S %Y');
+my $SearchDate = TimeFilter('%a %b %e %H:%M:%S %Y');
 
 if ( $Debug > 5 ) {
    print STDERR "DEBUG: Inside ApplyDate (up2date)...\n";
    print STDERR "DEBUG: Looking For: " . $SearchDate . "\n";
 }
 
-while (defined($ThisLine = <STDIN>)) {
+while (defined(my $ThisLine = <STDIN>)) {
     if ($ThisLine =~ m/\[$SearchDate\]/o) {
       print $ThisLine;
     }

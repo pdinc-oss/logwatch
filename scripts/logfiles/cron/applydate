@@ -20,6 +20,7 @@
 ## copyright please contact logwatch-devel@lists.sourceforge.net.
 #########################################################
 
+use strict;
 use POSIX qw(strftime);
 use Logwatch ':dates';
 
