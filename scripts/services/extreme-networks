@@ -32,10 +32,29 @@
 ## copyright please contact logwatch-devel@lists.sourceforge.net.
 #########################################################
 
-use Logwatch ':all';
+my use Logwatch ':all';
+use strict;
 
-$Debug = ValueOrDefault($ENV{'LOGWATCH_DEBUG'}, 0);
-$Detail = ValueOrDefault($ENV{'LOGWATCH_DETAIL_LEVEL'}, 30);
+my $Debug = ValueOrDefault($ENV{'LOGWATCH_DEBUG'}, 0);
+my $Detail = ValueOrDefault($ENV{'LOGWATCH_DETAIL_LEVEL'}, 30);
+my $DebugCounter = 0;
+
+#Init Strings
+my (
+$Temp,      $config,    $dst_ip,
+$interface,
+);
+#Init Hashes
+my (
+%BadLogins,             %IllegalUsers,      %NTPFailed,
+%NTPUpdated,            %ReloadRequested,   %Restarted,
+%SYST,                  %Started,           %SysCfgSaved,
+%SysCfgSavedCompleted,  %SyslogFacility,    %SyslogHost,
+%Users,                 %UsersOut,
+);
+
+#Init Arrays
+my  @OtherList = ();
 
 # Avoid "Use of uninitialized value" warning messages.
 sub ValueOrDefault {
@@ -51,7 +70,7 @@ if ( $Debug >= 5 ) {
 
 my ($month,$day,$time,$host_ip,$host,$conn,$msg,$message);
 
-while (defined($ThisLine = <STDIN>)) {
+while (defined(my $ThisLine = <STDIN>)) {
     if ( $Debug >= 30 ) {
 	print STDERR "DEBUG($DebugCounter): $ThisLine";
 	$DebugCounter++;
@@ -150,9 +169,9 @@ else {
 
 if (keys %Started) {
    print "\nDevice started :\n";
-   foreach $ThisOne (keys %Started) {
+   foreach my $ThisOne (keys %Started) {
       print "   " . $ThisOne . ":\n";
-      foreach $ThatOne (keys %{$Started{$ThisOne}}) {
+      foreach my $ThatOne (keys %{$Started{$ThisOne}}) {
          print "\t Started" .$ThatOne . "\t: " . $Started{$ThisOne}{$ThatOne} . "{ Time(s)\n";
       }
    }
@@ -160,9 +179,9 @@ if (keys %Started) {
 
 if (keys %SYST) {
    print "\nDevice where system command where used :\n";
-   foreach $ThisOne (keys %SYST) {
+   foreach my $ThisOne (keys %SYST) {
       print "   " . $ThisOne . ":\n";
-      foreach $ThatOne (keys %{$SYST{$ThisOne}}) {
+      foreach my $ThatOne (keys %{$SYST{$ThisOne}}) {
          print "\t " .$ThatOne . "\t: " . $SYST{$ThisOne}{$ThatOne} . " Time(s)\n";
       }
    }
@@ -170,9 +189,9 @@ if (keys %SYST) {
 
 if (keys %NTPUpdated) {
    print "\nDevice where The system clock has been updated through NTP :\n";
-   foreach $ThisOne (keys %NTPUpdated) {
+   foreach my $ThisOne (keys %NTPUpdated) {
       print "   " . $ThisOne . ":\n";
-      foreach $ThatOne (keys %{$NTPUpdated{$ThisOne}}) {
+      foreach my $ThatOne (keys %{$NTPUpdated{$ThisOne}}) {
          print "\t " .$ThatOne . "\t: " . $NTPUpdated{$ThisOne}{$ThatOne} . " Time(s)\n";
       }
    }
@@ -180,9 +199,9 @@ if (keys %NTPUpdated) {
 
 if (keys %NTPFailed) {
    print "\nDevice where failed to get clock through NTP :\n";
-   foreach $ThisOne (keys %NTPFailed) {
+   foreach my $ThisOne (keys %NTPFailed) {
       print "   " . $ThisOne . ":\n";
-      foreach $ThatOne (keys %{$NTPFailed{$ThisOne}}) {
+      foreach my $ThatOne (keys %{$NTPFailed{$ThisOne}}) {
          print "\t " .$ThatOne . "\t: " . $NTPFailed{$ThisOne}{$ThatOne} . " Time(s)\n";
       }
    }
@@ -191,9 +210,9 @@ if (keys %NTPFailed) {
 
 if (keys %SyslogFacility) {
    print "\nDevice where Syslog facility has been changed  :\n";
-   foreach $ThisOne (keys %SyslogFacility) {
+   foreach my $ThisOne (keys %SyslogFacility) {
       print "   " . $ThisOne . ":\n";
-      foreach $ThatOne (keys %{$SyslogFacility{$ThisOne}}) {
+      foreach my $ThatOne (keys %{$SyslogFacility{$ThisOne}}) {
          print "\t " .$ThatOne . "\t: " . $SyslogFacility{$ThisOne}{$ThatOne} . " Time(s)\n";
       }
    }
@@ -201,9 +220,9 @@ if (keys %SyslogFacility) {
 
 if (keys %SyslogHost) {
    print "\nDevice where Syslog host has been changed  :\n";
-   foreach $ThisOne (keys %SyslogHost) {
+   foreach my $ThisOne (keys %SyslogHost) {
       print "   " . $ThisOne . ":\n";
-      foreach $ThatOne (keys %{$SyslogHost{$ThisOne}}) {
+      foreach my $ThatOne (keys %{$SyslogHost{$ThisOne}}) {
          print "\t " .$ThatOne . "\t: " . $SyslogHost{$ThisOne}{$ThisOne} . " Time(s)\n";
       }
    }
@@ -212,9 +231,9 @@ if (keys %SyslogHost) {
 
 if (keys %Restarted) {
    print "\nDevice restarted :\n";
-   foreach $ThisOne (keys %Restarted) {
+   foreach my $ThisOne (keys %Restarted) {
       print "   " . $ThisOne . ":\n";
-      foreach $ThatOne (keys %{$Restarted{$ThisOne}}) {
+      foreach my $ThatOne (keys %{$Restarted{$ThisOne}}) {
          print "\t " .$ThatOne . "\t: " . $Restarted{$ThisOne}{$ThatOne} . " Time(s)\n";
       }
    }
@@ -222,9 +241,9 @@ if (keys %Restarted) {
 
 if (keys %ReloadRequested) {
    print "\nDevice reload requested :\n";
-   foreach $ThisOne (keys %ReloadRequested) {
+   foreach my $ThisOne (keys %ReloadRequested) {
       print "   " . $ThisOne . ":\n";
-      foreach $ThatOne (keys %{$ReloadRequested{$ThisOne}}) {
+      foreach my $ThatOne (keys %{$ReloadRequested{$ThisOne}}) {
          print "\t " .$ThatOne . "\t: " . $ReloadRequested{$ThisOne}{$ThatOne} . " Time(s)\n";
       }
    }
@@ -234,9 +253,9 @@ if (keys %ReloadRequested) {
 
 if (keys %SysCfgSaved) {
    print "\nDevice where system config have been saved :\n";
-   foreach $ThisOne (keys %SysCfgSaved) {
+   foreach my $ThisOne (keys %SysCfgSaved) {
       print "   " . $ThisOne . ":\n";
-      foreach $ThatOne (keys %{$SysCfgSaved{$ThisOne}}) {
+      foreach my $ThatOne (keys %{$SysCfgSaved{$ThisOne}}) {
          print "\t " .$ThatOne . "\t: " . $SysCfgSaved{$ThisOne}{$ThatOne} . " Time(s)\n";
       }
    }
@@ -244,9 +263,9 @@ if (keys %SysCfgSaved) {
 
 if (keys %SysCfgSavedCompleted) {
    print "\nDevice where system config have been completely saved :\n";
-   foreach $ThisOne (keys %SysCfgSavedCompleted) {
+   foreach my $ThisOne (keys %SysCfgSavedCompleted) {
       print "   " . $ThisOne . ":\n";
-      foreach $ThatOne (keys %{$SysCfgSavedCompleted{$ThisOne}}) {
+      foreach my $ThatOne (keys %{$SysCfgSavedCompleted{$ThisOne}}) {
          print "\t " .$ThatOne . "\t: " . $SysCfgSavedCompleted{$ThisOne}{$ThatOne} . " Time(s)\n";
       }
    }
@@ -256,86 +275,81 @@ if (keys %SysCfgSavedCompleted) {
 
 if (keys %BadLogins) {
     print "\nFailed logins from these:\n";
-    foreach $ThisOne (keys %BadLogins) {
-	print "   " . $ThisOne . ":\n";
-	for (sort keys %{$BadLogins{$ThisOne}}) {
-	    print "\t   $_: $BadLogins{$ThisOne}{$_} Time(s)\n";
-	}
+    foreach my $ThisOne (keys %BadLogins) {
+	    print "   " . $ThisOne . ":\n";
+	    for (sort keys %{$BadLogins{$ThisOne}}) {
+	        print "\t   $_: $BadLogins{$ThisOne}{$_} Time(s)\n";
+	    }
     }
 }
 
 if (keys %IllegalUsers) {
     print "\nIllegal users from these:\n";
-    foreach $ThisOne (keys %IllegalUsers) {
-	print "   " . $ThisOne . ":\n";
-	for (sort keys %{$IllegalUsers{$ThisOne}}) {
-	    print "\t   $_: $IllegalUsers{$ThisOne}{$_} Time(s)\n";
-
-	}
+    foreach my $ThisOne (keys %IllegalUsers) {
+	    print "   " . $ThisOne . ":\n";
+	    for (sort keys %{$IllegalUsers{$ThisOne}}) {
+	        print "\t   $_: $IllegalUsers{$ThisOne}{$_} Time(s)\n";
+	    }
     }
 }
 
 
 if (keys %Users) {
     print "\nUsers logging in through :\n";
-foreach $ThisOne (keys %Users) {
-    print "   " . $ThisOne . ":\n";
+    foreach my $ThisOne (keys %Users) {
+        print "   " . $ThisOne . ":\n";
 
-foreach $user (sort {$a cmp $b} keys %{$Users{$ThisOne}}) {
-    print "   $user:\n";
-    my $totalSort = TotalCountOrder(%{$Users{$ThisOne}{$user}}, \&SortIP);
-    foreach my $ip (sort $totalSort keys %{$Users{$ThisOne}{$user}}) {
-	my $name = LookupIP($ip);
-	if ($Detail >= 20) {
-            print "      $name:\n";
-            my $sort = CountOrder(%{$Users{$ThisOne}{$user}{$ip}});
-            foreach my $method (sort $sort keys %{$Users{$ThisOne}{$user}{$ip}}) {
-		my $val = $Users{$ThisOne}{$user}{$ip}{$method};
-		my $plural = ($val > 1) ? "s" : "";
-		print "         $method: $val time$plural\n";
+        foreach my $user (sort {$a cmp $b} keys %{$Users{$ThisOne}}) {
+            print "   $user:\n";
+            my $totalSort = TotalCountOrder(%{$Users{$ThisOne}{$user}}, \&SortIP);
+            foreach my $ip (sort $totalSort keys %{$Users{$ThisOne}{$user}}) {
+	            my $name = LookupIP($ip);
+	            if ($Detail >= 20) {
+                    print "      $name:\n";
+                    my $sort = CountOrder(%{$Users{$ThisOne}{$user}{$ip}});
+                    foreach my $method (sort $sort keys %{$Users{$ThisOne}{$user}{$ip}}) {
+		                my $val = $Users{$ThisOne}{$user}{$ip}{$method};
+		                my $plural = ($val > 1) ? "s" : "";
+		                print "         $method: $val time$plural\n";
+                    }
+	            } else {
+                    my $val = (values %{$Users{$ThisOne}{$user}{$ip}})[0];
+                    my $plural = ($val > 1) ? "s" : "";
+                    print "      $name: $val time$plural\n";
+	            }
             }
-	} else {
-            my $val = (values %{$Users{$ThisOne}{$user}{$ip}})[0];
-            my $plural = ($val > 1) ? "s" : "";
-            print "      $name: $val time$plural\n";
-	}
+        }
     }
-}
-}
 }
 
 
 if (keys %UsersOut) {
     print "\nUsers logging out through :\n";
-foreach $ThisOne (keys %UsersOut) {
-    print "   " . $ThisOne . ":\n";
+    foreach my $ThisOne (keys %UsersOut) {
+        print "   " . $ThisOne . ":\n";
 
-foreach $user (sort {$a cmp $b} keys %{$UsersOut{$ThisOne}}) {
-    print "   $user:\n";
-    my $totalSort = TotalCountOrder(%{$UsersOut{$ThisOne}{$user}}, \&SortIP);
-    foreach my $ip (sort $totalSort keys %{$UsersOut{$ThisOne}{$user}}) {
-	my $name = LookupIP($ip);
-	if ($Detail >= 20) {
-            print "      $name:\n";
-            my $sort = CountOrder(%{$UsersOut{$ThisOne}{$user}{$ip}});
-            foreach my $method (sort $sort keys %{$UsersOut{$ThisOne}{$user}{$ip}}) {
-		my $val = $UsersOut{$ThisOne}{$user}{$ip}{$method};
-		my $plural = ($val > 1) ? "s" : "";
-		print "         $method: $val time$plural\n";
+        foreach my $user (sort {$a cmp $b} keys %{$UsersOut{$ThisOne}}) {
+            print "   $user:\n";
+            my $totalSort = TotalCountOrder(%{$UsersOut{$ThisOne}{$user}}, \&SortIP);
+            foreach my $ip (sort $totalSort keys %{$UsersOut{$ThisOne}{$user}}) {
+	            my $name = LookupIP($ip);
+	            if ($Detail >= 20) {
+                    print "      $name:\n";
+                    my $sort = CountOrder(%{$UsersOut{$ThisOne}{$user}{$ip}});
+                    foreach my $method (sort $sort keys %{$UsersOut{$ThisOne}{$user}{$ip}}) {
+		                my $val = $UsersOut{$ThisOne}{$user}{$ip}{$method};
+		                my $plural = ($val > 1) ? "s" : "";
+		                print "         $method: $val time$plural\n";
+                    }
+	            } else {
+                    my $val = (values %{$UsersOut{$ThisOne}{$user}{$ip}})[0];
+                    my $plural = ($val > 1) ? "s" : "";
+                    print "      $name: $val time$plural\n";
+	            }
             }
-	} else {
-            my $val = (values %{$UsersOut{$ThisOne}{$user}{$ip}})[0];
-            my $plural = ($val > 1) ? "s" : "";
-            print "      $name: $val time$plural\n";
-	}
+        }
     }
 }
-}
-}
-
-
-
-
 
 
 if ($#OtherList >= 0) {
