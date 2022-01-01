@@ -48,8 +48,13 @@ if (defined($ENV{'rsyslogd_ignore_modules'})) {
       $IgnoreModules{$module} = 1;
    }
 }
+#Init String Containers
+my $Action;
+my $Certificate;
 my $Message;
+my $Module;
 my $Reason;
+#Init Hashes
 my %ActionResumed;
 my %ActionSuspended;
 my %DaemonActions;
@@ -64,17 +69,17 @@ while (defined(my $ThisLine = <STDIN>)) {
    if (($Reason) = ($ThisLine =~ /^ ?\[origin software=\"rsyslogd\" .*\] (.*)/)) {
       $DaemonActions{$Reason}++;
    }
-   elsif (my ($Action, $Module) = $ThisLine =~ /action '(.*)' suspended(?: \(module '(.*)'\))?/) {
+   elsif (($Action, $Module) = $ThisLine =~ /action '(.*)' suspended(?: \(module '(.*)'\))?/) {
       if (defined $Module) {
          $ActionSuspended{"$Action ($Module)"}++ unless defined $IgnoreActions{$Action} or defined $IgnoreModules{$Module};
       } else {
          $ActionSuspended{$Action}++ unless defined $IgnoreActions{$Action};
       }
    }
-   elsif (my ($Action, $Module) = $ThisLine =~ /action '(.*)' resumed \(module '(.*)'\)/) {
+   elsif (($Action, $Module) = $ThisLine =~ /action '(.*)' resumed \(module '(.*)'\)/) {
       $ActionResumed{"$Action ($Module)"}++ unless defined $IgnoreActions{$Action} or defined $IgnoreModules{$Module};
    }
-   elsif (my ($Certificate) = $ThisLine =~ /invalid cert info: peer provided \d+ certificate\(s\)\. Certificate \d+ info: (.*);  \[/) {
+   elsif (($Certificate) = $ThisLine =~ /invalid cert info: peer provided \d+ certificate\(s\)\. Certificate \d+ info: (.*);  \[/) {
       $InvalidCertificate{$Certificate}++;
    }
    elsif (
