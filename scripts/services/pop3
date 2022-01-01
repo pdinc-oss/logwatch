@@ -48,7 +48,7 @@ $DownloadSize2, $Downloaded,    $Drivers,
 $File,          $Host,          $Iface,
 $Left,          $LeftSize,      $Listen,
 $Mbox,          $Mechanism,     $Size,
-$Startups,      $User,          $dummy
+$User,          $dummy
 );
 #Init Hashes
 my (
