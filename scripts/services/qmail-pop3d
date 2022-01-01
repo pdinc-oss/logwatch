@@ -22,14 +22,30 @@
 ## contributions to this script and want to claim
 ## copyright please contact logwatch-devel@lists.sourceforge.net.
 #########################################################
+use strict;
 
-$Detail = $ENV{'LOGWATCH_DETAIL_LEVEL'};
-$QmailDetail = $ENV{'qmail_high_detail'};
-$QmailThreshold = $ENV{'threshold'};
-$ToThreshold = $ENV{'to_threshold'};
-$FromThreshold = $ENV{'from_threshold'};
+my $Detail = $ENV{'LOGWATCH_DETAIL_LEVEL'};
+my $QmailDetail = $ENV{'qmail_high_detail'};
+my $QmailThreshold = $ENV{'threshold'};
+my $ToThreshold = $ENV{'to_threshold'};
+my $FromThreshold = $ENV{'from_threshold'};
+
+#Init String Containers
+my (
+$IgnoreUnmatched,       $LocalServer,       $RemoteServer,
+$TotalFrom,             $TotalTo,           $Warning,
+$d,                     $ip,                $pid1,
+$pid2,                  $rest,              $threshold_reached,
+);
+#Init Hashes
+my (
+%Domains,   %From,      %To,
+%Warnings,
+);
+my @OtherList = ();
+
 #@4000000041c6c5331d3bfc64 tcpserver: ok 24416 0:213.228.232.199:110 host81-130-125-141.in-addr.btopenworld.com:81.130.125.141::34887
-while (defined($ThisLine = <STDIN>)) {
+while (defined(my $ThisLine = <STDIN>)) {
 	if (( $ThisLine =~ /status: / ) or ( $ThisLine =~ /end (\d+) status \d+/ ))
 	{
 		# We don't care about these
@@ -90,7 +106,7 @@ if ($QmailDetail >= 1)
 	{
 		print "\nConnections from (Threshold of " . $FromThreshold . "):\n";
 		$threshold_reached=0;
-		foreach $Line (sort {$From{$b} <=> $From{$a}} keys %From)
+		foreach my $Line (sort {$From{$b} <=> $From{$a}} keys %From)
 		{
 			if ($From{$Line} >= $FromThreshold)
 			{
@@ -115,7 +131,7 @@ if ($QmailDetail >= 1)
 	{
 		print "\nConnections to (Threshold of " . $ToThreshold . "):\n";
 		$threshold_reached=0;
-		foreach $Line (sort {$To{$b} <=> $To{$a}} keys %To)
+		foreach my $Line (sort {$To{$b} <=> $To{$a}} keys %To)
 		{
 			if ($To{$Line} >= $ToThreshold)
 			{
@@ -145,7 +161,7 @@ if ($TotalFrom or $TotalTo) {
 
 if ( (keys %Warnings) ) {
    print "\nWarnings:\n";
-   foreach $Line (sort {$Warnings{$b} <=> $Warnings{$a}} keys %Warnings) {
+   foreach my $Line (sort {$Warnings{$b} <=> $Warnings{$a}} keys %Warnings) {
       print "\t" . $Line . " - ". $Warnings{$Line} . " Time(s)\n";
    }
 }
