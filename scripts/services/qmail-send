@@ -22,13 +22,35 @@
 ## contributions to this script and want to claim
 ## copyright please contact logwatch-devel@lists.sourceforge.net.
 #########################################################
+use strict;
 
-$Detail = $ENV{'LOGWATCH_DETAIL_LEVEL'};
-$QmailDetail = $ENV{'qmail_high_detail'};
-$QmailThreshold = $ENV{'threshold'};
-$RemoteThreshold = $ENV{'remote_threshold'};
-$LocalThreshold  = $ENV{'local_threshold'};
-$FromThreshold   = $ENV{'from_threshold'};
+my $Detail = $ENV{'LOGWATCH_DETAIL_LEVEL'};
+my $QmailDetail = $ENV{'qmail_high_detail'};
+my $QmailThreshold = $ENV{'threshold'};
+my $RemoteThreshold = $ENV{'remote_threshold'};
+my $LocalThreshold  = $ENV{'local_threshold'};
+my $FromThreshold   = $ENV{'from_threshold'};
+
+#Init String Container
+my (
+$DeliveryResponse,      $EmailFrom,     $IgnoreUnmatched,
+$Response,              $ResponseCode,  $ServerResponseOverallTotal,
+$ServerResponses,       $ToLocal,       $ToRemote,
+$ct,                    $msgid,         $percentage,
+$threshold_reached,     $triplebounce,  $warning,
+);
+#Init Hashes
+my (
+%From,                  %Local,         %Remote,
+%ServerResponseTotal,   %TripleBounce,  %Warning,
+);
+#Init Arrays
+my @OtherList = ();
+
+#Init Info Hashes
+my %SmtpCode;
+my %ErrorCode;
+
 $SmtpCode{'211'} = "System status, or system help reply.";
 $SmtpCode{'214'} = "Help message.";
 $SmtpCode{'220'} = "Domain service ready. Ready to start TLS.";
@@ -255,7 +277,7 @@ $ErrorCode{'5.7.5'} = "Failure: Cryptographic failure";
 $ErrorCode{'5.7.6'} = "Failure: Cryptographic algorithm not supported";
 $ErrorCode{'5.7.7'} = "Failure: Message integrity failure";
 
-while (defined($ThisLine = <STDIN>))
+while (defined(my $ThisLine = <STDIN>))
 {
 	if (
 			( $ThisLine =~ /new msg/ ) or
@@ -361,7 +383,7 @@ if ($QmailDetail >= 1)
 	{
 		print "\nEmails from (Threshold of " . $FromThreshold . "):\n";
 		$threshold_reached=0;
-		foreach $Line (sort {$From{$b} <=> $From{$a}} keys %From)
+		foreach my $Line (sort {$From{$b} <=> $From{$a}} keys %From)
 		{
 			if ($From{$Line} >= $FromThreshold)
 			{
@@ -379,7 +401,7 @@ if ($QmailDetail >= 1)
 	{
 		print "\nEmails to Remote Server (Threshold of " . $RemoteThreshold . "):\n";
 		$threshold_reached=0;
-		foreach $Line (sort {$Remote{$b} <=> $Remote{$a}} keys %Remote)
+		foreach my $Line (sort {$Remote{$b} <=> $Remote{$a}} keys %Remote)
 		{
 			if ($Remote{$Line} >= $RemoteThreshold)
 			{
@@ -397,7 +419,7 @@ if ($QmailDetail >= 1)
 	{
 		print "\nEmails to Local Server (Threshold of " . $LocalThreshold . "):\n";
 		$threshold_reached=0;
-		foreach $Line (sort {$Local{$b} <=> $Local{$a}} keys %Local)
+		foreach my $Line (sort {$Local{$b} <=> $Local{$a}} keys %Local)
 		{
 			if ($Local{$Line} >= $LocalThreshold)
 			{
@@ -415,7 +437,7 @@ if ($QmailDetail >= 1)
 if (keys %{$ServerResponses})
 {
 	print "\nRemote Server Responses:\n";
-	foreach $Line (sort {$a cmp $b} keys %{$ServerResponses})
+	foreach my $Line (sort {$a cmp $b} keys %{$ServerResponses})
 	{
 		foreach $Detail (sort {$a cmp $b} keys %{$ServerResponses->{$Line}})
 		{
@@ -434,7 +456,7 @@ if (keys %{$ServerResponses})
 		}
 	}
 	print "\n\tPercentage(s):\n";
-	foreach $Details (sort {$a cmp $b} keys %ServerResponseTotal)
+	foreach my $Details (sort {$a cmp $b} keys %ServerResponseTotal)
 	{
 		$percentage = (($ServerResponseTotal{$Details} / $ServerResponseOverallTotal) * 100);
 		print "\t\t" . ucfirst($Details) . " - ";
@@ -446,7 +468,7 @@ if (keys %{$ServerResponses})
 if ( (keys %Warning) )
 {
    print "\nWarnings:\n";
-   foreach $Line (sort {$Warning{$b} <=> $Warning{$a}} keys %Warning)
+   foreach my $Line (sort {$Warning{$b} <=> $Warning{$a}} keys %Warning)
    {
       print "\t" . $Line . " - ". $Warning{$Line} . " Time(s)\n";
    }
