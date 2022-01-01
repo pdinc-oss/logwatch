@@ -24,7 +24,7 @@
 #########################################################
 
 use strict;
-use Logwatch ':all';
+#use Logwatch ':all';
 
 my $Debug = $ENV{'LOGWATCH_DEBUG'} || 0;
 my $Detail = $ENV{'LOGWATCH_DETAIL_LEVEL'} || 0;
@@ -46,6 +46,11 @@ my %ServicesBans = ();
 my %ServicesFound = ();
 my %ServicesIgnored = ();
 
+#Init String Containers
+my (
+$Action,        $Host,      $Message,
+$NumFailures,   $Service
+);
 if ( $Debug >= 5 ) {
         print STDERR "\n\nDEBUG: Inside Fail2Ban Filter \n\n";
         $DebugCounter = 1;
@@ -76,10 +81,10 @@ while (defined(my $ThisLine = <STDIN>)) {
         if ( $Debug >= 6 ) {
             print STDERR "DEBUG($DebugCounter): line ignored\n";
         }
-    } elsif ( my ($Service,$Action,$Host) = ($ThisLine =~ m/NOTICE:?\s+\[?(.*?)[]:]?\s(Restore Ban)[^\.]* (\S+)/)) {
+    } elsif ( ($Service,$Action,$Host) = ($ThisLine =~ m/NOTICE:?\s+\[?(.*?)[]:]?\s(Restore Ban)[^\.]* (\S+)/)) {
         $ServicesBans{$Service}{$Host}{'ReBan'}++;
         $ServicesBans{$Service}{"(all)"}{'ReBan'}++;
-    } elsif ( my ($Service,$Action,$Host) = ($ThisLine =~ m/(?:WARNING|NOTICE):?\s+\[?(.*?)[]:]?\s(Ban|Unban)[^\.]* (\S+)/)) {
+    } elsif ( ($Service,$Action,$Host) = ($ThisLine =~ m/(?:WARNING|NOTICE):?\s+\[?(.*?)[]:]?\s(Ban|Unban)[^\.]* (\S+)/)) {
         if ( $Debug >= 6 ) {
             print STDERR "DEBUG($DebugCounter): Found $Action for $Service from $Host\n";
         }
@@ -94,16 +99,16 @@ while (defined(my $ThisLine = <STDIN>)) {
             $ServicesBans{$Service}{$Host}{$Action}++;
             $ServicesBans{$Service}{"(all)"}{$Action}++;
         }
-    } elsif ( my ($Service,$Host,$NumFailures) = ($ThisLine =~ m/INFO: (\S+): (.+) has (\d+) login failure\(s\). Banned./)) {
+    } elsif ( ($Service,$Host,$NumFailures) = ($ThisLine =~ m/INFO: (\S+): (.+) has (\d+) login failure\(s\). Banned./)) {
         if ($Debug >= 4) {
             print STDERR "DEBUG: Found host $Host trying to access $Service - failed $NumFailures times\n";
         }
         push @{$ServicesBans{$Service}{$Host}{'Failures'}}, $NumFailures;
-    } elsif ( my ($Service,$Host) = ($ThisLine =~ m/ ERROR:\s(.*):\s(\S+)\salready in ban list/)) {
+    } elsif ( ($Service,$Host) = ($ThisLine =~ m/ ERROR:\s(.*):\s(\S+)\salready in ban list/)) {
         $ServicesBans{$Service}{$Host}{'AlreadyInTheList'}++;
-    } elsif ( my ($Service,$Host) = ($ThisLine =~ m/(?:INFO|WARNING|NOTICE)\s*\[(.*)\]\s*(\S+)\s*already banned/)) {
+    } elsif ( ($Service,$Host) = ($ThisLine =~ m/(?:INFO|WARNING|NOTICE)\s*\[(.*)\]\s*(\S+)\s*already banned/)) {
         $ServicesBans{$Service}{$Host}{'AlreadyInTheList'}++;
-    } elsif ( my ($Service,$Host) = ($ThisLine =~ m/ WARNING:\s(.*):\sReBan (\S+)/)) {
+    } elsif ( ($Service,$Host) = ($ThisLine =~ m/ WARNING:\s(.*):\sReBan (\S+)/)) {
         $ServicesBans{$Service}{$Host}{'ReBan'}++;
     } elsif ($ThisLine =~ / ERROR:?\s*(Execution of command )?\'?iptables/) {
         push @IptablesErrors, "$ThisLine\n";
@@ -114,31 +119,31 @@ while (defined(my $ThisLine = <STDIN>)) {
         $ReInitializations++;
     } elsif ($ThisLine =~ /..,... WARNING:  is not a valid IP address/) {
         # just ignore - this will be fixed within fail2ban and is harmless warning
-    } elsif ( my ($Service,$Host) = ($ThisLine =~ /INFO\s+\[(.*)\] Found (\S+)/)) {
+    } elsif ( ($Service,$Host) = ($ThisLine =~ /INFO\s+\[(.*)\] Found (\S+)/)) {
         $ServicesFound{$Service}{$Host}++;
-    } elsif ( my ($Service,$Host) = ($ThisLine =~ /INFO\s+\[(.*)\] Ignore (\S+)/)) {
+    } elsif ( ($Service,$Host) = ($ThisLine =~ /INFO\s+\[(.*)\] Ignore (\S+)/)) {
         $ServicesIgnored{$Service}{$Host}++;
     # Generic messages
-    } elsif ( my ($Message) = ($ThisLine =~ / ERROR (.*)$/)) {
+    } elsif ( ($Message) = ($ThisLine =~ / ERROR (.*)$/)) {
 	# Fail2ban can dump huge error messages in its logs
 	if ($ErrLen > 3 && length($Message) > $ErrLen) {
             $ErrorList{substr($Message,0,$ErrLen-3).'...'}++;
 	} else {
             $ErrorList{$Message}++;
         }
-    } elsif ( my ($Message) = ($ThisLine =~ / WARNING (.*)$/)) {
+    } elsif ( ($Message) = ($ThisLine =~ / WARNING (.*)$/)) {
         $WarningList{$Message}++;
-    } elsif ( my ($Message) = ($ThisLine =~ / INFO (.*)$/)) {
+    } elsif ( ($Message) = ($ThisLine =~ / INFO (.*)$/)) {
         $InfoList{$Message}++;
-	if ( my ($Service) = ($Message =~ /Jail \'(.*)\' stopped/)) {
+	if ( ($Service) = ($Message =~ /Jail \'(.*)\' stopped/)) {
 	    delete $Flushing{$Service};
         }
-	if ( my ($Service) = ($Message =~ /Stopping all jails|Exiting Fail2ban/)) {
+	if ( ($Service) = ($Message =~ /Stopping all jails|Exiting Fail2ban/)) {
 	    %Flushing = ();
         }
-    } elsif ( my ($Message) = ($ThisLine =~ / NOTICE (.*)$/)) {
+    } elsif ( ($Message) = ($ThisLine =~ / NOTICE (.*)$/)) {
         $NoticeList{$Message}++;
-	if ( my ($Service) = ($Message =~ /\[(.*)\] Flush ticket/)) {
+	if ( ($Service) = ($Message =~ /\[(.*)\] Flush ticket/)) {
 	    $Flushing{$Service} = 1;
         }
     } else {
