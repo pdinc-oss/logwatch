@@ -49,6 +49,13 @@ my (@TimeReset,%Interfaces,%Syncs,%TwoInst,%Errors,%OtherList);
 my %ConfErrs;
 my %Operations;
 
+#Init String Containers
+my (
+$ConfErr,       $Error,         $Host,
+$ListenOn,      $StepTime,      $Stratum,
+$SyncTo,        $TimeStep,
+);
+
 # No sense in running if 'xntpd' doesn't even exist on this system...
 unless (( -f "/usr/sbin/ntpd" ) or ( -f "/usr/local/sbin/ntpd") or ( -f "/usr/lib/inet/xntpd") or ( -f "/usr/lib/inet/ntpd" ) ) {
    if ( $Debug >= 5 ) {
@@ -108,53 +115,53 @@ while (defined(my $ThisLine = <STDIN>)) {
       $Kills++;
     } elsif ($ThisLine =~ m/synchronisation lost/) {
       $SyncLost++;
-    } elsif ( my (undef,$TimeStep) = ($ThisLine =~ /time reset(| \(step\)) ([^ ]+) s$/ )) {
+    } elsif ( (undef,$TimeStep) = ($ThisLine =~ /time reset(| \(step\)) ([^ ]+) s$/ )) {
        push @TimeReset, $TimeStep;
-    } elsif ( my (undef,$TimeStep) = ($ThisLine =~ /(step|adjust) time server [^ ]+ offset ([^ ]+) sec$/ )) {
+    } elsif ( (undef,$TimeStep) = ($ThisLine =~ /(step|adjust) time server [^ ]+ offset ([^ ]+) sec$/ )) {
        push @TimeReset, $TimeStep;
-    } elsif ( my ($TimeStep) = ($ThisLine =~ /adjusting local clock by ([^ ]+)s$/ )) {
+    } elsif ( ($TimeStep) = ($ThisLine =~ /adjusting local clock by ([^ ]+)s$/ )) {
        # Jacob Joseph (12/8/06)
        push @TimeReset, $TimeStep;
     # MEv start no leadin to line
-    } elsif ( my (undef,$TimeStep) = ($ThisLine =~ /(offset) ([^ ]+) sec/ )) {
+    } elsif ( (undef,$TimeStep) = ($ThisLine =~ /(offset) ([^ ]+) sec/ )) {
        push @TimeReset, $TimeStep;
     # MEv end no leadin to line
-    } elsif ( my ($ListenOn) = ($ThisLine =~ /Listening on interface(?: #\d+)? (.*)(?: Enabled)?/ )) {
+    } elsif ( ($ListenOn) = ($ThisLine =~ /Listening on interface(?: #\d+)? (.*)(?: Enabled)?/ )) {
        $Interfaces{$ListenOn}++;
-    } elsif ( my ($ListenOn) = ($ThisLine =~ /Listen normally on \d+ (.*)/ )) {
+    } elsif ( ($ListenOn) = ($ThisLine =~ /Listen normally on \d+ (.*)/ )) {
        $Interfaces{$ListenOn}++;
-    } elsif ( my ($SyncTo,$Stratum) = ($ThisLine =~ /synchronized to ([^ ]+), stratum[ =]([^ ]+)/ )) {
+    } elsif ( ($SyncTo,$Stratum) = ($ThisLine =~ /synchronized to ([^ ]+), stratum[ =]([^ ]+)/ )) {
        my $name = $SyncTo;
        if ($Detail > 5 && $SyncTo =~ m/^[\d.]+$/) {
            $name = LookupIP($SyncTo);
        }
        $name .= " stratum " . $Stratum;
        $Syncs{$name}++;
-    } elsif ( my ($Host) = ($ThisLine =~ /two instances of default interface for ([^ ]+) in hash table$/ )) {
+    } elsif ( ($Host) = ($ThisLine =~ /two instances of default interface for ([^ ]+) in hash table$/ )) {
        if ($Debug >= 5) {
           print STDERR "DEBUG: Found -$1 two instances of default interface\n";
        }
        my $name = LookupIP($Host);
        $TwoInst{$name}++;
-    } elsif ( my ($Error) = ($ThisLine =~ /(unable to create .*)/ )) {
+    } elsif ( ($Error) = ($ThisLine =~ /(unable to create .*)/ )) {
        $Errors{$Error}++;
-    } elsif ( my ($Error) = ($ThisLine =~ /(no server(s reachable| suitable for synchronization found))/ )) {
+    } elsif ( ($Error) = ($ThisLine =~ /(no server(s reachable| suitable for synchronization found))/ )) {
        $Errors{$Error}++;
-    } elsif ( my ($Error) = ($ThisLine =~ /([Cc]an't find host \S+|no servers can be used, exiting)/ )) {
+    } elsif ( ($Error) = ($ThisLine =~ /([Cc]an't find host \S+|no servers can be used, exiting)/ )) {
        $Errors{$Error}++;
-    } elsif ( my ($Error) = ($ThisLine =~ /(sendto\(\S+\): Network is unreachable)/ )) {
+    } elsif ( ($Error) = ($ThisLine =~ /(sendto\(\S+\): Network is unreachable)/ )) {
        $Errors{$Error}++;
-    } elsif ( my ($Error) = ($ThisLine =~ /(getaddrinfo: "\S+" invalid host address, ignored)/ )) {
+    } elsif ( ($Error) = ($ThisLine =~ /(getaddrinfo: "\S+" invalid host address, ignored)/ )) {
        $Errors{$Error}++;
-    } elsif ( my ($Error) = ($ThisLine =~ /(error resolving .*)/ )) {
+    } elsif ( ($Error) = ($ThisLine =~ /(error resolving .*)/ )) {
        $Errors{$Error}++;
-    } elsif ( my ($Error) = ($ThisLine =~ /(frequency error \d+ PPM exceeds tolerance \d+ PPM)/ )) {
+    } elsif ( ($Error) = ($ThisLine =~ /(frequency error \d+ PPM exceeds tolerance \d+ PPM)/ )) {
        $Errors{$Error}++;
-    } elsif ( my ($ConfErr) = ($ThisLine =~ /configure: (keyword "[^"]*" unknown, line ignored)/ )) {
+    } elsif ( ($ConfErr) = ($ThisLine =~ /configure: (keyword "[^"]*" unknown, line ignored)/ )) {
        $ConfErrs{$ConfErr}++;
-    } elsif ( my ($ConfErr) = ($ThisLine =~ /line \d+ column \d+ syntax error, (.+)$/ )) {
+    } elsif ( ($ConfErr) = ($ThisLine =~ /line \d+ column \d+ syntax error, (.+)$/ )) {
        $ConfErrs{$ConfErr}++;
-    } elsif ( my ($StepTime) = ($ThisLine =~ /(.*:) Operation not permitted/) ) {
+    } elsif ( ($StepTime) = ($ThisLine =~ /(.*:) Operation not permitted/) ) {
        $Operations{$StepTime}++
     } else {
        # Report any unmatched entries...
