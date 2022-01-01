@@ -54,6 +54,12 @@ my %DeviceInfo = ();
 my $Detail = $ENV{'LOGWATCH_DETAIL_LEVEL'} || 0;
 my $IgnoreUnmatched = $ENV{'smartd_ignore_unmatched'} || 0;
 
+#Init String Containers
+my (
+$AttribType,    $Code,      $Limit,
+$Name,          $NewVal,    $Num,
+$RawVal,        $TestType,  $Text,
+);
 while (defined(my $ThisLine = <STDIN>)) {
    chomp($ThisLine);
    if ( ($Device,$Msg) = ($ThisLine =~ /^Device: ([^,]+), No such device(?: or address)?, open\(\) failed/ )) {
@@ -143,52 +149,52 @@ while (defined(my $ThisLine = <STDIN>)) {
 #      $ParamChanges{$Device}{$Msg}++;
    } elsif ( ($Device) = ($ThisLine =~ /^Device: ([^,]+), not found in smartd database./ )) {
       $NotInDatabase{$Device}++;
-	 } elsif ( my ($Device,$AttribType,$Code,$Name,undef,undef,undef,$RawVal) = ($ThisLine =~ /^Device: ([^,]+), SMART ([A-Za-z]+) Attribute: ([0-9]+) (Temperature_Celsius) changed from ([0-9]+) (\[Raw [0-9]+(?: \([0-9]+\s[0-9]+\s[0-9]+\s[0-9]+(?:\s[0-9])?\))?\]) to ([0-9]+) \[Raw ([0-9]+)(?: \([0-9]+\s[0-9]+\s[0-9]+\s[0-9]+(?:\s[0-9])?\))?\]/)) {
+	 } elsif ( ($Device,$AttribType,$Code,$Name,undef,undef,undef,$RawVal) = ($ThisLine =~ /^Device: ([^,]+), SMART ([A-Za-z]+) Attribute: ([0-9]+) (Temperature_Celsius) changed from ([0-9]+) (\[Raw [0-9]+(?: \([0-9]+\s[0-9]+\s[0-9]+\s[0-9]+(?:\s[0-9])?\))?\]) to ([0-9]+) \[Raw ([0-9]+)(?: \([0-9]+\s[0-9]+\s[0-9]+\s[0-9]+(?:\s[0-9])?\))?\]/)) {
       push @{$TempChanges{$Device}}, $RawVal;
    # smartd reports temperature changes this way only for SCSI disks
-   } elsif ( my ($Device,$AttribType,$Code,$Name,undef,undef,$NewVal) = ($ThisLine =~ /^Device: ([^,]+), SMART ([A-Za-z]+) Attribute: ([0-9]+) ([A-Za-z_]+) changed from ([0-9]+) (\[Raw [0-9]+\] )?to ([0-9]+)/)) {
+   } elsif ( ($Device,$AttribType,$Code,$Name,undef,undef,$NewVal) = ($ThisLine =~ /^Device: ([^,]+), SMART ([A-Za-z]+) Attribute: ([0-9]+) ([A-Za-z_]+) changed from ([0-9]+) (\[Raw [0-9]+\] )?to ([0-9]+)/)) {
       push (@{$ParamChanges{$Device}{"$AttribType: $Name ($Code)"}}, $NewVal);
-   } elsif ( my ($Device,$Name,undef,$NewVal) = ($ThisLine =~ /^Device: ([^,]+), (.*) increased from ([0-9]+) to ([0-9]+)/) ) {
+   } elsif ( ($Device,$Name,undef,$NewVal) = ($ThisLine =~ /^Device: ([^,]+), (.*) increased from ([0-9]+) to ([0-9]+)/) ) {
       push (@{$ParamChanges{$Device}{"information: $Name"}}, $NewVal);
-   } elsif ( my ($Device,$NewVal) = ($ThisLine =~ /^Device: ([^,]+), initial Temperature is (\d+) Celsius/)) {
+   } elsif ( ($Device,$NewVal) = ($ThisLine =~ /^Device: ([^,]+), initial Temperature is (\d+) Celsius/)) {
       push @{$TempChanges{$Device}},$NewVal;
-   } elsif ( my ($Device,$Limit) = ($ThisLine =~ /^Device: ([^,]+), Temperature \d+ Celsius reached limit of (\d+) Celsius/)) {
+   } elsif ( ($Device,$Limit) = ($ThisLine =~ /^Device: ([^,]+), Temperature \d+ Celsius reached limit of (\d+) Celsius/)) {
    # Device: /dev/sda, Temperature 37 Celsius reached limit of 10 Celsius (Min/Max 37/37)
       $TempLimit{"$Device,$Limit"}++;
-   } elsif ( my ($Device,$Limit) = ($ThisLine =~ /^Device: ([^,]+), Temperature \d+ Celsius reached critical limit of (\d+) Celsius/)) {
+   } elsif ( ($Device,$Limit) = ($ThisLine =~ /^Device: ([^,]+), Temperature \d+ Celsius reached critical limit of (\d+) Celsius/)) {
    # Device: /dev/sda, Temperature 38 Celsius reached critical limit of 15 Celsius (Min/Max 38!/39)
       $TempCritLimit{"$Device,$Limit"}++;
-   } elsif ( my ($Device,$NewVal) = ($ThisLine =~ /^Device: ([^,]+), Temperature changed [-+]?\d+ Celsius to (\d+) Celsius/)) {
+   } elsif ( ($Device,$NewVal) = ($ThisLine =~ /^Device: ([^,]+), Temperature changed [-+]?\d+ Celsius to (\d+) Celsius/)) {
       push @{$TempChanges{$Device}},$NewVal;
-   } elsif ( my ($Device, $Num) = ($ThisLine =~ /^Device: ([^,]+), (\d+) Currently unreadable \(pending\) sectors/) ) {
+   } elsif ( ($Device, $Num) = ($ThisLine =~ /^Device: ([^,]+), (\d+) Currently unreadable \(pending\) sectors/) ) {
       $Pendsectors{$Device}++;
       $NumPendsectors{$Device} = $Num;
-   } elsif ( my ($Device, $Num) = ($ThisLine =~ /^Device: ([^,]+), (\d+) Offline uncorrectable sectors/) ) {
+   } elsif ( ($Device, $Num) = ($ThisLine =~ /^Device: ([^,]+), (\d+) Offline uncorrectable sectors/) ) {
       $Offsectors{$Device}++;
       $NumOffsectors{$Device} = $Num;
-   } elsif ( my ($Device,$TestType) = ($ThisLine =~ /^Device: ([^,]+), starting scheduled ((?:Short|Long|Conveyance|Selective) Self-|Offline Immediate )Test/) ) {
+   } elsif ( ($Device,$TestType) = ($ThisLine =~ /^Device: ([^,]+), starting scheduled ((?:Short|Long|Conveyance|Selective) Self-|Offline Immediate )Test/) ) {
       $DriveTest{$Device}{$TestType}++;
-   } elsif ( my ($Device,$AttribType,$Code,$Name) = ($ThisLine =~ /^Device: ([^,]+), Failed SMART ([A-Za-z]+) Attribute: ([0-9]+) ([A-Za-z_]+)/)) {
+   } elsif ( ($Device,$AttribType,$Code,$Name) = ($ThisLine =~ /^Device: ([^,]+), Failed SMART ([A-Za-z]+) Attribute: ([0-9]+) ([A-Za-z_]+)/)) {
       $Failed{$Device}{"$AttribType attribute: $Name ($Code)"}++;
-   } elsif ( my ($Device, $Text) = ($ThisLine =~ /^Device: ([^,]+), (?:failed|SMART Failure:) (.*)$/) ) {
+   } elsif ( ($Device, $Text) = ($ThisLine =~ /^Device: ([^,]+), (?:failed|SMART Failure:) (.*)$/) ) {
       $Failed{$Device}{"$Text"}++; 
    } elsif ( ( $ThisLine =~ /warning/i ) ) {
       $Warnings{$ThisLine}++;
-   } elsif ( my ($Device, $Text) = ( $ThisLine =~ /^Device: ([^,]+), (can't monitor.*)$/i ) ) {
+   } elsif ( ($Device, $Text) = ( $ThisLine =~ /^Device: ([^,]+), (can't monitor.*)$/i ) ) {
       $CantMonitor{$Device}{$Text}++;
    } elsif ( ($ThisLine =~ /smartd startup failed/ ) ) {
       $StartupFailed++;
    } elsif ( ($ThisLine =~ /smartd shutdown failed/ ) ) {
       $ShutdownFailed++;
-   } elsif ( my ($Device,$DLine) = ($ThisLine =~ /Unable to register SCSI device (.*) at line ([0-9]*) of file/) ) {
+   } elsif ( ($Device,$DLine) = ($ThisLine =~ /Unable to register SCSI device (.*) at line ([0-9]*) of file/) ) {
       $UnableToReg{"$Device,$DLine"}++
    } elsif ( ($Device) = ($ThisLine =~ /Device ([^ ]+) not available/)) {
       $UnavailableDev{$Device}++;
-   } elsif ( my ($Device) = ($ThisLine =~ /Device (.*): SATA disks accessed via libata are supported by Linux kernel versions 2.6.15-rc1 and above/) ) {
+   } elsif ( ($Device) = ($ThisLine =~ /Device (.*): SATA disks accessed via libata are supported by Linux kernel versions 2.6.15-rc1 and above/) ) {
       $SataDisk{"$Device"}++;
    } elsif ($ThisLine =~ /Unable to monitor any SMART enabled devices\. Try debug \(-d\) option\. Exiting/) {
       $UnableToMonitor++;
-   } elsif ( my ($Device) = ($ThisLine =~ /Device: ([^,]+), FAILED SMART self-check/) ) {
+   } elsif ( ($Device) = ($ThisLine =~ /Device: ([^,]+), FAILED SMART self-check/) ) {
       $CheckFailed{$Device}++;
    } else {
       # Report any unmatched entries...
@@ -248,27 +254,27 @@ if (keys %ParamChanges) {
 }
 
 if (keys %TempChanges) {
-       print "Temperature Changes\n==================\n";
-       my (@min,@max);
-   foreach my $Device (sort keys %TempChanges) {
-      if($Detail < 10) {
-                       my @sorttemp = sort @{$TempChanges{$Device}};
-                       push @min, $sorttemp[0];
-                       push @max, $sorttemp[$#sorttemp];
-      } elsif($Detail < 20) {
-                       my @sorttemp = sort @{$TempChanges{$Device}};
-                       print "$Device :  $sorttemp[0] - $sorttemp[$#sorttemp]\n";
-               } else {
-                       print "$Device : ";
-                       print join ", ",@{$TempChanges{$Device}};
-                       print "\n";
-               }
+    print "Temperature Changes\n==================\n";
+    my (@min,@max,@sorttemp);
+    foreach my $Device (sort keys %TempChanges) {
+        if($Detail < 10) {
+            @sorttemp = sort @{$TempChanges{$Device}};
+            push @min, $sorttemp[0];
+            push @max, $sorttemp[$#sorttemp];
+        } elsif($Detail < 20) {
+            @sorttemp = sort @{$TempChanges{$Device}};
+            print "$Device :  $sorttemp[0] - $sorttemp[$#sorttemp]\n";
+        } else {
+            print "$Device : ";
+            print join ", ",@{$TempChanges{$Device}};
+            print "\n";
+        }
    }
    if($Detail < 10) {
-          my @sorttemp = sort @min;
-               my $mint = $sorttemp[0];
-          my @sorttemp = sort @max;
-               my $maxt = $sorttemp[$#sorttemp];
+          @sorttemp = sort @min;
+          my $mint = $sorttemp[0];
+          @sorttemp = sort @max;
+          my $maxt = $sorttemp[$#sorttemp];
           print "All devices: $mint - $maxt\n";
    }
 }
