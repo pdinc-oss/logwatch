@@ -35,7 +35,7 @@ use strict;
 
 my $Detail = $ENV{'LOGWATCH_DETAIL_LEVEL'} || 0;
 #Init String Containers
-my ($list, $prev, $port);
+my ($host, $list, $mode, $prev, $port, $proto, $scan);
 #Init Hashes
 my (
 %Blocked,       %Exclude,   %Ignored,
@@ -50,7 +50,7 @@ while (defined(my $ThisLine = <STDIN>)) {
         ( $ThisLine =~ /Psionic PortSentry .* (starting|shutting)/ ) or
         ( $ThisLine =~ /portsentry shutdown/ ) ) {
        # don't care
-   } elsif( my ($scan,$host,$proto,$port) = ( $ThisLine =~ m|attackalert: (.+) scan from host: [^/]+/(\S+) to (\w+) port: (\d+)| ) ){
+   } elsif( ($scan,$host,$proto,$port) = ( $ThisLine =~ m|attackalert: (.+) scan from host: [^/]+/(\S+) to (\w+) port: (\d+)| ) ){
        $host = LookupIP($host);
        $Scans{$scan}{$host}{$port}++;
    } elsif ( ($host) = ( $ThisLine =~ /Host (\S+) has been blocked/ ) ){
@@ -58,7 +58,7 @@ while (defined(my $ThisLine = <STDIN>)) {
        $Blocked{$host}++;
    } elsif( ($host) = ( $ThisLine =~ /Host: (\S+) is already blocked/ ) ){
        # ignore
-   } elsif( my ($mode,$proto,$port) = ( $ThisLine =~ /: (.+) scan detection mode activated. Ignored (\w+) port: (\d+)/ ) ){
+   } elsif( ($mode,$proto,$port) = ( $ThisLine =~ /: (.+) scan detection mode activated. Ignored (\w+) port: (\d+)/ ) ){
        $Ignored{$mode}{$proto}{$port}++;
    } elsif( ($mode,$port) = ( $ThisLine =~ /: (.+) mode will manually exclude port: (\d+)/ ) ){
        $Exclude{$mode}{$port}++;
