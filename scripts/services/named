@@ -42,7 +42,10 @@ $Error,     $File,      $From,
 $Hint,      $Ldom,      $Line,
 $Log,       $Name,      $Net,
 $Problem,   $Reason,    $Response,
-$Rhost,     $Server
+$Rhost,     $Server,    $Channel,
+$Client,    $ErrorText, $Message,
+$RR,        $Rcode,     $Source,
+$ViewName,  $Way,
 );
 #Init Arrays
 my @CNAMEAndOther = ();
@@ -293,52 +296,52 @@ while (defined(my $ThisLine = <STDIN>)) {
       $ZoneFileErrors{$File}{"$Entry: $Error"}++;
    } elsif ( ($File,$Line,$Entry,$Error) = ( $ThisLine =~ /warning: ([^:]+):(\d+): (.+)$/ ) ) {
       $ZoneFileErrors{$File}{"file does not end with newline: $Error"}++;
-   } elsif ( my ($Way,$Host) = ( $ThisLine =~ /([^ ]+): sendto\(\[([^ ]+)\].+\): Network is unreachable/ ) ) {
+   } elsif ( ($Way,$Host) = ( $ThisLine =~ /([^ ]+): sendto\(\[([^ ]+)\].+\): Network is unreachable/ ) ) {
       my $FullHost = LookupIP ($Host);
       $NetworkUnreachable{$Way}{$FullHost}++;
-   } elsif ( my ($Host,$Way) = ( $ThisLine =~ /client (?:\@0x[0-9a-fA-F]+ )?(.*)#\d+(?: \(.*\))?: (?:view \w+: )?error ([^ ]+) response: network unreachable/ ) ) {
+   } elsif ( ($Host,$Way) = ( $ThisLine =~ /client (?:\@0x[0-9a-fA-F]+ )?(.*)#\d+(?: \(.*\))?: (?:view \w+: )?error ([^ ]+) response: network unreachable/ ) ) {
       my $FullHost = LookupIP ($Host);
       $NetworkUnreachable{$Way}{$FullHost}++;
-   } elsif ( my ($Zone,$Message) = ( $ThisLine =~ /client [^\#]+#[^\:]+: (?:view \w+: )?updating zone '([^\:]+)': (.*)$/ ) ) {
+   } elsif ( ($Zone,$Message) = ( $ThisLine =~ /client [^\#]+#[^\:]+: (?:view \w+: )?updating zone '([^\:]+)': (.*)$/ ) ) {
       $ZoneUpdates{$Zone}{$Message}++;
-   } elsif ( my ($Zone,$Source) = ( $ThisLine =~ /transfer of '([^\']+)' (from [^\#]+)#[^\:]+: Transfer completed: / ) ) {
+   } elsif ( ($Zone,$Source) = ( $ThisLine =~ /transfer of '([^\']+)' (from [^\#]+)#[^\:]+: Transfer completed: / ) ) {
       $ZoneUpdates{$Zone}{$Source}++;
-   } elsif ( my ($Host,$Zone) = ( $ThisLine =~ /approved AXFR from \[(.+)\]\..+ for \"(.+)\"/ ) ) {
+   } elsif ( ($Host,$Zone) = ( $ThisLine =~ /approved AXFR from \[(.+)\]\..+ for \"(.+)\"/ ) ) {
       my $FullHost = LookupIP ($Host);
       $AXFR{$Zone}{$FullHost}++;
-   } elsif ( my ($Client) = ( $ThisLine =~ /warning: client (.*) no more TCP clients/ ) ) {
+   } elsif ( ($Client) = ( $ThisLine =~ /warning: client (.*) no more TCP clients/ ) ) {
       my $FullClient = LookupIP ($Client);
       $DeniedTCPClient{$FullClient}++;
-   } elsif ( my ($Client) = ( $ThisLine =~ /client (?:\@0x[0-9a-fA-F]+ )?(.*)#\d+(?: \(.*\))?: (?:view \w+: )?query \(cache\) (?:'.*' )?denied/ ) ) {
+   } elsif ( ($Client) = ( $ThisLine =~ /client (?:\@0x[0-9a-fA-F]+ )?(.*)#\d+(?: \(.*\))?: (?:view \w+: )?query \(cache\) (?:'.*' )?denied/ ) ) {
       my $FullClient = LookupIP ($Client);
       $DeniedQuery{$FullClient}++;
-   } elsif ( my ($Client) = ( $ThisLine =~ /client (?:\@0x[0-9a-fA-F]+ )?([^#]*)(#\d+)?(?: \(.*\))?: query '.*' denied/ ) ) {
+   } elsif ( ($Client) = ( $ThisLine =~ /client (?:\@0x[0-9a-fA-F]+ )?([^#]*)(#\d+)?(?: \(.*\))?: query '.*' denied/ ) ) {
       my $FullClient = LookupIP ($Client);
       $DeniedQueryNoCache{$FullClient}++;
-   } elsif ( my ($Rhost, $ViewName, $Ldom) = ($ThisLine =~ /client (?:\@0x[0-9a-fA-F]+ )?([\.0-9a-fA-F:]+)#\d+: (?:view (\w+): )?update '(.*)' denied/)) {
+   } elsif ( ($Rhost, $ViewName, $Ldom) = ($ThisLine =~ /client (?:\@0x[0-9a-fA-F]+ )?([\.0-9a-fA-F:]+)#\d+: (?:view (\w+): )?update '(.*)' denied/)) {
       $ViewName = ($ViewName ? "/$ViewName" : "");
       $UpdateDenied{"$Rhost ($Ldom$ViewName)"}++;
-   } elsif ( my ($Rhost, $Ldom) = ($ThisLine =~ /client ([\d\.]+)#\d+: update forwarding '(.*)' denied/)) {
+   } elsif ( ($Rhost, $Ldom) = ($ThisLine =~ /client ([\d\.]+)#\d+: update forwarding '(.*)' denied/)) {
       $UpdateForwardingDenied{"$Rhost ($Ldom)"}++;
-   } elsif ( my ($Zone) = ($ThisLine =~ /zone '([0-9a-zA-Z.-]+)' allows updates by IP address, which is insecure/)) {
+   } elsif ( ($Zone) = ($ThisLine =~ /zone '([0-9a-zA-Z.-]+)' allows updates by IP address, which is insecure/)) {
       $InsecUpdate{$Zone}++;
-   } elsif ( my ($Zone) = ($ThisLine =~ /zone ([0-9a-zA-Z.\/-]+): journal rollforward failed: journal out of sync with zone/)) {
+   } elsif ( ($Zone) = ($ThisLine =~ /zone ([0-9a-zA-Z.\/-]+): journal rollforward failed: journal out of sync with zone/)) {
       $JournalFail{$Zone}++;
-   } elsif ( my ($Zone) = ($ThisLine =~ /(managed-keys-zone.*): journal file is out of date: removing journal file/)) {
+   } elsif ( ($Zone) = ($ThisLine =~ /(managed-keys-zone.*): journal file is out of date: removing journal file/)) {
       $JournalFail{$Zone}++;
-   } elsif ( my ($Channel,$Reason) = ($ThisLine =~ /couldn't add command channel (.+#\d+): (.*)$/)) {
+   } elsif ( ($Channel,$Reason) = ($ThisLine =~ /couldn't add command channel (.+#\d+): (.*)$/)) {
       $ChannelAddFail{$Channel}{$Reason}++;
-   } elsif ( my ($Zone,$Host,undef,$Reason) = ($ThisLine =~ /zone ([^ ]*): refresh: failure trying master ([^ ]*)#\d+( \(source .*\))?: (.*)/) ) {
+   } elsif ( ($Zone,$Host,undef,$Reason) = ($ThisLine =~ /zone ([^ ]*): refresh: failure trying master ([^ ]*)#\d+( \(source .*\))?: (.*)/) ) {
       $MasterFailure{"$Zone from $Host"}{$Reason}++;
-   } elsif ( my ($Zone,$Reason,$Host) = ($ThisLine =~ /zone ([^ ]*): refresh: unexpected rcode \((.*)\) from master ([^ ]*)#\d+/) ) {
+   } elsif ( ($Zone,$Reason,$Host) = ($ThisLine =~ /zone ([^ ]*): refresh: unexpected rcode \((.*)\) from master ([^ ]*)#\d+/) ) {
       $MasterFailure{"$Zone from $Host"}{$Reason}++;
-   } elsif ( my ($Zone) = ($ThisLine =~ /zone ([^\/]+)\/.+: refresh: non-authoritative answer from master/)) {
+   } elsif ( ($Zone) = ($ThisLine =~ /zone ([^\/]+)\/.+: refresh: non-authoritative answer from master/)) {
       $NonAuthoritative{$Zone}++;
-   } elsif ( my ($Zone) = ($ThisLine =~ /zone ([^\/]+)\/.+: refresh: retry limit for master \S+ exceeded/) ) {
+   } elsif ( ($Zone) = ($ThisLine =~ /zone ([^\/]+)\/.+: refresh: retry limit for master \S+ exceeded/) ) {
       $RetryLimit{$Zone}++; 
-   } elsif ( my ($Rcode, $Zone, $Host) = ($ThisLine =~ /(?:error \()?unexpected RCODE\)? \(?(.*?)\)? resolving '(.*)': (.*)$/) ){
+   } elsif ( ($Rcode, $Zone, $Host) = ($ThisLine =~ /(?:error \()?unexpected RCODE\)? \(?(.*?)\)? resolving '(.*)': (.*)$/) ){
       $UnexpRCODE{$Rcode}{$Zone}{$Host}++;
-   } elsif ( my ($Rcode, $Zone, $Host) = ($ThisLine =~ /(.*) unexpected RCODE resolving '(.*)': (.*)$/) ){
+   } elsif ( ($Rcode, $Zone, $Host) = ($ThisLine =~ /(.*) unexpected RCODE resolving '(.*)': (.*)$/) ){
       $UnexpRCODE{$Rcode}{$Zone}{$Host}++;
    } elsif ( ($ThisLine =~ /(?:error \()?FORMERR\)? resolving '[^ ]+: [.0-9a-fA-F:#]+/) or
              ($ThisLine =~ /DNS format error from [^ ]+ resolving [^ ]+( for client [^ ]+)?: .*/) ) {
@@ -352,15 +355,15 @@ while (defined(my $ThisLine = <STDIN>)) {
 	     (($File,$Line,$Problem) = ($ThisLine =~ /\/etc\/(named.*.conf):([0-9]+): (.*)/)) or
 	     (($File,$Line,$Problem) = ($ThisLine =~ /()()(could not configure root hints from '.*': file not found)/))) {
        $ConfProb{$File}{"$Line,$Problem"}++;
-   } elsif ( (my ($ErrorText) = ($ThisLine =~ /^(RUNTIME_CHECK.*)/))or
-	     (my ($ErrorText) = ($ThisLine =~ /^(.* REQUIRE.* failed.*)$/)) or
-	     (my ($ErrorText) = ($ThisLine =~ /(.*: fatal error)/)) or
-	     (my ($ErrorText) = ($ThisLine =~ /(.*: out of memory)/)) ) {
+   } elsif ( (($ErrorText) = ($ThisLine =~ /^(RUNTIME_CHECK.*)/))or
+	     (($ErrorText) = ($ThisLine =~ /^(.* REQUIRE.* failed.*)$/)) or
+	     (($ErrorText) = ($ThisLine =~ /(.*: fatal error)/)) or
+	     (($ErrorText) = ($ThisLine =~ /(.*: out of memory)/)) ) {
       $NError{$ErrorText}++;
-   } elsif ( (my ($ErrorText) = ($ThisLine =~ /^(GeoIP .* DB not available)/)) ) {
+   } elsif ( (($ErrorText) = ($ThisLine =~ /^(GeoIP .* DB not available)/)) ) {
       $GeoIPError{$ErrorText}++;
-   } elsif ( (my ($ErrorText) = ($ThisLine =~ /^(internal_accept: fcntl\(\) failed: Too many open files)/)) or
-             (my ($ErrorText) = ($ThisLine =~ /^(socket: too many open file descriptors)/)) ) {
+   } elsif ( (($ErrorText) = ($ThisLine =~ /^(internal_accept: fcntl\(\) failed: Too many open files)/)) or
+             (($ErrorText) = ($ThisLine =~ /^(socket: too many open file descriptors)/)) ) {
       $ErrOpenFiles{$ErrorText}++;
    } elsif ( ($From,$Log) = ($ThisLine =~ /invalid command from ([\.0-9a-fA-F:]*)#[0-9]*: (.*)/) ) {
       $CCMessages{"$From,$Log"}++;
@@ -397,35 +400,35 @@ while (defined(my $ThisLine = <STDIN>)) {
    } elsif (($Client,$Net,$Zone,$Response) = ($ThisLine =~/client ([^#]+)(?:#\d+)? \(.*\): (?:view \w+: )?rate limit slip response to (\S+)(?: for (\S+))? (.*) +\(/)) {
       $Zone = "None" unless defined($Zone);
       $LimitSlip{$Zone}{$Response}{$Net}{$Client}++;
-   } elsif (my ($Zone,$RR) = ($ThisLine =~ /^\s*validating \@0x[[:xdigit:]]+: (.*) (\w+): got insecure response; parent indicates it should be secure/)) {
+   } elsif (($Zone,$RR) = ($ThisLine =~ /^\s*validating \@0x[[:xdigit:]]+: (.*) (\w+): got insecure response; parent indicates it should be secure/)) {
       $DNSSECInsec{'__Total__'}++;
       $DNSSECInsec{$Zone}{$RR}++;
-   } elsif (my ($Zone,$RR) = ($ThisLine =~ /^\s*validating \@0x[[:xdigit:]]+: (.*) (\w+): no valid signature found/)) {
+   } elsif (($Zone,$RR) = ($ThisLine =~ /^\s*validating \@0x[[:xdigit:]]+: (.*) (\w+): no valid signature found/)) {
       $DNSSECInvalid{'__Total__'}++;
       $DNSSECInvalid{$Zone}{$RR}++;
-   } elsif (my ($Zone,$RR) = ($ThisLine =~ /^\s*validating \@0x[[:xdigit:]]+: (.*) (\w+): bad cache hit/)) {
+   } elsif (($Zone,$RR) = ($ThisLine =~ /^\s*validating \@0x[[:xdigit:]]+: (.*) (\w+): bad cache hit/)) {
       $DNSSECBadCache{'__Total__'}++;
       $DNSSECBadCache{$Zone}{$RR}++;
-   } elsif (my ($Zone,$RR) = ($ThisLine =~ /^\s*validating \@0x[[:xdigit:]]+: (.*) (\w+): verify failed due to bad signature/)) {
+   } elsif (($Zone,$RR) = ($ThisLine =~ /^\s*validating \@0x[[:xdigit:]]+: (.*) (\w+): verify failed due to bad signature/)) {
       $DNSSECInvalid{'__Total__'}++;
       $DNSSECInvalid{$Zone}{$RR}++;
-   } elsif (my ($Zone,$RR) = ($ThisLine =~ /^\s*validating ([^\/]*)\/(\w+): got insecure response; parent indicates it should be secure/)) {
+   } elsif (($Zone,$RR) = ($ThisLine =~ /^\s*validating ([^\/]*)\/(\w+): got insecure response; parent indicates it should be secure/)) {
       $DNSSECInsec{'__Total__'}++;
       $DNSSECInsec{$Zone}{$RR}++;
-   } elsif (my ($Zone,$RR) = ($ThisLine =~ /^\s*validating ([^\/]*)\/(\w+): no valid signature found/)) {
+   } elsif (($Zone,$RR) = ($ThisLine =~ /^\s*validating ([^\/]*)\/(\w+): no valid signature found/)) {
       $DNSSECInvalid{'__Total__'}++;
       $DNSSECInvalid{$Zone}{$RR}++;
-   } elsif (my ($Zone,$RR) = ($ThisLine =~ /^\s*validating ([^\/]*)\/(\w+): verify failed due to bad signature/)) {
+   } elsif (($Zone,$RR) = ($ThisLine =~ /^\s*validating ([^\/]*)\/(\w+): verify failed due to bad signature/)) {
       $DNSSECInvalid{'__Total__'}++;
       $DNSSECInvalid{$Zone}{$RR}++;
-   } elsif (my ($Zone,$RR) = ($ThisLine =~ /^\s*validating ([^\/]*)\/(\w+): bad cache hit/)) {
+   } elsif (($Zone,$RR) = ($ThisLine =~ /^\s*validating ([^\/]*)\/(\w+): bad cache hit/)) {
       $DNSSECBadCache{'__Total__'}++;
       $DNSSECBadCache{$Zone}{$RR}++;
-   } elsif (my ($Error,$Host) = ($ThisLine =~ /^(?:error \()?(.*)\)? resolving '([^']+)':/)) {
+   } elsif (($Error,$Host) = ($ThisLine =~ /^(?:error \()?(.*)\)? resolving '([^']+)':/)) {
       $DNSSECError{$Error}{'__Total__'}++;
       $DNSSECError{$Error}{$Host}++;
    } elsif ($ThisLine =~ /^samba_dlz:/) {
-      if ( my ($Rhost, $Error) = ($ThisLine =~ /disallowing update of signer=.* name=(.*) type=.* error=(.*)/ )) {
+      if ( ($Rhost, $Error) = ($ThisLine =~ /disallowing update of signer=.* name=(.*) type=.* error=(.*)/ )) {
             $UpdateDenied{"$Rhost ($Error)"}++;
       }
       # ignore rest of samba4 dlz entries for now
