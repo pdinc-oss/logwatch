@@ -33,18 +33,38 @@
 ## copyright please contact logwatch-devel@lists.sourceforge.net.
 #########################################################
 
-use Logwatch ':ip';
+#use Logwatch ':ip';
+use strict;
 
-$Detail = $ENV{'LOGWATCH_DETAIL_LEVEL'} || 0;
-$MinFilter = $ENV{'iptables_host_min_count'} || 0;
-$DoLookup = $ENV{'iptables_ip_lookup'}; $DoLookup = $DoLookup; # keep -w happy
-$ListByHost = $ENV{'iptables_list_by_host'} || 0;
-$ListByService = $ENV{'iptables_list_by_service'} || 0;
-$ListByCidrBits = $ENV{'iptables_list_by_cidr_mask'} || 0;
+my $Detail = $ENV{'LOGWATCH_DETAIL_LEVEL'} || 0;
+my $MinFilter = $ENV{'iptables_host_min_count'} || 0;
+my $DoLookup = $ENV{'iptables_ip_lookup'}; $DoLookup = $DoLookup; # keep -w happy
+my $ListByHost = $ENV{'iptables_list_by_host'} || 0;
+my $ListByService = $ENV{'iptables_list_by_service'} || 0;
+my $ListByCidrBits = $ENV{'iptables_list_by_cidr_mask'} || 0;
+
+#Init String Containers
+my (
+$TU,                $action,            $actionType,
+$chain,             $chain_info,        $from,
+$fromHostCount,     $fromip,            $fromport,
+$if,                $ifin,              $ifout,
+$inout,             $interface,         $interfaceCount,
+$on,                $outputMain,        $outputSection,
+$outputServices,    $packetCount,       $port,
+$proto,             $protocol,          $repcnt,
+$rest,              $service,           $to,
+$toHostCount,       $toip,              $toport,
+);
+#Init Hashes
+my (
+%TCPscan,       %hostList,      %ipt,
+%ipt2,          %port_list
+);
 # Keep old behaviour if nothing is configured
 $ListByHost = 1 unless ($ListByService || $ListByCidrBits );
-$MaxFlood = 10;
-$MaxNum = 0;
+my $MaxFlood = 10;
+my $MaxNum = 0;
 
 # this happens at runtime, not compile time - so we don't need the module
 # unless we need the module.  :)
@@ -105,7 +125,7 @@ sub compNum {
    return $a <=> $b;
 }
 
-while (defined($ThisLine = <STDIN>)) {
+while (defined(my $ThisLine = <STDIN>)) {
    chomp($ThisLine);
    next if ($ThisLine eq '');
 
@@ -190,9 +210,9 @@ while (defined($ThisLine = <STDIN>)) {
 # IPCHAINS
 if (keys %TCPscan and $MaxNum>$MaxFlood) {
    print "\nWarning: ipfwadm scan detected on:\n";
-   foreach $ThisOne (sort compStr keys %TCPscan) {
+   foreach my $ThisOne (sort compStr keys %TCPscan) {
       print "   " . $ThisOne . " from:\n";
-      foreach $Next (sort compStr keys %{$TCPscan{$ThisOne}}) {
+      foreach my $Next (sort compStr keys %{$TCPscan{$ThisOne}}) {
          $TCPscan{$ThisOne}{$Next}>$MaxFlood &&
             print "      " . LookupIP($Next). ": $TCPscan{$ThisOne}{$Next} Time(s)\n";
       }
@@ -300,21 +320,21 @@ if ((keys %ipt2) and $ListByService) {
 
 # IPCHAINS / IPTABLES
 if ((keys %ipt) and $ListByHost) {
-   foreach $actionType (sort compStr keys %ipt) {
-      foreach $interface (sort compStr keys %{$ipt{$actionType}}) {
+   foreach my $actionType (sort compStr keys %ipt) {
+      foreach my $interface (sort compStr keys %{$ipt{$actionType}}) {
          $outputMain = '';
          $interfaceCount = 0;
-         foreach $fromip (sort SortIP keys %{$ipt{$actionType}{$interface}}) {
+         foreach my $fromip (sort SortIP keys %{$ipt{$actionType}{$interface}}) {
             $outputSection = '';
             $fromHostCount = 0;
             $from = LookupIP($fromip);
             undef %port_list;
-            foreach $toip (sort SortIP keys %{$ipt{$actionType}{$interface}{$fromip}}) {
+            foreach my $toip (sort SortIP keys %{$ipt{$actionType}{$interface}{$fromip}}) {
                $toHostCount = 0;
                $to = LookupIP($toip);
                $outputServices = '';
-               foreach $toport (sort compNum keys %{$ipt{$actionType}{$interface}{$fromip}{$toip}}) {
-                  foreach $proto (sort compStr keys %{$ipt{$actionType}{$interface}{$fromip}{$toip}{$toport}}) {
+               foreach my $toport (sort compNum keys %{$ipt{$actionType}{$interface}{$fromip}{$toip}}) {
+                  foreach my $proto (sort compStr keys %{$ipt{$actionType}{$interface}{$fromip}{$toip}{$toport}}) {
                      # determine the protocol
                      if ( $proto =~ /^\d+$/ ) {
                         $protocol = lookupProtocol($proto);
@@ -325,7 +345,7 @@ if ((keys %ipt) and $ListByHost) {
                      # determine the name of the service
                      $service = lookupService($toport,$protocol);
 
-                     foreach $details (sort keys %{$ipt{$actionType}{$interface}{$fromip}{$toip}{$toport}{$proto}}) {
+                     foreach my $details (sort keys %{$ipt{$actionType}{$interface}{$fromip}{$toip}{$toport}{$proto}}) {
                         $packetCount = $ipt{$actionType}{$interface}{$fromip}{$toip}{$toport}{$proto}{$details};
                         $toHostCount += $packetCount;
                         if ( $Detail > 0 ) {
@@ -346,7 +366,7 @@ if ((keys %ipt) and $ListByHost) {
                   $outputMain .= "  From $from - $fromHostCount " . ( ( $fromHostCount > 1 ) ? "packets\n" : "packet\n" );
                } else {
                   $outputMain .= "  From $from - $fromHostCount " .  ( ($fromHostCount > 1) ? "packets" : "packet" ) .  " to " ;
-                  foreach $protocol ( keys %port_list ) {
+                  foreach my $protocol ( keys %port_list ) {
                      my $num_ports = keys %{$port_list { $protocol } };
                      if ($num_ports > 10) {
                         $outputMain .= "$num_ports $protocol ports ";
