@@ -52,6 +52,17 @@ my %VerifyList;
 my %VersionInfo;
 my %Warnings;
 
+#Init String Containers
+my (
+$Command,   $ConfigValue,   $Connection,
+$Err,       $PIDERR,        $Warning,
+$algo,      $bits,          $call,
+$channel,   $cipher,        $config,
+$depth,     $dir,           $dn,
+$error,     $host,          $name,
+$peer,      $plugin,        $port,
+$proto,     $status,
+);
 if ( $Debug >= 5 ) {
     print STDERR "\n\nDEBUG \n\n";
 }
@@ -151,14 +162,14 @@ while (defined(my $ThisLine = <STDIN>)) {
       ($ThisLine =~ /(?:AEAD Decrypt|Authenticate\/Decrypt packet) error: bad packet ID \(may be a replay\): \[ #.* \] -- see the man page entry for --no-replay and --replay-window for more info or silence this warning with --mute-replay-warnings/)
    ) {
       # Don't care about these...
-   }  elsif (my ($status, $depth, $dn) = ( $ThisLine =~ /^VERIFY (.*): depth=(.*), (.*)/ )) {
+   }  elsif (($status, $depth, $dn) = ( $ThisLine =~ /^VERIFY (.*): depth=(.*), (.*)/ )) {
 
 		#VERIFY OK: depth=0, /C=US/ST=TX/O=Aidant.Enterprises/OU=IT/CN=delta.aidant.net/Email=keymaster@aidant.net: 23 Time(s)
       $VerifyList{"status: $status depth: $depth DN: $dn"}++;
-   }  elsif (my ($status, $dn) = ( $ThisLine =~ /^VERIFY X509NAME (.*): (.*)/ )) {
+   }  elsif (($status, $dn) = ( $ThisLine =~ /^VERIFY X509NAME (.*): (.*)/ )) {
       #VERIFY X509NAME OK: /C=US/ST=TX/O=Aidant.Enterprises/OU=IT/CN=delta.aidant.net/Email=keymaster@aidant.net: 23 Time(s)
       $VerifyList{"status: $status X509Name DN: $dn"}++;
-   }  elsif (my ($status, $dn) = ( $ThisLine =~ /^CRL CHECK (.*): (.*)/ )) {
+   }  elsif (($status, $dn) = ( $ThisLine =~ /^CRL CHECK (.*): (.*)/ )) {
 
 		#CRL CHECK OK: C=US, ST=CO, L=Boulder, O=NWRA, OU=Boulder, CN=user, name=root, emailAddress=xxxx@xxxx.xxx
       $VerifyList{"CRL check status: $status DN: $dn"}++;
@@ -174,38 +185,38 @@ while (defined(my $ThisLine = <STDIN>)) {
       $VersionInfo{$ThisLine} = 1;
    } elsif ($ThisLine =~ m/^library versions: /) {
       $VersionInfo{$ThisLine} = 1;
-   } elsif (my ($config, $peer, $port) = ($ThisLine =~ m/^\[([\S]+)\] Peer Connection Initiated with [^\d]*([\d]+\.[\d]+\.[\d]+\.[\d]+)\:([\d]+)/)) {
+   } elsif (($config, $peer, $port) = ($ThisLine =~ m/^\[([\S]+)\] Peer Connection Initiated with [^\d]*([\d]+\.[\d]+\.[\d]+\.[\d]+)\:([\d]+)/)) {
       push (@{$Connections{$config}{$peer}}, $port) unless grep(/^$port$/,@{$Connections{$config}{$peer}});
-   } elsif (my ($peer, $port) = ($ThisLine =~ m/^Peer Connection Initiated with [^\d]*([\d]+\.[\d]+\.[\d]+\.[\d]+)\:([\d]+)/)) {
+   } elsif (($peer, $port) = ($ThisLine =~ m/^Peer Connection Initiated with [^\d]*([\d]+\.[\d]+\.[\d]+\.[\d]+)\:([\d]+)/)) {
       push (@{$Connections{"client"}{$peer}}, $port) unless grep(/^$port$/,@{$Connections{"client"}{$peer}});
-   } elsif (my ($dir, $channel, $bits, $algo) = ($ThisLine =~ /^(Incoming|Outgoing) (Control Channel) Authentication: Using ([\d]+ bit) message hash '(\S+)' for HMAC authentication/)) {
+   } elsif (($dir, $channel, $bits, $algo) = ($ThisLine =~ /^(Incoming|Outgoing) (Control Channel) Authentication: Using ([\d]+ bit) message hash '(\S+)' for HMAC authentication/)) {
       $Auth{$channel}{$dir}{"$bits $algo"}++;
-   } elsif (my ($channel, $dir, $bits, $algo) = ($ThisLine =~ /^(Data Channel) (Encrypt|Decrypt): Using ([\d]+ bit) message hash '(\S+)' for HMAC authentication/)) {
+   } elsif (($channel, $dir, $bits, $algo) = ($ThisLine =~ /^(Data Channel) (Encrypt|Decrypt): Using ([\d]+ bit) message hash '(\S+)' for HMAC authentication/)) {
       $Auth{$channel}{$dir}{"$bits $algo"}++;
-   } elsif (my ($channel, $proto, $cipher) = ($ThisLine =~ /^(Control Channel): ([^,]+), cipher (.+)/)) {
+   } elsif (($channel, $proto, $cipher) = ($ThisLine =~ /^(Control Channel): ([^,]+), cipher (.+)/)) {
       $Crypt{$channel}{$proto}{$cipher}++;
-   } elsif (my ($channel, $dir, $algo, $bits) = ($ThisLine =~ /^(Data Channel) (Encrypt|Decrypt): Cipher '(\S+)' initialized with ([\d]+ bit) key/)) {
+   } elsif (($channel, $dir, $algo, $bits) = ($ThisLine =~ /^(Data Channel) (Encrypt|Decrypt): Cipher '(\S+)' initialized with ([\d]+ bit) key/)) {
       $Crypt{$channel}{$dir}{"$bits $algo"}++;
-   } elsif (my ($dir, $channel, $algo, $bits) = ($ThisLine =~ /^(Incoming|Outgoing) (Data Channel): Cipher '(\S+)' initialized with ([\d]+ bit) key/)) {
+   } elsif (($dir, $channel, $algo, $bits) = ($ThisLine =~ /^(Incoming|Outgoing) (Data Channel): Cipher '(\S+)' initialized with ([\d]+ bit) key/)) {
       $Crypt{$channel}{$dir}{"$bits $algo"}++;
-   } elsif (my ($proto, $host, $port, $error) = ($ThisLine =~ /^(TCP|UDP): connect to ([\d.]+):(\d+) failed, will try again in \d+ seconds: (.*)/)) {
+   } elsif (($proto, $host, $port, $error) = ($ThisLine =~ /^(TCP|UDP): connect to ([\d.]+):(\d+) failed, will try again in \d+ seconds: (.*)/)) {
       $ConnErrors{$error}{"$proto $host:$port"}++;
-   } elsif (my ($proto, $error) = ($ThisLine =~ /^read (\w+)_SERVER \[\]: (.*)/)) {
+   } elsif (($proto, $error) = ($ThisLine =~ /^read (\w+)_SERVER \[\]: (.*)/)) {
       $ConnErrors{$error}{"$proto"}++;
-   } elsif (my ($name) = ($ThisLine =~ /MULTI: new connection by client '(.*)' will cause previous active sessions by this client to be dropped.  Remember to use the --duplicate-cn option if you want multiple clients using the same certificate or username to concurrently connect./)) {
+   } elsif (($name) = ($ThisLine =~ /MULTI: new connection by client '(.*)' will cause previous active sessions by this client to be dropped.  Remember to use the --duplicate-cn option if you want multiple clients using the same certificate or username to concurrently connect./)) {
       $ConnectCauseDrop{$name}++;
-   } elsif (my ($Command) = ($ThisLine =~ /^MANAGEMENT: CMD '(.*)'/)) {
+   } elsif (($Command) = ($ThisLine =~ /^MANAGEMENT: CMD '(.*)'/)) {
       $ManagementCommands{$Command}++;
-   } elsif (my ($Connection) = ($ThisLine =~ /^MANAGEMENT: Client connected from (.*)/)) {
+   } elsif (($Connection) = ($ThisLine =~ /^MANAGEMENT: Client connected from (.*)/)) {
       $ManagementConnections{$Connection}++;
-   } elsif ((my ($Err) = ($ThisLine =~ /(read UDPv4 \[ECONNREFUSED\]: Connection refused \(code=111\))/)) or
-      (my ($Err) = ($ThisLine =~ /(read UDPv4 \[EHOSTUNREACH\]: No route to host \(code=113\))/))) {
+   } elsif ((($Err) = ($ThisLine =~ /(read UDPv4 \[ECONNREFUSED\]: Connection refused \(code=111\))/)) or
+      (($Err) = ($ThisLine =~ /(read UDPv4 \[EHOSTUNREACH\]: No route to host \(code=113\))/))) {
       $Error{$Err}++;
-   } elsif (my ($PIDERR) = ($ThisLine =~ /^PID_ERR ([^[]+) \[/)) {
+   } elsif (($PIDERR) = ($ThisLine =~ /^PID_ERR ([^[]+) \[/)) {
       $PIDERRs{$PIDERR}++;
-   } elsif (my ($Warning) = ($ThisLine =~ /^WARNING: (.*)/)) {
+   } elsif (($Warning) = ($ThisLine =~ /^WARNING: (.*)/)) {
       $Warnings{$Warning}++;
-   } elsif (my ($plugin,$call,$status) = ($ThisLine =~ /^PLUGIN_CALL: POST (.*)\/(PLUGIN_.*) status=(.*)/)) {
+   } elsif (($plugin,$call,$status) = ($ThisLine =~ /^PLUGIN_CALL: POST (.*)\/(PLUGIN_.*) status=(.*)/)) {
       if ($status == 0) {
          $PluginCallOK{$plugin}{$call}++;
       } else {
@@ -215,7 +226,7 @@ while (defined(my $ThisLine = <STDIN>)) {
       $Config = $1;
    } elsif ($ThisLine =~ /Connection profiles END$/) {
       $Config = "";
-   } elsif (my ($ConfigValue) = ($ThisLine =~ /^  (.*)/)) {
+   } elsif (($ConfigValue) = ($ThisLine =~ /^  (.*)/)) {
       $ConfigValues{$Config}->{$ConfigValue} = 1;
    } else {
       # Report any unmatched entries...
