@@ -46,22 +46,48 @@
 
 use Logwatch ':dates';
 use warnings;
+use strict;
 
-$Detail       = $ENV{'LOGWATCH_DETAIL_LEVEL'}  || 0;
+my $Detail       = $ENV{'LOGWATCH_DETAIL_LEVEL'}  || 0;
 
-$LvlBadFormat    = $ENV{'exim_misformat'}     || 0;
-$LvlRestarts     = $ENV{'exim_restart'}       || 5;
-$LvlVirus        = $ENV{'exim_virus'}         || 0;
-$LvlProtocol      = $ENV{'exim_protocol'}      || 0;
-$LvlProtocolLines = $ENV{'exim_protocol_lines'}|| 5;
-$LvlDontAccept   = $ENV{'exim_dontaccept'}    || 0;
-$LvlDontAcceptLines = $ENV{'exim_dontaccept_lines'}    || 0;
-$LvlVerify       = $ENV{'exim_verify'}        || 0;
-$LvlVerifyLines  = $ENV{'exim_verify_lines'}  || 5;
-$LvlRuns         = $ENV{'exim_runs'}          || 5;
-$LvlRelay        = $ENV{'exim_relay'}         || 0;
-$LvlRelayLines   = $ENV{'exim_relay_lines'}   || 10;
-$LvlMsgs         = $ENV{'exim_mesgs'}         || 10;
+my $LvlBadFormat    = $ENV{'exim_misformat'}     || 0;
+my $LvlRestarts     = $ENV{'exim_restart'}       || 5;
+my $LvlVirus        = $ENV{'exim_virus'}         || 0;
+my $LvlProtocol      = $ENV{'exim_protocol'}      || 0;
+my $LvlProtocolLines = $ENV{'exim_protocol_lines'}|| 5;
+my $LvlDontAccept   = $ENV{'exim_dontaccept'}    || 0;
+my $LvlDontAcceptLines = $ENV{'exim_dontaccept_lines'}    || 0;
+my $LvlVerify       = $ENV{'exim_verify'}        || 0;
+my $LvlVerifyLines  = $ENV{'exim_verify_lines'}  || 5;
+my $LvlRuns         = $ENV{'exim_runs'}          || 5;
+my $LvlRelay        = $ENV{'exim_relay'}         || 0;
+my $LvlRelayLines   = $ENV{'exim_relay_lines'}   || 10;
+my $LvlMsgs         = $ENV{'exim_mesgs'}         || 10;
+
+#Init String Containers
+my (
+$Greylist,      $KeepEnv,       $Lookup,
+$NextLine,      $Purging,       $RecipVerify,
+$Relay,         $ReverseLookup, $SendVerify,
+$aa,            $bb,            $cc,
+$day1,          $h1,            $licze,
+$m1,            $mdate,         $mid,
+$month1,        $mrest,         $mtime,
+$qttmsg,        $s1,            $tmsg,
+$ttmsg,         $year1
+);
+#Init Hashes
+my (
+%BadFormat,     %DontAccept,    %OtherList,
+%Proto,         %RecipVerify,   %SendVerify,
+%Virus,         %h,             %mmsg,
+);
+#Init Arrays
+my (
+@GreylistH,     @LookupH,   @RecipVerify,
+@RelayH,        @Restart,   @ReverseLookupH,
+@SendVerify,    @errList,
+) = ();
 
 # procedura sortujaca tak jak ja chce (bo tamta sotrowala po ASCII)
 # procedure to compare numbers at the beginning of submitted strings.
@@ -75,18 +101,16 @@ sub wedlug_liczb {
 # START
 
 my $SearchDate = TimeFilter("%Y-%m-%d %H:%M:%S");
-$StartQueue = 0;
-$EndQueue = 0;
+my $StartQueue = 0;
+my $EndQueue = 0;
 
 # Regex to match IPv4 addresses and IPv6 addresses
 # IPv6 part could be made more strict
 my $IPAddress = qr/\d+\.\d+\.\d+\.\d+|[a-fA-F0-9]*:[a-fA-F0-9:]+/;
-
 my $MatchedDate = 0;
-
 my @SelfSignedH;
 
-while (defined($ThisLine = <STDIN>)) {
+while (defined(my $ThisLine = <STDIN>)) {
    chomp($ThisLine);
     # pobierz dzisiejsza date z 2002-03-31 22:13:48 ...
     # Collect this line's date, e.g. 2002-03-31 22:13:48 ...
@@ -300,7 +324,7 @@ while (defined($ThisLine = <STDIN>)) {
 if ($Detail >= $LvlBadFormat) {
    if (%BadFormat) {
       print "\n***** BAD FORMAT (Possible data corruption or Exim bug) *****\n";
-      foreach $ThisOne (keys %BadFormat) {
+      foreach my $ThisOne (keys %BadFormat) {
          print "$ThisOne\n";
       }
    }
@@ -310,7 +334,7 @@ if ($Detail >= $LvlBadFormat) {
 if ($Detail >= $LvlRestarts) {
    if (@Restart) {
       print "\n--- Exim Restarted ---\n";
-      foreach $ThisOne (sort @Restart) {
+      foreach my $ThisOne (sort @Restart) {
          print "  $ThisOne\n";
       }
    }
@@ -338,7 +362,7 @@ if (@SelfSignedH) {
    print "\n--- Self-Signed Certificate in use ($SelfSignedH Time(s))\n";
 
    if ($Detail >= $LvlMsgs) {
-      foreach $ThisOne (@SelfSignedH) {
+      foreach my $ThisOne (@SelfSignedH) {
          print "$ThisOne\n";
       }
    }
@@ -353,7 +377,7 @@ if ($Detail >= $LvlVerify) {
       $SendVerify and print "\nSender Verify failures: $SendVerify Time(s)\n";
 
       if ($Detail >= $LvlVerifyLines) {
-         foreach $ThisOne (@SendVerify) {
+         foreach my $ThisOne (@SendVerify) {
             print "  $ThisOne\n";
          }
       }
@@ -363,7 +387,7 @@ if ($Detail >= $LvlVerify) {
       $RecipVerify and print "Recipient Verify failures: $RecipVerify Time(s)\n";
 
       if ($Detail >= $LvlVerifyLines) {
-         foreach $ThisOne (@RecipVerify) {
+         foreach my $ThisOne (@RecipVerify) {
             print "  $ThisOne\n";
          }
       }
@@ -378,7 +402,7 @@ if ($Detail >= $LvlRelay) {
       if ( $Detail >= $LvlRelayLines ) {
          print   "--- Lines follow:\n\n";
 
-         foreach $ThisOne (@GreylistH) {
+         foreach my $ThisOne (@GreylistH) {
             print "$ThisOne\n";
          }
       }
@@ -390,7 +414,7 @@ if ($Detail >= $LvlRelay) {
       if ( $Detail >= $LvlRelayLines ) {
          print   "--- Lines follow:\n\n";
 
-         foreach $ThisOne (@RelayH) {
+         foreach my $ThisOne (@RelayH) {
             print "$ThisOne\n";
          }
       }
@@ -402,7 +426,7 @@ if ($Detail >= $LvlVirus) {
    if (%Virus) {
       my (%vir);
       print "\n--- Virus/Malware Blocked ---\n";
-      foreach $ThisOne (sort(keys %Virus)) {
+      foreach my $ThisOne (sort(keys %Virus)) {
          # Need mid empty...
          $mid = "";
          # Virus name holder...
@@ -433,7 +457,7 @@ if ($Detail >= $LvlVirus) {
          $vir{$cc} = "$mid$aa : IP:$bb,";
       }
       # Print the results...
-      foreach $ThisOne (sort(keys %vir)) {
+      foreach my $ThisOne (sort(keys %vir)) {
          print "Virus: [$ThisOne]\n";
          foreach $aa ( sort( split /,/, $vir{$ThisOne} )) {
             print "   $aa\n";
@@ -450,7 +474,7 @@ if ($Detail >= $LvlDontAccept) {
 
       # Probable SPAM hosts...
       print "\n--- Admin Policy Blocking ---\n";
-      foreach $ThisOne (sort(keys %DontAccept)) {
+      foreach my $ThisOne (sort(keys %DontAccept)) {
          # We need this blank.
          $mid = "";
          # IP address/current issue holder.
@@ -540,7 +564,7 @@ if ($Detail >= $LvlDontAccept) {
 
          }
       }
-      foreach $ThisOne (sort(keys %spam)) {
+      foreach my $ThisOne (sort(keys %spam)) {
          if ($Detail >= $LvlDontAcceptLines) {
             if ($spam{$cc} eq "") {
                print "  $ThisOne\n";
@@ -575,7 +599,7 @@ if ($Detail >= $LvlProtocol) {
 
       # Probable SPAM hosts...
       print "\n--- Bad Hosts ---\n";
-      foreach $ThisOne (sort(keys %Proto)) {
+      foreach my $ThisOne (sort(keys %Proto)) {
          # We need this blank.
          $mid = "";
          # IP address/current issue holder.
@@ -712,7 +736,7 @@ if ($Detail >= $LvlProtocol) {
             $spam{$cc} = "$mid$aa : IP:$bb,";
          }
       }
-      foreach $ThisOne (sort(keys %spam)) {
+      foreach my $ThisOne (sort(keys %spam)) {
          if ($Detail >= $LvlProtocolLines) {
             print " $ThisOne:\n";
             foreach $aa ( sort( split /,/, $spam{$ThisOne} )) {
@@ -727,12 +751,12 @@ if ($Detail >= $LvlProtocol) {
 
       if ( %TlsProblemClasses ) {
          print "\n--- TLS Connection Issues \n";
-         foreach $ThisOne (sort keys %TlsProblemClasses) {
+         foreach my $ThisOne (sort keys %TlsProblemClasses) {
             $bb = $TlsProblemClasses{$ThisOne};
             print "  $ThisOne: $bb Time(s)\n";
          }
          print "\n From these hosts:\n";
-         foreach $ThisOne (sort keys %TlsProblemHosts) {
+         foreach my $ThisOne (sort keys %TlsProblemHosts) {
             $bb = $TlsProblemHosts{$ThisOne};
             print "  $ThisOne: $bb Time(s)\n";
          }
@@ -740,12 +764,12 @@ if ($Detail >= $LvlProtocol) {
 
       if ( %SmtpConnection ) {
          print "\n--- SMTP Connection Issues \n";
-         foreach $ThisOne (sort keys %SmtpConnection) {
+         foreach my $ThisOne (sort keys %SmtpConnection) {
             $bb = $SmtpConnection{$ThisOne};
             print "  $ThisOne: $bb Time(s)\n";
          }
          print "\n From these hosts:\n";
-         foreach $ThisOne (sort keys %SmtpProblemHosts) {
+         foreach my $ThisOne (sort keys %SmtpProblemHosts) {
             $bb = $SmtpProblemHosts{$ThisOne};
             print "  $ThisOne: $bb Time(s)\n";
          }
@@ -756,7 +780,7 @@ if ($Detail >= $LvlProtocol) {
          print "--- $ReverseLookup  Time(s)\n\n";
 
          if ($Detail >= $LvlProtocolLines) {
-            foreach $ThisOne (@ReverseLookupH) {
+            foreach my $ThisOne (@ReverseLookupH) {
                print "   $ThisOne\n";
             }
          }
@@ -767,7 +791,7 @@ if ($Detail >= $LvlProtocol) {
          print "--- (e.g. spam try): $Lookup  Time(s)\n\n";
 
          if ($Detail >= $LvlProtocolLines) {
-            foreach $ThisOne (@LookupH) {
+            foreach my $ThisOne (@LookupH) {
                print "$ThisOne\n";
             }
          }
@@ -826,7 +850,7 @@ if ($Detail >= $LvlMsgs) {
 # INNE Badziewia
 if (keys %OtherList) {
    print "\n**Unmatched Entries**\n";
-   foreach $line (sort {$a cmp $b} keys %OtherList) {
+   foreach my $line (sort {$a cmp $b} keys %OtherList) {
       print "$line: $OtherList{$line} Time(s)\n";
    }
 }
