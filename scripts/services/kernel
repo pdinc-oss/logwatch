@@ -46,6 +46,11 @@ my %NFS = ();
 my %EXT4Volume = ();
 my %EXT4 = ();
 
+#Init String Containers
+my (
+$Volume,    $errormsg,  $from,
+$host,      $on
+);
 while (defined(my $ThisLine = <STDIN>)) {
    chomp($ThisLine);
    next if ($ThisLine eq '');
@@ -63,7 +68,7 @@ while (defined(my $ThisLine = <STDIN>)) {
       # user specified ignore messages, lower cased
       or ($ThisLine =~ /$Ignore_messages/i)
       ) { # ignore the above strings
-   } elsif ( my ($from,$on) = ( $ThisLine =~ /^Warning: possible SYN flood from ([^ ]+) on ([^ ]+):.+ Sending cookies/ ) ) {
+   } elsif ( ($from,$on) = ( $ThisLine =~ /^Warning: possible SYN flood from ([^ ]+) on ([^ ]+):.+ Sending cookies/ ) ) {
       my $Fullfrom = LookupIP($from);
       my $Fullon = LookupIP($on);
       $SYNflood{$Fullon}{$Fullfrom}++;
@@ -91,7 +96,7 @@ while (defined(my $ThisLine = <STDIN>)) {
       $DRBDErrors{$1}{"sock_sendmsg time expired"}++;
    } elsif ($ThisLine =~ /(block drbd\d+): Began resync as (SyncSource|SyncTarget)/) {
       $DRBDErrors{$1}{"Began resync as $2"}++;
-   } elsif ( ( my $errormsg ) = ( $ThisLine =~ /(.*?error.{0,17})/i ) ) {
+   } elsif ( ( $errormsg ) = ( $ThisLine =~ /(.*?error.{0,17})/i ) ) {
       # filter out smb open/read errors cased by insufficient permissions
       my $SkipError = 0;
       $SkipError = 1 if $ThisLine =~ /smb_readpage_sync: .*open failed, error=-13/;
@@ -111,7 +116,7 @@ while (defined(my $ThisLine = <STDIN>)) {
       # filter out mount options
       $SkipError = 1 if $ThisLine =~ /errors=(?:continue|remount-ro|panic)/;
       $Errors{$errormsg}++ if ( (! $SkipError) || ($Detail > 8));
-   } elsif ( ( my ($Volume, $errormsg) ) = ( $ThisLine =~ /^EXT4-fs \(([^)]+)\): (.*)/ ) ) {
+   } elsif ( ( ($Volume, $errormsg) ) = ( $ThisLine =~ /^EXT4-fs \(([^)]+)\): (.*)/ ) ) {
       if ($errormsg =~ /INFO: recovery required on readonly filesystem/) {
          $EXT4Volume{$Volume} = 1;
          push @{$EXT4{$Volume}}, $errormsg;
@@ -119,9 +124,9 @@ while (defined(my $ThisLine = <STDIN>)) {
          push @{$EXT4{$Volume}}, $errormsg if $EXT4{$Volume};
          delete $EXT4Volume{$Volume} if ($errormsg =~ /recovery complete/);
       }
-   } elsif ( ( my $errormsg ) = ( $ThisLine =~ /((BUG|WARNING|INFO):.{0,40})/ ) ) {
+   } elsif ( ( $errormsg ) = ( $ThisLine =~ /((BUG|WARNING|INFO):.{0,40})/ ) ) {
       $Errors{$errormsg}++;
-   } elsif ( ( my $host ) = ( $ThisLine =~ /^nfs: server (.*) not responding/ ) ) {
+   } elsif ( ( $host ) = ( $ThisLine =~ /^nfs: server (.*) not responding/ ) ) {
       $NFS{$host}++;
    # OTHER
    } else {
