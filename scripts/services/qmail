@@ -22,16 +22,32 @@
 ## contributions to this script and want to claim
 ## copyright please contact logwatch-devel@lists.sourceforge.net.
 #########################################################
+use strict;
 
-$Detail = $ENV{'LOGWATCH_DETAIL_LEVEL'} || 0;
-$QmailDetail = $ENV{'qmail_high_detail'};
-$QmailThreshold = $ENV{'threshold'};
-$RemoteThreshold = $ENV{'remote_threshold'};
-$LocalThreshold  = $ENV{'local_threshold'};
-$FromThreshold   = $ENV{'from_threshold'};
-$IgnoreUnmatched = $ENV{'qmail_ignore_unmatched'} || 0;
+my $Detail = $ENV{'LOGWATCH_DETAIL_LEVEL'} || 0;
+my $QmailDetail = $ENV{'qmail_high_detail'};
+my $QmailThreshold = $ENV{'threshold'};
+my $RemoteThreshold = $ENV{'remote_threshold'};
+my $LocalThreshold  = $ENV{'local_threshold'};
+my $FromThreshold   = $ENV{'from_threshold'};
+my $IgnoreUnmatched = $ENV{'qmail_ignore_unmatched'} || 0;
 
-while (defined($ThisLine = <STDIN>)) {
+#Init String Containers
+my (
+$DeliveryResponse,  $EmailFrom,                     $Response,
+$ResponseCode,      $ServerResponseOverallTotal,    $ServerResponses,
+$ToLocal,           $ToRemote,                      $msgid,
+$percentage,        $threshold_reached,
+);
+#Init Hashes
+my (
+%From,                  %Local,         %Remote,
+%ServerResponseTotal,
+);
+#Init Array
+my @OtherList = ();
+
+while (defined(my $ThisLine = <STDIN>)) {
    if (
          ( $ThisLine =~ /new msg/ ) or
          ( $ThisLine =~ /status: / ) or
@@ -98,7 +114,7 @@ if ($QmailDetail >= 1) {
    if ( (keys %From) ) {
       print "\nEmails from (Threshold of " . $FromThreshold . "):\n";
       $threshold_reached=0;
-      foreach $Line (sort {$a cmp $b} keys %From) {
+      foreach my $Line (sort {$a cmp $b} keys %From) {
          if ($From{$Line} >= $FromThreshold) {
             $threshold_reached=1;
             print "\t" . $Line . " - ". $From{$Line} . " Time(s)\n";
@@ -112,7 +128,7 @@ if ($QmailDetail >= 1) {
    if ( (keys %Remote) ) {
       print "\nEmails to Remote Server (Threshold of " . $RemoteThreshold . "):\n";
       $threshold_reached=0;
-      foreach $Line (sort {$a cmp $b} keys %Remote) {
+      foreach my $Line (sort {$a cmp $b} keys %Remote) {
          if ($Remote{$Line} >= $RemoteThreshold) {
             $threshold_reached=1;
             print "\t" . $Line . " - ". $Remote{$Line} . " Time(s)\n";
@@ -126,7 +142,7 @@ if ($QmailDetail >= 1) {
    if ( (keys %Local) ) {
       print "\nEmails to Local Server (Threshold of " . $LocalThreshold . "):\n";
       $threshold_reached=0;
-      foreach $Line (sort {$a cmp $b} keys %Local) {
+      foreach my $Line (sort {$a cmp $b} keys %Local) {
          if ($Local{$Line} >= $LocalThreshold) {
             $threshold_reached=1;
             print "\t" . $Line . " - ". $Local{$Line} . " Time(s)\n";
@@ -140,15 +156,15 @@ if ($QmailDetail >= 1) {
 
 if (keys %{$ServerResponses}) {
    print "\nRemote Server Responses:\n";
-   foreach $Line (sort {$a cmp $b} keys %{$ServerResponses}) {
-      foreach $Detail (sort {$a cmp $b} keys %{$ServerResponses->{$Line}}) {
+   foreach my $Line (sort {$a cmp $b} keys %{$ServerResponses}) {
+      foreach my $Detail (sort {$a cmp $b} keys %{$ServerResponses->{$Line}}) {
          $ServerResponseTotal{$Line} += $ServerResponses->{$Line}->{$Detail};
          $ServerResponseOverallTotal += $ServerResponses->{$Line}->{$Detail};
          print "\t".ucfirst($Line)."(" . $Detail . ") - ". $ServerResponses->{$Line}->{$Detail} . " Time(s)\n";
       }
    }
    print "\n\tPercentage(s):\n";
-   foreach $Details (sort {$a cmp $b} keys %ServerResponseTotal) {
+   foreach my $Details (sort {$a cmp $b} keys %ServerResponseTotal) {
       $percentage = (($ServerResponseTotal{$Details} / $ServerResponseOverallTotal) * 100);
       print "\t\t" . ucfirst($Details) . " - ";
       printf("%.2f",$percentage);
