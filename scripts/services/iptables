@@ -33,7 +33,7 @@
 ## copyright please contact logwatch-devel@lists.sourceforge.net.
 #########################################################
 
-#use Logwatch ':ip';
+use Logwatch ':ip';
 use strict;
 
 my $Detail = $ENV{'LOGWATCH_DETAIL_LEVEL'} || 0;
