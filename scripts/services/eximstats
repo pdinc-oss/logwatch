@@ -30,9 +30,11 @@
 #########################################################
 
 use Logwatch ':all';
+use strict;
 
-$Debug = $ENV{'LOGWATCH_DEBUG'} || 0;
-$Detail = $ENV{'LOGWATCH_DETAIL_LEVEL'} || 0;
+my $Debug = $ENV{'LOGWATCH_DEBUG'} || 0;
+my $Detail = $ENV{'LOGWATCH_DETAIL_LEVEL'} || 0;
+my $DebugCounter = 0;
 
 
 my $SearchDate = TimeFilter("%Y-%m-%d %H:%M:%S");
@@ -42,9 +44,10 @@ if ( $Debug >= 5 ) {
          $DebugCounter = 1;
 }
 
+#Should probably verify the ENV variable -mgt
 open(EXIMSTATS,"| $ENV{'eximstats'}");
 
-while (defined($ThisLine = <STDIN>)) {
+while (defined(my $ThisLine = <STDIN>)) {
 
     next unless $ThisLine =~ /^$SearchDate /o;
 
