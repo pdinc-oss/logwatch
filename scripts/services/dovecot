@@ -79,6 +79,14 @@ my %UnknownUsers;
 my %VacationDup;
 my %VacationResponse;
 
+#Init String Containers
+my (
+$Error,     $Fatal,     $Host,
+$IP,        $MUA,       $Mailbox,
+$Name,      $Reason,    $Recip,
+$Session,   $User,      $lip,
+$rip,       $user,
+);
 if ( $Debug >= 5 ) {
    print STDERR "\n\nDEBUG \n\n";
 }
@@ -140,8 +148,8 @@ while (defined(my $ThisLine = <STDIN>)) {
    } elsif ( $ThisLine =~ /Dovecot (v\d[^ ]* |)(\([0-9a-fA-F]+\) )?starting up/) {
        $Restarts++;
        $End = 0;
-   } elsif ( (my ($User, $Host) = ( $ThisLine =~ /^(?:$dovecottag )?pop3-login: Login: (.*?) \[(.*)\]/ ) ) or
-             (my ($User, $Host) = ( $ThisLine =~ /^(?:$dovecottag )?pop3-login: (?:Info: )?Login: user=\<(.*?)\>.*rip=(.*), lip=/ ) ) ) {
+   } elsif ( (($User, $Host) = ( $ThisLine =~ /^(?:$dovecottag )?pop3-login: Login: (.*?) \[(.*)\]/ ) ) or
+             (($User, $Host) = ( $ThisLine =~ /^(?:$dovecottag )?pop3-login: (?:Info: )?Login: user=\<(.*?)\>.*rip=(.*), lip=/ ) ) ) {
       if ($Host !~ /$IgnoreHost/) {
          $Host = hostName($Host);
          $Login{$User}{$Host}++;
@@ -149,8 +157,8 @@ while (defined(my $ThisLine = <STDIN>)) {
          $ConnectionPOP3{$Host}++;
          $Connection{$Host}++;
       }
-   } elsif ( (my ($User, $Host) = ( $ThisLine =~ /^(?:$dovecottag )?imap-login: Login: (.*?) \[(.*)\]/ ) ) or
-             (my ($User, $Host, $Session) = ( $ThisLine =~ /^(?:$dovecottag )?imap-login: (?:Info: )?Login: user=\<(.*?)\>.*rip=(.*), lip=.*, session=<([^>]+)>/ ) ) ) {
+   } elsif ( (($User, $Host) = ( $ThisLine =~ /^(?:$dovecottag )?imap-login: Login: (.*?) \[(.*)\]/ ) ) or
+             (($User, $Host, $Session) = ( $ThisLine =~ /^(?:$dovecottag )?imap-login: (?:Info: )?Login: user=\<(.*?)\>.*rip=(.*), lip=.*, session=<([^>]+)>/ ) ) ) {
       if ($Host !~ /$IgnoreHost/) {
          $Host = hostName($Host);
          $Login{$User}{$Host}++;
@@ -162,27 +170,27 @@ while (defined(my $ThisLine = <STDIN>)) {
              delete $MUASessionList{$Session};
          }
       }
-   } elsif (my ($User, $Host) = ( $ThisLine =~ /managesieve-login: Login: user=\<(.*?)\>.*rip=(.*), lip=/ ) ) {
+   } elsif (($User, $Host) = ( $ThisLine =~ /managesieve-login: Login: user=\<(.*?)\>.*rip=(.*), lip=/ ) ) {
       if ($Host !~ /$IgnoreHost/) {
          $Host = hostName($Host);
          $SieveLogin{$User}{$Host}++;
          $ConnectionSieve{$Host}++;
          $Connection{$Host}++;
       }
-   } elsif (my ($User) = ( $ThisLine =~ /auth: (?:pam|passwd-file)\((.*),.*\): unknown user/ ) ) {
+   } elsif (($User) = ( $ThisLine =~ /auth: (?:pam|passwd-file)\((.*),.*\): unknown user/ ) ) {
      $UnknownUsers{$User}++; 
 
 # 'lda' for dovecot 2.0, 'deliver' for earlier versions
-   } elsif (my ($User, $Mailbox) = ( $ThisLine =~ /^$dovecottag (?:lda|deliver)\((.*)\)(?:<[^>]+><[^>]+>)?: msgid=.*: saved mail to (.*)/ ) ) {
+   } elsif ( ($User, $Mailbox) = ( $ThisLine =~ /^$dovecottag (?:lda|deliver)\((.*)\)(?:<[^>]+><[^>]+>)?: msgid=.*: saved mail to (.*)/ ) ) {
       $Deliver{$User}{$Mailbox}++;
    } elsif ( ($User, $Mailbox) = ( $ThisLine =~ /^$dovecottag service=lda, user=(.*), .* msgid=.*: saved mail to (.*)/ ) ) {
       $Deliver{$User}{$Mailbox}++;
 # For Sieve-based delivery
-   } elsif (my ($User, $Mailbox) = ( $ThisLine =~ /^$dovecottag (?:lda|deliver)\((.*)\)(?:<[^>]+><[^>]+>)?: sieve: msgid=.*: stored mail into mailbox '(.*)'/ ) ) {
+   } elsif ( ($User, $Mailbox) = ( $ThisLine =~ /^$dovecottag (?:lda|deliver)\((.*)\)(?:<[^>]+><[^>]+>)?: sieve: msgid=.*: stored mail into mailbox '(.*)'/ ) ) {
       $Deliver{$User}{$Mailbox}++;
 
 # LMTP-based delivery
-   } elsif (my ($User, $Mailbox) = ( $ThisLine =~ /^$dovecottag lmtp\((?:\d+, )?(.*?)\)(?:<[^>]+><[^>]+>)?: .*msgid=.*: saved mail to (.*)/ ) ) {
+   } elsif ( ($User, $Mailbox) = ( $ThisLine =~ /^$dovecottag lmtp\((?:\d+, )?(.*?)\)(?:<[^>]+><[^>]+>)?: .*msgid=.*: saved mail to (.*)/ ) ) {
     # dovecot: [ID 583609 mail.info] lmtp(12782, cloyce@headgear.org): jBt1EfjCMk3uMQAAm9eMBA: msgid=<4D32DB1F.3080707@c-dot.co.uk>: saved mail to INBOX
     # dovecot: lmtp(some@domain.tld): msgid=<20190506012701.DBE073122C3@domain.tld>: saved mail to INBOX
     # dovecot: lmtp(some@domain.tld)<21947><Zi6SJJae1Fy7VQAA+Uzxeg>: msgid=<20190506012701.DBE073122C3@domain.tld>: saved mail to INBOX
@@ -194,19 +202,19 @@ while (defined(my $ThisLine = <STDIN>)) {
       $Deliver{$User}{$Mailbox}++;
 
 # LMTP-based Sieve delivery
-   } elsif (my ($User, $Mailbox) = ( $ThisLine =~ /^$dovecottag lmtp\((?:\d+, )?(.*?)\)(?:<[^>]+><[^>]+>)?: .*: sieve: msgid=.*: stored mail into mailbox '(.*)'/ ) ) {
+   } elsif ( ($User, $Mailbox) = ( $ThisLine =~ /^$dovecottag lmtp\((?:\d+, )?(.*?)\)(?:<[^>]+><[^>]+>)?: .*: sieve: msgid=.*: stored mail into mailbox '(.*)'/ ) ) {
       $Deliver{$User}{$Mailbox}++;
 
 # LMTP-based Sieve delivery Dovecot 2.3
-   } elsif (my ($User, $Mailbox) = ( $ThisLine =~ /^$dovecottag lmtp\((.*)\)(?:<[^>]+><[^>]+>)?: sieve: msgid=.*: stored mail into mailbox '(.*)'/ ) ) {
+   } elsif ( ($User, $Mailbox) = ( $ThisLine =~ /^$dovecottag lmtp\((.*)\)(?:<[^>]+><[^>]+>)?: sieve: msgid=.*: stored mail into mailbox '(.*)'/ ) ) {
       $Deliver{$User}{$Mailbox}++;
 
 # sieve forward
-   } elsif (my ($User, $Recip) = ($ThisLine =~ /^$dovecottag (?:lda|deliver|lmtp)\((?:\d+, )?(.*?)\)(?:<[^>]+><[^>]+>)?:(?: [^:]+:)? sieve: msgid=.* forwarded to \<(.*)\>/)) {
+   } elsif ( ($User, $Recip) = ($ThisLine =~ /^$dovecottag (?:lda|deliver|lmtp)\((?:\d+, )?(.*?)\)(?:<[^>]+><[^>]+>)?:(?: [^:]+:)? sieve: msgid=.* forwarded to \<(.*)\>/)) {
       $Forwarded{$User}{$Recip}++;
 
 # sieve pipe
-   } elsif (my ($User, $Recip) = ($ThisLine =~ /^$dovecottag (?:imap|lmtp)\((.*?)\)(?:<[^>]+><[^>]+>)?: sieve: (?:msgid=.*: )?pipe action: piped message to program `.*'/) or
+   } elsif ( ($User, $Recip) = ($ThisLine =~ /^$dovecottag (?:imap|lmtp)\((.*?)\)(?:<[^>]+><[^>]+>)?: sieve: (?:msgid=.*: )?pipe action: piped message to program `.*'/) or
             my ($User, $Recip) = ($ThisLine =~ /^$dovecottag (?:imap|lmtp)\((.*?)\)(?:<[^>]+><[^>]+>)?: sieve: (?:msgid=.*: )?left message in mailbox '.*'/) ) {
       # dovecot: imap(user@domain.com): sieve: pipe action: piped message to program `sa-learn-sieve.sh'
       # dovecot: imap(user@domain.com): sieve: left message in mailbox 'INBOX.Spam'
@@ -214,10 +222,10 @@ while (defined(my $ThisLine = <STDIN>)) {
       # IGNORE
 
 # sieve vacation
-   } elsif (my ($User, $Recip) = ($ThisLine =~ /^$dovecottag (?:lda|deliver|lmtp)\((?:\d+, )?(.*)\)(?:<[^>]+><[^>]+>)?:(?: .*:)? sieve: msgid=.* sent vacation response to \<(.*)\>/)) {
+   } elsif ( ($User, $Recip) = ($ThisLine =~ /^$dovecottag (?:lda|deliver|lmtp)\((?:\d+, )?(.*)\)(?:<[^>]+><[^>]+>)?:(?: .*:)? sieve: msgid=.* sent vacation response to \<(.*)\>/)) {
       $VacationResponse{$User}{$Recip}++;
 
-   } elsif (my ($User, $Recip) = ($ThisLine =~ /^$dovecottag (?:lda|deliver|lmtp)\((?:\d+, )?(.*)\)(?:<[^>]+><[^>]+>)?:(?: .*:)? sieve: msgid=.* discarded duplicate vacation response to \<(.*)\>/ )) {
+   } elsif ( ($User, $Recip) = ($ThisLine =~ /^$dovecottag (?:lda|deliver|lmtp)\((?:\d+, )?(.*)\)(?:<[^>]+><[^>]+>)?:(?: .*:)? sieve: msgid=.* discarded duplicate vacation response to \<(.*)\>/ )) {
       $VacationDup{$User}{$Recip}++;
 
    } elsif ( $ThisLine =~ /^$dovecottag (?:lda|deliver|lmtp)\((?:\d+, )?(.*)\)(?:<[^>]+><[^>]+>)?:(?: .*:)? sieve: msgid=.* [Mm]arked message to be discarded if not explicitly delivered/ ) {
@@ -238,53 +246,53 @@ while (defined(my $ThisLine = <STDIN>)) {
    # IGNORE
 
    # Dovecot 2.0 proxy
-   } elsif (my ($User, $Host) = ( $ThisLine =~ /^$dovecottag pop3-login: proxy\((.*)\): started proxying to .*: user=<.*>, method=.*, rip=(.*), lip=/ ) ) {
+   } elsif ( ($User, $Host) = ( $ThisLine =~ /^$dovecottag pop3-login: proxy\((.*)\): started proxying to .*: user=<.*>, method=.*, rip=(.*), lip=/ ) ) {
       if ($Host !~ /$IgnoreHost/) {
          $ProxyLogin{$User}{$Host}++;
          $ProxyLoginPOP3{$User}++;
          $ProxyConnectionPOP3{$Host}++;
          $ProxyConnection{$Host}++;
       }
-   } elsif (my ($User, $Host) = ( $ThisLine =~ /^$dovecottag imap-login: proxy\((.*)\): started proxying to .*: user=<.*>, method=.*, rip=(.*), lip=/ ) ) {
+   } elsif ( ($User, $Host) = ( $ThisLine =~ /^$dovecottag imap-login: proxy\((.*)\): started proxying to .*: user=<.*>, method=.*, rip=(.*), lip=/ ) ) {
       if ($Host !~ /$IgnoreHost/) {
          $ProxyLogin{$User}{$Host}++;
          $ProxyLoginIMAP{$User}++;
          $ProxyConnectionIMAP{$Host}++;
          $ProxyConnection{$Host}++;
       }
-   } elsif (my ($Reason) = ( $ThisLine =~ /proxy\(.*\): disconnecting .* \(Disconnected (.*)\)/ ) ) {
+   } elsif ( ($Reason) = ( $ThisLine =~ /proxy\(.*\): disconnecting .* \(Disconnected (.*)\)/ ) ) {
       $ProxyDisconnected{$Reason}++;
 
    } elsif ($ThisLine =~ /Disconnected (\[|bytes|top)/) {
       $Disconnected{"No reason"}++;
-   } elsif (my ($Reason) = ($ThisLine =~ /Disconnected: (.*) \[/) ) {
+   } elsif ( ($Reason) = ($ThisLine =~ /Disconnected: (.*) \[/) ) {
       $Disconnected{$Reason}++;
-   } elsif (my ($Reason) = ($ThisLine =~ /Disconnected: (.*) (bytes|top|in)=.*/) ) {
+   } elsif ( ($Reason) = ($ThisLine =~ /Disconnected: (.*) (bytes|top|in)=.*/) ) {
       $Disconnected{$Reason}++;
    } elsif ($ThisLine =~ /Logged out (rcvd|bytes|top|in)=.*/) {
       $Disconnected{"Logged out"}++;
-   } elsif (my ($Reason) = ($ThisLine =~ /Disconnected \((.*)\):/) ) {
+   } elsif ( ($Reason) = ($ThisLine =~ /Disconnected \((.*)\):/) ) {
       $Reason =~ s/ in \d+ secs//;
       $Disconnected{$Reason}++;
    } elsif ($ThisLine =~ /Server shutting down./) {
       $ConnectionClosed{"Server shutting down"}++;
-   } elsif (my ($Reason, $Host) = ($ThisLine =~ /TLS initialization failed/) ) {
+   } elsif ( ($Reason, $Host) = ($ThisLine =~ /TLS initialization failed/) ) {
       $TLSInitFail++;
-   } elsif (my ($Host) = ($ThisLine =~ /Aborted login:.* rip=(.*),/) ) {
+   } elsif ( ($Host) = ($ThisLine =~ /Aborted login:.* rip=(.*),/) ) {
       $Host = hostName($Host);
       $Aborted{$Host}++;
-   } elsif (my ($Host) = ($ThisLine =~ /Aborted login \[(.*)\]/) ) {
+   } elsif ( ($Host) = ($ThisLine =~ /Aborted login \[(.*)\]/) ) {
       $Host = hostName($Host);
       $Aborted{$Host}++;
-   } elsif (my ($Reason) = ($ThisLine =~ /Aborted login \((.*)\):/)) {
+   } elsif ( ($Reason) = ($ThisLine =~ /Aborted login \((.*)\):/)) {
       $Aborted{$Reason}++;
-   } elsif (my ($User,$IP) = ($ThisLine =~ /auth: (?:LOGIN|login)\((.*),(\d+\.\d+\.\d+\.\d+)\): Request timed out waiting for client to continue authentication/) ) {
+   } elsif ( ($User,$IP) = ($ThisLine =~ /auth: (?:LOGIN|login)\((.*),(\d+\.\d+\.\d+\.\d+)\): Request timed out waiting for client to continue authentication/) ) {
       $AuthTimedOut{$User}{$IP}++;
-   } elsif (my ($Reason) = ($ThisLine =~ /auth: Warning: auth client \d+ disconnected with \d+ pending requests: (.*)/) ) {
+   } elsif ( ($Reason) = ($ThisLine =~ /auth: Warning: auth client \d+ disconnected with \d+ pending requests: (.*)/) ) {
       $AuthDisconnectedWithPending{$Reason}++;
-   } elsif (my ($IP) = ($ThisLine =~ /auth: login\(.*,(\d+\.\d+\.\d+\.\d+)\): Username character disallowed by auth_username_chars: .* \(username: .*\)/) ) {
+   } elsif ( ($IP) = ($ThisLine =~ /auth: login\(.*,(\d+\.\d+\.\d+\.\d+)\): Username character disallowed by auth_username_chars: .* \(username: .*\)/) ) {
       $AuthUsernameChars{$IP}++;
-   } elsif (my ($user, $rip, $lip) = ($ThisLine =~ /Maximum number of connections.* exceeded.* user=<([^>]+)>.*rip=([^,]+), lip=([^,]+)/)) {
+   } elsif ( ($user, $rip, $lip) = ($ThisLine =~ /Maximum number of connections.* exceeded.* user=<([^>]+)>.*rip=([^,]+), lip=([^,]+)/)) {
      # dovecot: [ID 583609 mail.info] imap-login: Maximum number of connections from user+IP exceeded (mail_max_userip_connections=10): user=<cloyce@headgear.org>, method=CRAM-MD5, rip=102.225.17.52, lip=14.105.322.67, TLS
       $LimitExceeded{"max_userip_connections: $user from $rip to $lip"}++;
 
@@ -300,38 +308,38 @@ while (defined(my $ThisLine = <STDIN>)) {
             ($ThisLine =~ /(IMAP|POP3)\(.+\): Disconnected (bytes|top|rip|user|method)=/) or
             ($ThisLine =~ /(imap\-login|pop3\-login): Disconnected: (bytes|top|rip|user|method)=/) ) { 
       $Disconnected{"No reason"}++;
-   } elsif ( (my ($Reason) = ($ThisLine =~ /(?:IMAP|POP3).+: Disconnected: (.+) (bytes|top)=/i)) or
-          (my ($Reason) = ($ThisLine =~ /(?:imap\-login|pop3\-login): Disconnected: \(?(.+)\)?: /)) or
+   } elsif ( ( ($Reason) = ($ThisLine =~ /(?:IMAP|POP3).+: Disconnected: (.+) (bytes|top)=/i)) or
+          ( ($Reason) = ($ThisLine =~ /(?:imap\-login|pop3\-login): Disconnected: \(?(.+)\)?: /)) or
             #This one should go away also -mgt
-          (my ($Reason) = ($ThisLine =~ /IMAP.+: Disconnected: (.+)/i)) ) {
+          ( ($Reason) = ($ThisLine =~ /IMAP.+: Disconnected: (.+)/i)) ) {
       $Disconnected{$Reason}++;
    } elsif ($ThisLine =~ /(IMAP|POP3).+: Connection closed (top|bytes)=/i) {
         $ConnectionClosed{"No reason"}++;
-   } elsif (my ($Reason) = ($ThisLine =~ /(?:IMAP|POP3).+: Connection closed: (.*) (?:bytes|method|top|rip|user)=/i) ) {
+   } elsif ( ($Reason) = ($ThisLine =~ /(?:IMAP|POP3).+: Connection closed: (.*) (?:bytes|method|top|rip|user)=/i) ) {
        $ConnectionClosed{$Reason}++;
    } elsif ($ThisLine =~ /(IMAP|POP3).+: (Connection closed.*)/) {
       $Disconnected{$2}++;
-   } elsif (my ($Host) = ($ThisLine =~ /(?:imap\-login|pop3\-login): Aborted login: .*rip=(?:::ffff:)?(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})/) ) {
+   } elsif ( ($Host) = ($ThisLine =~ /(?:imap\-login|pop3\-login): Aborted login: .*rip=(?:::ffff:)?(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})/) ) {
       $Aborted{$Host}++;
-   } elsif (my ($Error) = ($ThisLine =~ /child \d* (?:\(login\) )?returned error (.*)/)) {
+   } elsif ( ($Error) = ($ThisLine =~ /child \d* (?:\(login\) )?returned error (.*)/)) {
    # dovecot: child 23747 (login) returned error 89
    # dovecot: log: Error: service(auth): child 19654 returned error 89 (Fatal failure)
       $ChildErr{$Error}++;
-   } elsif (my ($Name) = ($ThisLine =~ /$dovecottag IMAP\((.*)\): .*(.*) failed: Disk quota exceeded/i)) {
+   } elsif ( ($Name) = ($ThisLine =~ /$dovecottag IMAP\((.*)\): .*(.*) failed: Disk quota exceeded/i)) {
    # dovecot: IMAP(podracka): mkdir(/home/LF/KLINIKY/podracka/mail/.imap/saved-messages) failed: Disk quota exceeded
       $DiskQuotaExceed{$Name}++;
    # This is with imap_id_log = * enabled
-   } elsif (my ($User,$MUA) = ($ThisLine =~ /imap\((.*)\): ID sent: name=(.*)/)) {
+   } elsif ( ($User,$MUA) = ($ThisLine =~ /imap\((.*)\): ID sent: name=(.*)/)) {
       $MUAList{$MUA}{$User}++;
    # Need to match these later
-   } elsif (my ($MUA, $Session) = ($ThisLine =~ /imap-login: ID sent: name=(.*): user=.*, session=<([^>]+)>/)) {
+   } elsif ( ($MUA, $Session) = ($ThisLine =~ /imap-login: ID sent: name=(.*): user=.*, session=<([^>]+)>/)) {
       $MUASessionList{$Session} = $MUA;
    # These are failed connections with imap_id_log = * enabled
    } elsif ($ThisLine =~ /imap-login: ID sent: (?:name|vendor)=/) {
       # Ignore
-   } elsif (my ($Fatal) = ($ThisLine =~ /^(?:$dovecottag )?(.* Fatal:.*)/)) {
+   } elsif ( ($Fatal) = ($ThisLine =~ /^(?:$dovecottag )?(.* Fatal:.*)/)) {
       $Fatal{$Fatal}++;
-   } elsif (my ($Error) = ($ThisLine =~ /^(?:$dovecottag )?(.* Error:.*)/)) {
+   } elsif ( ($Error) = ($ThisLine =~ /^(?:$dovecottag )?(.* Error:.*)/)) {
       $Error{$Error}++;
    } else {
       # Report any unmatched entries...
