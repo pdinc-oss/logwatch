@@ -36,9 +36,31 @@
 #########################################################
 
 use Logwatch ':all';
+use strict;
 
-$Debug = ValueOrDefault($ENV{'LOGWATCH_DEBUG'}, 0);
-$Detail = ValueOrDefault($ENV{'LOGWATCH_DETAIL_LEVEL'}, 0);
+my $Debug = ValueOrDefault($ENV{'LOGWATCH_DEBUG'}, 0);
+my $Detail = ValueOrDefault($ENV{'LOGWATCH_DETAIL_LEVEL'}, 0);
+my $DebugCounter = 0;
+#
+
+#Init String Containers
+my (
+$Temp,      $dst_ip,    $interface,
+$src_ip
+);
+#Init Hashes
+my (
+%BadLogins,         %DNSRefreshed,      %IPDemandCall,
+%IllegalUsers,      %NTPFailed,         %NTPUpdated,
+%PPPAccepted,       %PPPCcpNeg,         %PPPCcpUp,
+%PPPChannelUp,      %PPPIpCpDown,       %PPPIpCpNeg,
+%PPPNcpUp,          %PPTP1Down,         %PPTP2Down,
+%PPTPIpDown,        %PPTPIpUp,          %ReloadRequested,
+%Restarted,         %Started,           %SysCfgSaved,
+%SyslogFacility,    %SyslogHost,        %Users
+);
+#Init Array
+my @OtherList = ();
 
 # Avoid "Use of uninitialized value" warning messages.
 sub ValueOrDefault {
@@ -54,13 +76,13 @@ if ( $Debug >= 5 ) {
 
 my ($month,$day,$time,$host_ip,$host,$conn,$msg,$message);
 
-while (defined($ThisLine = <STDIN>)) {
+while (defined(my $ThisLine = <STDIN>)) {
     if ( $Debug >= 30 ) {
-	print STDERR "DEBUG($DebugCounter): $ThisLine";
-	$DebugCounter++;
+	    print STDERR "DEBUG($DebugCounter): $ThisLine";
+	    $DebugCounter++;
     }
 
-($month,$day,$time,$host_ip,$host,$msg)=split(/ +/,$ThisLine,7);
+    ($month,$day,$time,$host_ip,$host,$msg)=split(/ +/,$ThisLine,7);
 
    if ( ($ThisLine =~ /traffic/ ) or
          ($ThisLine =~ /Copyright/ ) or
@@ -184,9 +206,9 @@ else {
 
 if (keys %Started) {
    print "\nDevice started :\n";
-   foreach $ThisOne (keys %Started) {
+   foreach my $ThisOne (keys %Started) {
       print "   " . $ThisOne . ":\n";
-      foreach $ThatOne (keys %{$Started{$ThisOne}}) {
+      foreach my $ThatOne (keys %{$Started{$ThisOne}}) {
          print "\t Started" .$ThatOne . "\t: " . $Started{$ThisOne}{$ThatOne} . "{ Time(s)\n";
       }
    }
@@ -194,9 +216,9 @@ if (keys %Started) {
 
 if (keys %IPDemandCall) {
    print "\nDevice where ip demand call have been requested :\n";
-   foreach $ThisOne (keys %IPDemandCall) {
+   foreach my $ThisOne (keys %IPDemandCall) {
       print "   " . $ThisOne . ":\n";
-      foreach $ThatOne (keys %{$IPDemandCall{$ThisOne}}) {
+      foreach my $ThatOne (keys %{$IPDemandCall{$ThisOne}}) {
          print "\t " .$ThatOne . "\t: " . $IPDemandCall{$ThisOne}{$ThatOne} . " Time(s)\n";
       }
    }
@@ -204,9 +226,9 @@ if (keys %IPDemandCall) {
 
 if ( ( $Detail >= 15 ) and (keys %PPPNcpUp) ) {
    print "\nDevice where PPP Ncp UP :\n";
-   foreach $ThisOne (keys %PPPNcpUp) {
+   foreach my $ThisOne (keys %PPPNcpUp) {
       print "   " . $ThisOne . ":\n";
-      foreach $ThatOne (keys %{$PPPNcpUp{$ThisOne}}) {
+      foreach my $ThatOne (keys %{$PPPNcpUp{$ThisOne}}) {
          print "\t " .$ThatOne . "\t: " . $PPPNcpUp{$ThisOne}{$ThatOne} . " Time(s)\n";
       }
    }
@@ -215,9 +237,9 @@ if ( ( $Detail >= 15 ) and (keys %PPPNcpUp) ) {
 
 if ( ( $Detail >= 15 ) and (keys %PPPCcpUp) ) {
    print "\nDevice where PPP CCP NEGOTIATED :\n";
-   foreach $ThisOne (keys %PPPCcpNeg) {
+   foreach my $ThisOne (keys %PPPCcpNeg) {
       print "   " . $ThisOne . ":\n";
-      foreach $ThatOne (keys %{$PPPCcpNeg{$ThisOne}}) {
+      foreach my $ThatOne (keys %{$PPPCcpNeg{$ThisOne}}) {
          print "\t " .$ThatOne . "\t: " . $PPPCcpNeg{$ThisOne}{$ThatOne} . " Time(s)\n";
       }
    }
@@ -225,9 +247,9 @@ if ( ( $Detail >= 15 ) and (keys %PPPCcpUp) ) {
 
 if ( ( $Detail >= 15 ) and (keys %PPPIpCpDown) ) {
    print "\nDevice where PPP IPCP down :\n";
-   foreach $ThisOne (keys %PPPIpCpDown) {
+   foreach my $ThisOne (keys %PPPIpCpDown) {
       print "   " . $ThisOne . ":\n";
-      foreach $ThatOne (keys %{$PPPIpCpDown{$ThisOne}}) {
+      foreach my $ThatOne (keys %{$PPPIpCpDown{$ThisOne}}) {
          print "\t " .$ThatOne . "\t: " . $PPPIpCpDown{$ThisOne}{$ThatOne} . " Time(s)\n";
       }
    }
@@ -236,9 +258,9 @@ if ( ( $Detail >= 15 ) and (keys %PPPIpCpDown) ) {
 
 if ( ( $Detail >= 15 ) and (keys %PPPIpCpNeg) ) {
    print "\nDevice where PPP IPCP NEGOTIATED :\n";
-   foreach $ThisOne (keys %PPPIpCpNeg) {
+   foreach my $ThisOne (keys %PPPIpCpNeg) {
       print "   " . $ThisOne . ":\n";
-      foreach $ThatOne (keys %{$PPPIpCpNeg{$ThisOne}}) {
+      foreach my $ThatOne (keys %{$PPPIpCpNeg{$ThisOne}}) {
          print "\t " .$ThatOne . "\t: " . $PPPIpCpNeg{$ThisOne}{$ThatOne} . " Time(s)\n";
       }
    }
@@ -246,9 +268,9 @@ if ( ( $Detail >= 15 ) and (keys %PPPIpCpNeg) ) {
 
 if (keys %NTPUpdated) {
    print "\nDevice where The system clock has been updated through NTP :\n";
-   foreach $ThisOne (keys %NTPUpdated) {
+   foreach my $ThisOne (keys %NTPUpdated) {
       print "   " . $ThisOne . ":\n";
-      foreach $ThatOne (keys %{$NTPUpdated{$ThisOne}}) {
+      foreach my $ThatOne (keys %{$NTPUpdated{$ThisOne}}) {
          print "\t " .$ThatOne . "\t: " . $NTPUpdated{$ThisOne}{$ThatOne} . " Time(s)\n";
       }
    }
@@ -256,9 +278,9 @@ if (keys %NTPUpdated) {
 
 if (keys %NTPFailed) {
    print "\nDevice where failed to get clock through NTP :\n";
-   foreach $ThisOne (keys %NTPFailed) {
+   foreach my $ThisOne (keys %NTPFailed) {
       print "   " . $ThisOne . ":\n";
-      foreach $ThatOne (keys %{$NTPFailed{$ThisOne}}) {
+      foreach my $ThatOne (keys %{$NTPFailed{$ThisOne}}) {
          print "\t " .$ThatOne . "\t: " . $NTPFailed{$ThisOne}{$ThatOne} . " Time(s)\n";
       }
    }
@@ -266,9 +288,9 @@ if (keys %NTPFailed) {
 
 if (keys %DNSRefreshed) {
    print "\nDevice where DNS have been refreshed  :\n";
-   foreach $ThisOne (keys %DNSRefreshed) {
+   foreach my $ThisOne (keys %DNSRefreshed) {
       print "   " . $ThisOne . ":\n";
-      foreach $ThatOne (keys %{$DNSRefreshed{$ThisOne}}) {
+      foreach my $ThatOne (keys %{$DNSRefreshed{$ThisOne}}) {
          print "\t " .$ThatOne . "\t: " . $DNSRefreshed{$ThisOne}{$ThatOne} . " Time(s)\n";
       }
    }
@@ -276,9 +298,9 @@ if (keys %DNSRefreshed) {
 
 if (keys %DNSRefreshed) {
    print "\nDevice where DNS have been refreshed  :\n";
-   foreach $ThisOne (keys %DNSRefreshed) {
+   foreach my $ThisOne (keys %DNSRefreshed) {
       print "   " . $ThisOne . ":\n";
-      foreach $ThatOne (keys %{$DNSRefreshed{$ThisOne}}) {
+      foreach my $ThatOne (keys %{$DNSRefreshed{$ThisOne}}) {
          print "\t " .$ThatOne . "\t: " . $DNSRefreshed{$ThisOne}{$ThatOne} . " Time(s)\n";
       }
    }
@@ -286,9 +308,9 @@ if (keys %DNSRefreshed) {
 
 if ( ( $Detail >= 15 ) and (keys %PPPAccepted) ) {
    print "\nDevice where PPP is accepted  :\n";
-   foreach $ThisOne (keys %PPPAccepted) {
+   foreach my $ThisOne (keys %PPPAccepted) {
       print "   " . $ThisOne . ":\n";
-      foreach $ThatOne (keys %{$PPPAccepted{$ThisOne}}) {
+      foreach my $ThatOne (keys %{$PPPAccepted{$ThisOne}}) {
          print "\t " .$ThatOne . "\t: " . $PPPAccepted{$ThisOne}{$ThatOne} . " Time(s)\n";
       }
    }
@@ -296,9 +318,9 @@ if ( ( $Detail >= 15 ) and (keys %PPPAccepted) ) {
 
 if ( ( $Detail >= 15 ) and (keys %PPTP1Down) ) {
    print "\nDevice where PPTP-1 is down  :\n";
-   foreach $ThisOne (keys %PPTP1Down) {
+   foreach my $ThisOne (keys %PPTP1Down) {
       print "   " . $ThisOne . ":\n";
-      foreach $ThatOne (keys %{$PPTP1Down{$ThisOne}}) {
+      foreach my $ThatOne (keys %{$PPTP1Down{$ThisOne}}) {
          print "\t " .$ThatOne . "\t: " . $PPTP1Down{$ThisOne}{$ThatOne} . " Time(s)\n";
       }
    }
@@ -306,9 +328,9 @@ if ( ( $Detail >= 15 ) and (keys %PPTP1Down) ) {
 
 if ( ( $Detail >= 15 ) and (keys %PPTP2Down) ) {
    print "\nDevice where PPTP-2 is down  :\n";
-   foreach $ThisOne (keys %PPTP2Down) {
+   foreach my $ThisOne (keys %PPTP2Down) {
       print "   " . $ThisOne . ":\n";
-      foreach $ThatOne (keys %{$PPTP2Down{$ThisOne}}) {
+      foreach my $ThatOne (keys %{$PPTP2Down{$ThisOne}}) {
          print "\t " .$ThatOne . "\t: " . $PPTP2Down{$ThisOne}{$ThatOne} . " Time(s)\n";
       }
    }
@@ -316,9 +338,9 @@ if ( ( $Detail >= 15 ) and (keys %PPTP2Down) ) {
 
 if (keys %SyslogFacility) {
    print "\nDevice where Syslog facility has been changed  :\n";
-   foreach $ThisOne (keys %SyslogFacility) {
+   foreach my $ThisOne (keys %SyslogFacility) {
       print "   " . $ThisOne . ":\n";
-      foreach $ThatOne (keys %{$SyslogFacility{$ThisOne}}) {
+      foreach my $ThatOne (keys %{$SyslogFacility{$ThisOne}}) {
          print "\t " .$ThatOne . "\t: " . $SyslogFacility{$ThisOne}{$ThatOne} . " Time(s)\n";
       }
    }
@@ -326,9 +348,9 @@ if (keys %SyslogFacility) {
 
 if (keys %SyslogHost) {
    print "\nDevice where Syslog host has been changed  :\n";
-   foreach $ThisOne (keys %SyslogHost) {
+   foreach my $ThisOne (keys %SyslogHost) {
       print "   " . $ThisOne . ":\n";
-      foreach $ThatOne (keys %{$SyslogHost{$ThisOne}}) {
+      foreach my $ThatOne (keys %{$SyslogHost{$ThisOne}}) {
          print "\t " .$ThatOne . "\t: " . $SyslogHost{$ThisOne}{$ThisOne} . " Time(s)\n";
       }
    }
@@ -337,9 +359,9 @@ if (keys %SyslogHost) {
 
 if (keys %Restarted) {
    print "\nDevice restarted :\n";
-   foreach $ThisOne (keys %Restarted) {
+   foreach my $ThisOne (keys %Restarted) {
       print "   " . $ThisOne . ":\n";
-      foreach $ThatOne (keys %{$Restarted{$ThisOne}}) {
+      foreach my $ThatOne (keys %{$Restarted{$ThisOne}}) {
          print "\t " .$ThatOne . "\t: " . $Restarted{$ThisOne}{$ThatOne} . " Time(s)\n";
       }
    }
@@ -347,9 +369,9 @@ if (keys %Restarted) {
 
 if (keys %ReloadRequested) {
    print "\nDevice reload requested :\n";
-   foreach $ThisOne (keys %ReloadRequested) {
+   foreach my $ThisOne (keys %ReloadRequested) {
       print "   " . $ThisOne . ":\n";
-      foreach $ThatOne (keys %{$ReloadRequested{$ThisOne}}) {
+      foreach my $ThatOne (keys %{$ReloadRequested{$ThisOne}}) {
          print "\t " .$ThatOne . "\t: " . $ReloadRequested{$ThisOne}{$ThatOne} . " Time(s)\n";
       }
    }
@@ -357,9 +379,9 @@ if (keys %ReloadRequested) {
 
 if (keys %PPPChannelUp) {
    print "\nVPN Up PPP Channel :\n";
-   foreach $ThisOne (keys %PPPChannelUp) {
+   foreach my $ThisOne (keys %PPPChannelUp) {
       print "   " . $ThisOne . ":\n";
-      foreach $ThatOne (keys %{$PPPChannelUp{$ThisOne}}) {
+      foreach my $ThatOne (keys %{$PPPChannelUp{$ThisOne}}) {
          print "\t " .$ThatOne . "\t: " . $PPPChannelUp{$ThisOne}{$ThatOne} . " Time(s)\n";
       }
    }
@@ -367,9 +389,9 @@ if (keys %PPPChannelUp) {
 
 if (keys %PPTPIpDown) {
    print "\nVPN Down on :\n";
-   foreach $ThisOne (keys %PPTPIpDown) {
+   foreach my $ThisOne (keys %PPTPIpDown) {
       print "   " . $ThisOne . ":\n";
-      foreach $ThatOne (keys %{$PPTPIpDown{$ThisOne}}) {
+      foreach my $ThatOne (keys %{$PPTPIpDown{$ThisOne}}) {
          print "\t " .$ThatOne . "\t: " . $PPTPIpDown{$ThisOne}{$ThatOne} . " Time(s)\n";
       }
    }
@@ -377,9 +399,9 @@ if (keys %PPTPIpDown) {
 
 if ( ( $Detail >= 15 ) and (keys %PPTPIpUp) ) {
    print "\nDevice where PPTP is UP :\n";
-   foreach $ThisOne (keys %PPTPIpUp) {
+   foreach my $ThisOne (keys %PPTPIpUp) {
       print "   " . $ThisOne . ":\n";
-      foreach $ThatOne (keys %{$PPTPIpUp{$ThisOne}}) {
+      foreach my $ThatOne (keys %{$PPTPIpUp{$ThisOne}}) {
          print "\t " .$ThatOne . "\t: " . $PPTPIpUp{$ThisOne}{$ThatOne} . " Time(s)\n";
       }
    }
@@ -388,9 +410,9 @@ if ( ( $Detail >= 15 ) and (keys %PPTPIpUp) ) {
 
 if (keys %SysCfgSaved) {
    print "\nDevice where system config have been saved :\n";
-   foreach $ThisOne (keys %SysCfgSaved) {
+   foreach my $ThisOne (keys %SysCfgSaved) {
       print "   " . $ThisOne . ":\n";
-      foreach $ThatOne (keys %{$SysCfgSaved{$ThisOne}}) {
+      foreach my $ThatOne (keys %{$SysCfgSaved{$ThisOne}}) {
          print "\t " .$ThatOne . "\t: " . $SysCfgSaved{$ThisOne}{$ThatOne} . " Time(s)\n";
       }
    }
@@ -400,52 +422,51 @@ if (keys %SysCfgSaved) {
 
 if (keys %BadLogins) {
     print "\nFailed logins from these:\n";
-    foreach $ThisOne (keys %BadLogins) {
-	print "   " . $ThisOne . ":\n";
-	for (sort keys %{$BadLogins{$ThisOne}}) {
-	    print "\t   $_: $BadLogins{$ThisOne}{$_} Time(s)\n";
-	}
+    foreach my $ThisOne (keys %BadLogins) {
+	    print "   " . $ThisOne . ":\n";
+	    for (sort keys %{$BadLogins{$ThisOne}}) {
+	        print "\t   $_: $BadLogins{$ThisOne}{$_} Time(s)\n";
+	    }
     }
 }
 
 if (keys %IllegalUsers) {
     print "\nIllegal users from these:\n";
-    foreach $ThisOne (keys %IllegalUsers) {
-	print "   " . $ThisOne . ":\n";
-	for (sort keys %{$IllegalUsers{$ThisOne}}) {
-	    print "\t   $_: $IllegalUsers{$ThisOne}{$_} Time(s)\n";
-
-	}
+    foreach my $ThisOne (keys %IllegalUsers) {
+	    print "   " . $ThisOne . ":\n";
+	    for (sort keys %{$IllegalUsers{$ThisOne}}) {
+	        print "\t   $_: $IllegalUsers{$ThisOne}{$_} Time(s)\n";
+	    }
     }
 }
 
 
 if (keys %Users) {
     print "\nUsers logging in through :\n";
-foreach $ThisOne (keys %Users) {
-    print "   " . $ThisOne . ":\n";
+    foreach my $ThisOne (keys %Users) {
+        print "   " . $ThisOne . ":\n";
 
-foreach $user (sort {$a cmp $b} keys %{$Users{$ThisOne}}) {
-    print "   $user:\n";
-    my $totalSort = TotalCountOrder(%{$Users{$ThisOne}{$user}}, \&SortIP);
-    foreach my $ip (sort $totalSort keys %{$Users{$ThisOne}{$user}}) {
-	my $name = LookupIP($ip);
-	if ($Detail >= 20) {
-            print "      $name:\n";
-            my $sort = CountOrder(%{$Users{$ThisOne}{$user}{$ip}});
-            foreach my $method (sort $sort keys %{$Users{$ThisOne}{$user}{$ip}}) {
-		my $val = $Users{$ThisOne}{$user}{$ip}{$method};
-		my $plural = ($val > 1) ? "s" : "";
-		print "         $method: $val time$plural\n";
+        foreach my $user (sort {$a cmp $b} keys %{$Users{$ThisOne}}) {
+            print "   $user:\n";
+            my $totalSort = TotalCountOrder(%{$Users{$ThisOne}{$user}}, \&SortIP);
+            foreach my $ip (sort $totalSort keys %{$Users{$ThisOne}{$user}}) {
+	            my $name = LookupIP($ip);
+	            if ($Detail >= 20) {
+                    print "      $name:\n";
+                    my $sort = CountOrder(%{$Users{$ThisOne}{$user}{$ip}});
+                    foreach my $method (sort $sort keys %{$Users{$ThisOne}{$user}{$ip}}) {
+		                my $val = $Users{$ThisOne}{$user}{$ip}{$method};
+		                my $plural = ($val > 1) ? "s" : "";
+		                print "         $method: $val time$plural\n";
+                    }
+	            } else {
+                    my $val = (values %{$Users{$ThisOne}{$user}{$ip}})[0];
+                    my $plural = ($val > 1) ? "s" : "";
+                    print "      $name: $val time$plural\n";
+	            }
             }
-	} else {
-            my $val = (values %{$Users{$ThisOne}{$user}{$ip}})[0];
-            my $plural = ($val > 1) ? "s" : "";
-            print "      $name: $val time$plural\n";
-	}
+        }
     }
-}
-}
 }
 
 
