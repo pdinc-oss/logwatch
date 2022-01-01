@@ -22,15 +22,27 @@
 ## contributions to this script and want to claim
 ## copyright please contact logwatch-devel@lists.sourceforge.net.
 #########################################################
+use strict;
 
-$Debug = $ENV{'LOGWATCH_DEBUG'} || 0;
+my $Debug = $ENV{'LOGWATCH_DEBUG'} || 0;
+my $DebugCounter = 0;
+my $ignoredlines = 0;
 
 if ( $Debug >= 5 ) {
    print STDERR "\n\nDEBUG: Inside dnf-rpm Filter \n\n";
    $DebugCounter = 1;
 }
 
-while (defined($ThisLine = <STDIN>)) {
+#Init Hashes
+my (
+%InfoMessages,          %PackageDowngrade,      %PackageDowngraded,
+%PackageErased,         %PackageInstalled,      %PackageObsoleted,
+%PackageReinstalled,    %PackageUpdate,         %PackageUpdated
+);
+#Init Array
+my @OtherList = ();
+
+while (defined(my $ThisLine = <STDIN>)) {
    if ( $Debug >= 5 ) {
       print STDERR "DEBUG($DebugCounter): $ThisLine";
       $DebugCounter++;
@@ -67,13 +79,13 @@ while (defined($ThisLine = <STDIN>)) {
 
 if (keys %PackageInstalled) {
    print "\nPackages Installed:\n";
-   foreach $ThisOne (sort {lc($a) cmp lc($b)} keys %PackageInstalled) {
+   foreach my $ThisOne (sort {lc($a) cmp lc($b)} keys %PackageInstalled) {
       print "   " . $ThisOne;
    }
 }
 if (keys %PackageReinstalled) {
    print "\nPackages Reinstalled:\n";
-   foreach $ThisOne (sort {lc($a) cmp lc($b)} keys %PackageReinstalled) {
+   foreach my $ThisOne (sort {lc($a) cmp lc($b)} keys %PackageReinstalled) {
        print "   ". $ThisOne;
    }
 }
@@ -81,7 +93,7 @@ if (keys %PackageUpdate == keys %PackageUpdated) {
    if (keys %PackageUpdate) {
       print "\nPackages Updated:\n";
       chomp(my @Updated = sort {lc($a) cmp lc($b)} keys %PackageUpdated);
-      foreach $ThisOne (sort {lc($a) cmp lc($b)} keys %PackageUpdate) {
+      foreach my $ThisOne (sort {lc($a) cmp lc($b)} keys %PackageUpdate) {
           print "   ". shift(@Updated) ." -> ". $ThisOne;
       }
    }
@@ -89,13 +101,13 @@ if (keys %PackageUpdate == keys %PackageUpdated) {
    print "\nPackages Updated (Count Mismatch)";
    if (keys %PackageUpdate) {
       print "\nPackages To Be Updated:\n";
-      foreach $ThisOne (sort {lc($a) cmp lc($b)} keys %PackageUpdate) {
+      foreach my $ThisOne (sort {lc($a) cmp lc($b)} keys %PackageUpdate) {
           print "   ". $ThisOne;
       }
    }
    if (keys %PackageUpdated) {
       print "\nPackages Updated To:\n";
-      foreach $ThisOne (sort {lc($a) cmp lc($b)} keys %PackageUpdated) {
+      foreach my $ThisOne (sort {lc($a) cmp lc($b)} keys %PackageUpdated) {
           print "   ". $ThisOne;
       }
    }
@@ -103,26 +115,26 @@ if (keys %PackageUpdate == keys %PackageUpdated) {
 if (keys %PackageDowngrade) {
    print "\nPackages Downgraded:\n";
    chomp(my @Downgraded = sort {lc($a) cmp lc($b)} keys %PackageDowngraded);
-   foreach $ThisOne (sort {lc($a) cmp lc($b)} keys %PackageDowngrade) {
+   foreach my $ThisOne (sort {lc($a) cmp lc($b)} keys %PackageDowngrade) {
        print "   ". shift(@Downgraded) ." -> ". $ThisOne;
    }
 }
 if (keys %PackageErased) {
    print "\nPackages Erased:\n";
-   foreach $ThisOne (sort {lc($a) cmp lc($b)} keys %PackageErased) {
+   foreach my $ThisOne (sort {lc($a) cmp lc($b)} keys %PackageErased) {
        print "   ". $ThisOne;
    }
 }
 if (keys %PackageObsoleted) {
    print "\nPackages Obsoleted:\n";
-   foreach $ThisOne (sort {lc($a) cmp lc($b)} keys %PackageObsoleted) {
+   foreach my $ThisOne (sort {lc($a) cmp lc($b)} keys %PackageObsoleted) {
        print "   ". $ThisOne;
    }
 }
 
 if (keys %InfoMessages) {
    print "\nInformation Messages:\n";
-   foreach $ThisOne (sort {$a cmp $b} keys %InfoMessages) {
+   foreach my $ThisOne (sort {$a cmp $b} keys %InfoMessages) {
        print "   ". $ThisOne . ": ". $InfoMessages{$ThisOne} . " Times(s)\n";
    }
 }
