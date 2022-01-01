@@ -38,7 +38,7 @@
 use strict;
 my %OtherList;
 
-my ($Debug,  $Detail,  %byUser, %byUserSum);
+my (%byUser, %byUserSum);
 my $Debug = $ENV{'LOGWATCH_DEBUG'} || 0;
 my $Detail = $ENV{'LOGWATCH_DETAIL_LEVEL'} || 0;
 # maximum number of commands user ran to display at low detail
