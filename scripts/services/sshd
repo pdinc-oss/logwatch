@@ -24,7 +24,7 @@
 #########################################################
 
 use strict;
-use Logwatch ':all';
+#use Logwatch ':all';
 
 my $Debug = $ENV{'LOGWATCH_DEBUG'} || 0;
 my $Detail = $ENV{'LOGWATCH_DETAIL_LEVEL'} || 0;
@@ -34,6 +34,22 @@ my $IllegalUsersThreshold = $ENV{'illegal_users_threshold'} || 0;
 $main::DoLookup = $ENV{'sshd_ip_lookup'}; 
 my $DebugCounter = 0;
 
+#Init String Containers
+my (
+$Action,        $Address,       $Addresses,
+$BytesRead,     $BytesWritten,  $ClientVer,
+$Code,          $Dir,           $EmptyUser,
+$Error,         $File,          $FingerP,
+$Flags,         $From,          $Host,
+$IP,            $IlegUser,      $InvaUser,
+$Key,           $Line,          $Method,
+$Mode,          $Modtime,       $Offer,
+$Option,        $Perm,          $Pom,
+$Pom1,          $Pom2,          $Port,
+$Prio,          $Reason,        $Received,
+$Sent,          $To,            $User,
+$Why,           $realm,         $user,
+);
 # No sense in running if 'sshd' doesn't even exist on this system...
 #unless (( -f "/usr/sbin/sshd" ) or ( -f "/usr/local/sbin/sshd") or ( -f "/usr/lib/ssh/sshd")) {
 #       exit (0);
@@ -94,7 +110,6 @@ my $sftpRequests = 0;
 my $NetworkErrors = 0;
 my $Kills = 0;
 my $Starts = 0;
-my $NetworkErrors = 0;
 my $StatusNoSuchFile = 0;
 my $BytesSent = 0;
 my $BytesReceived = 0;
@@ -177,7 +192,7 @@ while (defined(my $ThisLine = <STDIN>)) {
        0 # This line prevents blame shifting as lines are added above
    ) {
       # Ignore these
-   } elsif ( my ($Method,$User,$Host,$Port,$Key,$FingerP) = ($ThisLine =~ /^Accepted (\S+) for ((?:invalid user )?\S+) from ([\d\.:a-f]+)(?:%\w+)? port (\d+) ssh[12](?:: (\w+) (.+))?/) ) {
+   } elsif ( ($Method,$User,$Host,$Port,$Key,$FingerP) = ($ThisLine =~ /^Accepted (\S+) for ((?:invalid user )?\S+) from ([\d\.:a-f]+)(?:%\w+)? port (\d+) ssh[12](?:: (\w+) (.+))?/) ) {
       if ($Debug >= 5) {
          print STDERR "DEBUG: Found -$User logged in from $Host using $Method ($Key)\n";
       }
@@ -190,18 +205,18 @@ while (defined(my $ThisLine = <STDIN>)) {
             $Users{$User}{$Host}{"(all)"}++;
          }
       }
-   } elsif ( my ($Method, undef,$User,$Host,$Port) = ($ThisLine =~ m/^Failed (\S+) for (illegal|invalid) user (.*) from ([^ ]+) port (\d+)/ ) ) { #openssh
+   } elsif ( ($Method, undef,$User,$Host,$Port) = ($ThisLine =~ m/^Failed (\S+) for (illegal|invalid) user (.*) from ([^ ]+) port (\d+)/ ) ) { #openssh
       $IllegalUsers{$Host}{$User}++;
-   } elsif ( my ($User) = ( $ThisLine =~ /Disconnecting: Too many authentication failures for ([^ ]+)/)) {
+   } elsif ( ($User) = ( $ThisLine =~ /Disconnecting: Too many authentication failures for ([^ ]+)/)) {
       $TooManyFailures{$User}++;
-   } elsif ( my ($User) = ( $ThisLine =~ /error: maximum authentication attempts exceeded for ([^ ]+) from [^ ]+ port \d+ ssh2 \[preauth\]/)) {
+   } elsif ( ($User) = ( $ThisLine =~ /error: maximum authentication attempts exceeded for ([^ ]+) from [^ ]+ port \d+ ssh2 \[preauth\]/)) {
       $TooManyFailures{$User}++;
-   } elsif ( my ($User,$Host) = ( $ThisLine =~ /error: maximum authentication attempts exceeded for invalid user ([^ ]+) from ([^ ]+) port \d+ ssh2 \[preauth\]/)) {
+   } elsif ( ($User,$Host) = ( $ThisLine =~ /error: maximum authentication attempts exceeded for invalid user ([^ ]+) from ([^ ]+) port \d+ ssh2 \[preauth\]/)) {
       $IllegalUsers{$Host}{$User}++;
    } elsif ( $ThisLine =~ m/^(fatal: )?Did not receive ident(ification)? string from (\S+)/ ) { # ssh/openssh
       my $name = LookupIP($3);
       $NoIdent{$name}++;
-   } elsif ( my ($Host) = ($ThisLine =~ /Could not write ident string to ([^ ]+)$/ )) {
+   } elsif ( ($Host) = ($ThisLine =~ /Could not write ident string to ([^ ]+)$/ )) {
       my $name = LookupIP($Host);
       $NoIdent{$name}++;
    } elsif (
@@ -228,7 +243,7 @@ while (defined(my $ThisLine = <STDIN>)) {
       if ( $Debug >= 5 ) {
          print STDERR "DEBUG: Found -Listening on port 22- line\n";
       }
-   } elsif ( my ($Port,$Address,$Reason) = ($ThisLine =~ /^error: Bind to port ([^ ]+) on ([^ ]+) failed: (.+).$/ )) {
+   } elsif ( ($Port,$Address,$Reason) = ($ThisLine =~ /^error: Bind to port ([^ ]+) on ([^ ]+) failed: (.+).$/ )) {
       my $Temp = "$Address port $Port ($Reason)";
       # Failed to bind on 0.0.0.0 likely due to configured "ListenAddress"
       # on both IPv4 and IPv6
@@ -249,7 +264,7 @@ while (defined(my $ThisLine = <STDIN>)) {
       if ( $Debug >= 5 ) {
          print STDERR "DEBUG: Found -Keygen complete- line\n";
       }
-   } elsif ( my ($Method,$User,$Host,undef) = ( $ThisLine =~ m/^Failed (\S+) for (\S+) from ([^ ]+) port (\d+)/ ) ) { #openssh
+   } elsif ( ($Method,$User,$Host,undef) = ( $ThisLine =~ m/^Failed (\S+) for (\S+) from ([^ ]+) port (\d+)/ ) ) { #openssh
       # depending on log mode, openssh may not report these in connection context.
       if ( $Debug >= 5 ) {
          print STDERR "DEBUG: Found -Failed login- line\n";
@@ -257,121 +272,121 @@ while (defined(my $ThisLine = <STDIN>)) {
       $BadLogins{$Host}{"$User/$Method"}++;
    } elsif ($ThisLine =~ s/^(log: )?Could not reverse map address ([^ ]*).*$/$2/) {
       $NoRevMap{$ThisLine}++;
-   } elsif ( my ($Address) = ($ThisLine =~ /^reverse mapping checking getaddrinfo for (\S+( \[\S+\])?) failed - POSSIBLE BREAK-IN ATTEMPT!/)) {
+   } elsif ( ($Address) = ($ThisLine =~ /^reverse mapping checking getaddrinfo for (\S+( \[\S+\])?) failed - POSSIBLE BREAK-IN ATTEMPT!/)) {
       $NoRevMap{$Address}++;
-   } elsif ( my ($IP,$Address) = ($ThisLine =~ /^Address ([^ ]*) maps to ([^ ]*), but this does not map back to the address - POSSIBLE BREAK-IN ATTEMPT!/)) {
+   } elsif ( ($IP,$Address) = ($ThisLine =~ /^Address ([^ ]*) maps to ([^ ]*), but this does not map back to the address - POSSIBLE BREAK-IN ATTEMPT!/)) {
       $NoRevMap{"$Address($IP)"}++;
-   } elsif ( my (undef,$Address) = ($ThisLine =~ /^warning: ([^ ]*), line \d+: can't verify hostname: getaddrinfo\(([^ ]*), AF_INET\) failed$/)) {
+   } elsif ( (undef,$Address) = ($ThisLine =~ /^warning: ([^ ]*), line \d+: can't verify hostname: getaddrinfo\(([^ ]*), AF_INET\) failed$/)) {
       $NoRevMap{$Address}++;
-   } elsif ( my (undef,$Addresses) = ($ThisLine =~ /^warning: ([^ ]*), line \d+: host [^ ]* mismatch: (.*)$/)) {
+   } elsif ( (undef,$Addresses) = ($ThisLine =~ /^warning: ([^ ]*), line \d+: host [^ ]* mismatch: (.*)$/)) {
       $MisMatch{$Addresses}++;
    } elsif ( $ThisLine =~ m/subsystem request for sftp/ ) {
       $sftpRequests++;
    } elsif ( $ThisLine =~ m/refused connect from (.*)$/ ) {
       $RefusedConnections{$1}++;
-   } elsif ( my ($Reason) = ($ThisLine =~ /^Authentication refused: (.*)$/ ) ) {
+   } elsif ( ($Reason) = ($ThisLine =~ /^Authentication refused: (.*)$/ ) ) {
       $RefusedAuthentication{$Reason}++;
-   } elsif ( my (undef,$Host,$Port,$Reason,$Offer) = ($ThisLine =~ /^(fatal: )?Unable to negotiate with ([^ ]+)( port \d+)?: (.*)\. Their offer: (.*) \[preauth\]$/) ) {
+   } elsif ( (undef,$Host,$Port,$Reason,$Offer) = ($ThisLine =~ /^(fatal: )?Unable to negotiate with ([^ ]+)( port \d+)?: (.*)\. Their offer: (.*) \[preauth\]$/) ) {
       $NegotiationFailed{$Reason}{$Host}{$Offer}++;
-   } elsif ( my ($Reason,$Host,$Offer) = ($ThisLine =~ /^(Protocol major versions differ) for ([^ ]+)(?: port \d+): (.*)$/) ) {
+   } elsif ( ($Reason,$Host,$Offer) = ($ThisLine =~ /^(Protocol major versions differ) for ([^ ]+)(?: port \d+): (.*)$/) ) {
       $NegotiationFailed{$Reason}{$Host}{$Offer}++;
-   } elsif ( my ($Prio,$Host,$Port,$Code,$Reason) = ($ThisLine =~ /^(error: )?Received disconnect from ([^ ]*)( port \d+)?: ?(\d+): (.*)$/)) {
+   } elsif ( ($Prio,$Host,$Port,$Code,$Reason) = ($ThisLine =~ /^(error: )?Received disconnect from ([^ ]*)( port \d+)?: ?(\d+): (.*)$/)) {
       # Reason 11 ({SSH,SSH2}_DISCONNECT_BY_APPLICATION) is expected, and logged at severity level INFO
       if (($Reason =~ /preauth/) || ($Code != 11) || ($Detail >= 30)) {
 	$DisconnectReceived{$Reason}{$Host}++;
       }
-   } elsif ( my ($Host) = ($ThisLine =~ /^ROOT LOGIN REFUSED FROM ([^ ]*)$/)) {
+   } elsif ( ($Host) = ($ThisLine =~ /^ROOT LOGIN REFUSED FROM ([^ ]*)$/)) {
       $RootLogin{$Host}++;
-   } elsif ( my ($Error) = ($ThisLine =~ /^Cannot release PAM authentication\[\d\]: (.*)$/)) {
+   } elsif ( ($Error) = ($ThisLine =~ /^Cannot release PAM authentication\[\d\]: (.*)$/)) {
       $PamReleaseFail{$Error}++;
-   } elsif ( my ($Error) = ($ThisLine =~ /^pam_systemd\(sshd:session\): Failed to release session: (.*)$/)) {
+   } elsif ( ($Error) = ($ThisLine =~ /^pam_systemd\(sshd:session\): Failed to release session: (.*)$/)) {
       $PamReleaseFail{$Error}++;
-   } elsif ( my ($Error) = ( $ThisLine =~ m/^error: PAM: (.*)$/)) {
+   } elsif ( ($Error) = ( $ThisLine =~ m/^error: PAM: (.*)$/)) {
       $PamError{$Error}++;
-   } elsif ( my ($Error) = ( $ThisLine =~ m/pam_systemd\(sshd:session\): (Failed to create session: .*)$/)) {
+   } elsif ( ($Error) = ( $ThisLine =~ m/pam_systemd\(sshd:session\): (Failed to create session: .*)$/)) {
       $PamError{$Error}++;
-   } elsif ( my ($Reason) = ( $ThisLine =~ m/pam_chroot\(.+\):\s+([^:])/)) {
+   } elsif ( ($Reason) = ( $ThisLine =~ m/pam_chroot\(.+\):\s+([^:])/)) {
       $PamChroot{$Reason}++;
-   } elsif ( my ($Error) = ( $ThisLine =~ m/^error: Could not get shadow information for (.*)$/)) {
+   } elsif ( ($Error) = ( $ThisLine =~ m/^error: Could not get shadow information for (.*)$/)) {
       $ShadowInfo{$Error}++;
-   } elsif ( my ($Reason) = ($ThisLine =~ /^Setting tty modes failed: (.*)$/)) {
+   } elsif ( ($Reason) = ($ThisLine =~ /^Setting tty modes failed: (.*)$/)) {
       $TTYModesFail{$Reason}++;
-   } elsif ( my ($User,undef) = ($ThisLine =~ /^User ([^ ]*) not allowed because ([^ ]*) exists$/)) {
+   } elsif ( ($User,undef) = ($ThisLine =~ /^User ([^ ]*) not allowed because ([^ ]*) exists$/)) {
       $LoginLock{$User}++;
-   } elsif ( my ($Method,$InvaUser,$IlegUser,$EmptyUser,$User,$Host) = ($ThisLine =~ /^Postponed ([^ ]*) for ((invalid user) [^ ]*|(illegal user) [^ ]*|([^ ]*)) from ([^ ]*) port \d+ ssh/)) {
+   } elsif ( ($Method,$InvaUser,$IlegUser,$EmptyUser,$User,$Host) = ($ThisLine =~ /^Postponed ([^ ]*) for ((invalid user) [^ ]*|(illegal user) [^ ]*|([^ ]*)) from ([^ ]*) port \d+ ssh/)) {
       $PostPonedAuth{"$User/$Method"}{$Host}++;
       if ($IlegUser =~ /illegal user/) {$IllegalUsers{$Host}{$User}++;}
-   } elsif ( my ($User) = ($ThisLine =~ /^User ([^ ]*) not allowed because account is locked/)) {
+   } elsif ( ($User) = ($ThisLine =~ /^User ([^ ]*) not allowed because account is locked/)) {
       $LockedAccount{$User}++;
-   } elsif ( my ($User) = ($ThisLine =~ /^User ([^ ]*) from (?:[^ ]*) not allowed because not listed in AllowUsers/)) {
+   } elsif ( ($User) = ($ThisLine =~ /^User ([^ ]*) from (?:[^ ]*) not allowed because not listed in AllowUsers/)) {
       $AllowUsers{$User}++;
-   } elsif ( my ($User) = ($ThisLine =~ /^User ([^ ]*)( from [0-9.]*)? not allowed because listed in DenyUsers/)){
+   } elsif ( ($User) = ($ThisLine =~ /^User ([^ ]*)( from [0-9.]*)? not allowed because listed in DenyUsers/)){
       $DenyUsers{$User}++;
-   } elsif ( my ($User) = ($ThisLine =~ /^User ([^ ]*)( from [0-9.]*)? not allowed because not in any group/)) {
+   } elsif ( ($User) = ($ThisLine =~ /^User ([^ ]*)( from [0-9.]*)? not allowed because not in any group/)) {
       $NoGroups{$User}++;
-   } elsif ( my ($User) = ($ThisLine =~ /^User ([^ ]*)( from [^ ]*)? not allowed because a group is listed in DenyGroups/)) {
+   } elsif ( ($User) = ($ThisLine =~ /^User ([^ ]*)( from [^ ]*)? not allowed because a group is listed in DenyGroups/)) {
       $DenyGroups{$User}++;
-   } elsif ( my ($User) = ($ThisLine =~ /^User ([^ ]*) from ([^ ]*) not allowed because none of user's groups are listed in AllowGroups/)) {
+   } elsif ( ($User) = ($ThisLine =~ /^User ([^ ]*) from ([^ ]*) not allowed because none of user's groups are listed in AllowGroups/)) {
       $AllowGroups{$User}++;
-   } elsif ( my ($User) = ($ThisLine =~ /^User ([^ ]*) not allowed because shell (\S+) does not exist/)) {
+   } elsif ( ($User) = ($ThisLine =~ /^User ([^ ]*) not allowed because shell (\S+) does not exist/)) {
       $NoShellUsers{$User}++;
-   } elsif ( my ($User) = ($ThisLine =~ /^User ([^ ]*) not allowed because shell (\S+) is not executable/)) {
+   } elsif ( ($User) = ($ThisLine =~ /^User ([^ ]*) not allowed because shell (\S+) is not executable/)) {
       $ShellNotExecutableUsers{$User}++;
-   } elsif ( my ($User) = ($ThisLine =~ /^fatal: Access denied for user ([^ ]+) by PAM account configuration \[preauth\]/)) {
+   } elsif ( ($User) = ($ThisLine =~ /^fatal: Access denied for user ([^ ]+) by PAM account configuration \[preauth\]/)) {
       $PamDeny{$User}++;
-   } elsif ( my ($IP) = ($ThisLine =~ /^scanned from ([^ ]*)/) ) {
+   } elsif ( ($IP) = ($ThisLine =~ /^scanned from ([^ ]*)/) ) {
       push @Scanned, $IP;
-   } elsif ( my (undef,$Line,$Option) = ($ThisLine =~ /^re(xec|process config) line (\d+): Deprecated option (.*)$/)) {
+   } elsif ( (undef,$Line,$Option) = ($ThisLine =~ /^re(xec|process config) line (\d+): Deprecated option (.*)$/)) {
       $DeprecatedOption{"$Option - line $Line"}++;
-   } elsif ( my ($Pom1,$Pom2,$User) = ($ThisLine =~ /pam_krb5(\[\d*\])?: authentication fails for (`|')([^ ]*)'/)) {
+   } elsif ( ($Pom1,$Pom2,$User) = ($ThisLine =~ /pam_krb5(\[\d*\])?: authentication fails for (`|')([^ ]*)'/)) {
       $KrbAutFail{$User}++;
-   } elsif ( my ($Error) = ($ThisLine =~ /pam_krb5: authenticate error: (.*)$/)) {
+   } elsif ( ($Error) = ($ThisLine =~ /pam_krb5: authenticate error: (.*)$/)) {
       $KrbAutErr{$Error}++;
    } elsif ( ($ThisLine =~ /pam_krb5: unable to determine uid\/gid for user$/)) {
       $KrbAutErr{"unable to determine uid/gid for user"}++;
-   } elsif ( my ($Error) = ($ThisLine =~ /pam_krb5: error removing file (.*)$/)) {
+   } elsif ( ($Error) = ($ThisLine =~ /pam_krb5: error removing file (.*)$/)) {
       $KrbErr{"error removing file " . $Error}++;
-   } elsif ( my ($Pom,$Error) = ($ThisLine =~ /pam_krb5(\[\d*\]): error resolving user name '[^ ]*' to uid\/gid pai/)) {
+   } elsif ( ($Pom,$Error) = ($ThisLine =~ /pam_krb5(\[\d*\]): error resolving user name '[^ ]*' to uid\/gid pai/)) {
       $KrbErr{"error resolving user name '$Error' to uid\/gid pai"}++;
-   } elsif ( my (undef,$User,$Host) = ($ThisLine =~ m/^(Illegal|Invalid) user (.*) from ([^ ]+)/ )) {
+   } elsif ( (undef,$User,$Host) = ($ThisLine =~ m/^(Illegal|Invalid) user (.*) from ([^ ]+)/ )) {
       $PotentialIllegalUsers{$Host}{$User}++;
-   } elsif ( my (undef,$User) = ($ThisLine =~ /^input_userauth_request: (illegal|invalid) user (.*)$/ )) {
+   } elsif ( (undef,$User) = ($ThisLine =~ /^input_userauth_request: (illegal|invalid) user (.*)$/ )) {
       if ($User =~ m/(.*) \[preauth\]/) {
         $User = $1;
       }
       $PotentialIllegalUsers{"undef"}{$User}++;
-   } elsif (my ($File,$Perm,$Why) = ($ThisLine =~ /error: chmod (.*) (.*) failed: (.*)/)) {
+   } elsif (($File,$Perm,$Why) = ($ThisLine =~ /error: chmod (.*) (.*) failed: (.*)/)) {
       $ChmodErr{"$File,$Perm,$Why"}++;
-   } elsif (my ($File,$From,$To,$Why) = ($ThisLine =~ /error: chown (.*) (.*) (.*) failed: (.*)/)) {
+   } elsif (($File,$From,$To,$Why) = ($ThisLine =~ /error: chown (.*) (.*) (.*) failed: (.*)/)) {
       $ChownErr{"$File,$From,$To,$Why"}++;
-   } elsif (my ($user,$realm) = ($ThisLine =~ /Authorized to ([^ ]+), krb5 principal \1@([^ ]+) \((?:krb5_kuserok|ssh_gssapi_krb5_cmdok)\)/)) {
+   } elsif (($user,$realm) = ($ThisLine =~ /Authorized to ([^ ]+), krb5 principal \1@([^ ]+) \((?:krb5_kuserok|ssh_gssapi_krb5_cmdok)\)/)) {
       $Krb_realm{$realm}{$user}++;
-   } elsif (my ($Action,$User) = ($ThisLine =~ /^session ((?:open|clos)ed) for local user (\S+) from /)) {
+   } elsif (($Action,$User) = ($ThisLine =~ /^session ((?:open|clos)ed) for local user (\S+) from /)) {
       $Session{"Action,$User"}++;
    } elsif ($ThisLine =~ /^sent status No such file$/) {
       $StatusNoSuchFile++;
-   } elsif (my ($File,$Flags,$Mode) = ($ThisLine =~ /^open "(.*)" flags (\S+) mode (\d+)/ )) {
+   } elsif (($File,$Flags,$Mode) = ($ThisLine =~ /^open "(.*)" flags (\S+) mode (\d+)/ )) {
       $OpenFile{"$File:$Flags:$Mode"}++;
-   } elsif (my ($File,$BytesRead,$BytesWritten) = ($ThisLine =~ /^close "(.*)" bytes read (\d+) written (\d+)/ )) {
+   } elsif (($File,$BytesRead,$BytesWritten) = ($ThisLine =~ /^close "(.*)" bytes read (\d+) written (\d+)/ )) {
       $CloseFileReadWrite{"$File,$BytesRead,$BytesWritten"}++;
-   } elsif (my ($Sent,$Received) = ($ThisLine =~ /^Transferred: sent (\d+), received (\d+) bytes$/ )) {
+   } elsif (($Sent,$Received) = ($ThisLine =~ /^Transferred: sent (\d+), received (\d+) bytes$/ )) {
       $BytesSent += $Sent;
       $BytesReceived += $Received;
-   } elsif (my ($File,$Modtime) = ($ThisLine =~ /^set "(.*)" modtime (\d+-\d+:\d+:\d+)$/ )) {
+   } elsif (($File,$Modtime) = ($ThisLine =~ /^set "(.*)" modtime (\d+-\d+:\d+:\d+)$/ )) {
       $SetModtime{"$Modtime,$File"}++;
-   } elsif (my ($Dir) = ($ThisLine =~ /^opendir "(.*)"$/ )) {
+   } elsif (($Dir) = ($ThisLine =~ /^opendir "(.*)"$/ )) {
       $OpenDir{$Dir}++;
-   } elsif (my ($Dir) = ($ThisLine =~ /^closedir "(.*)"$/ )) {
+   } elsif (($Dir) = ($ThisLine =~ /^closedir "(.*)"$/ )) {
       $CloseDir{$Dir}++;
-   } elsif (my ($File) = ($ThisLine =~ /^realpath "(.*)"$/ )) {
+   } elsif (($File) = ($ThisLine =~ /^realpath "(.*)"$/ )) {
       $RealPath{$File}++;
-   } elsif (my ($File) = ($ThisLine =~ /^stat name "(.*)"$/ )) {
+   } elsif (($File) = ($ThisLine =~ /^stat name "(.*)"$/ )) {
       $Stat{$File}++;
-   } elsif (my ($Dir) = ($ThisLine =~ /^Changed root directory to "(.*)"/ )) {
+   } elsif (($Dir) = ($ThisLine =~ /^Changed root directory to "(.*)"/ )) {
       $Chroot{$Dir}++;
-   } elsif (my ($ClientVer) = ($ThisLine =~ /^received client version (\S+)/ )) {
+   } elsif (($ClientVer) = ($ThisLine =~ /^received client version (\S+)/ )) {
       $ClientVers{$ClientVer}++;
-   } elsif (my ($Host,$Port) = ($ThisLine =~ /^error: connect_to (\S+) port (\d+): failed\.$/)) {
+   } elsif (($Host,$Port) = ($ThisLine =~ /^error: connect_to (\S+) port (\d+): failed\.$/)) {
       $ConnectFailed{"$Host port $Port"}++;
    } elsif ($ThisLine =~ /^fatal: no matching cipher found: /) {
       $NoCipher++;
