@@ -29,6 +29,10 @@ my $Detail = $ENV{'LOGWATCH_DETAIL_LEVEL'} || 0;
 #Init Counters
 my $ReExecInit=     my$ReExecSbinInit=
 0;
+#Init String Containers
+my (
+$Cause,     $Name,      $Status,
+);
 #Init Array
 my @OtherList = ();
 #Init Hashes
@@ -59,10 +63,10 @@ while (defined(my $ThisLine = <STDIN>)) {
 	   chomp ($ThisLine);
 	   $ReExecInit++;
    }
-   elsif ( my ($Name,$Cause) = ($ThisLine =~ /(.*) main process \([0-9]*\) killed by (.*)/)) {
+   elsif ( ($Name,$Cause) = ($ThisLine =~ /(.*) main process \([0-9]*\) killed by (.*)/)) {
       $ProcessKilled{"$Name,$Cause"}++;
    }
-   elsif ( my ($Name, $Status) = ($ThisLine =~ /(.*) main process \([0-9]*\) terminated with status ([0-9]*)/)) {
+   elsif ( ($Name, $Status) = ($ThisLine =~ /(.*) main process \([0-9]*\) terminated with status ([0-9]*)/)) {
       $ProcessTerminated{"$Name,Status"}++;
    }
    elsif ( $ThisLine =~ /Re-executing \/sbin\/init/) {
