@@ -44,6 +44,12 @@ my $LastTarget;
 my %UserSession;
 my %OtherList;
 
+#init String Containers
+my (
+$Exe,       $Service,   $name,
+$pidfile,   $reason,    $service,
+$session,   $target,    $user,
+);
 # Failure will generate multiple messages like:
 # EL7:
 # Feb  5 16:37:50 hostname systemd: ansible-pull.service: main process exited, code=exited, status=2/INVALIDARGUMENT
@@ -159,42 +165,42 @@ while (defined(my $ThisLine = <STDIN>)) {
        $ThisLine =~ /^.*\.socket: Socket service .* already active/
    ) {
       # Ignore these
-   } elsif (my ($service,$reason) = ($ThisLine =~ /^Configuration file ([^ ]*) is ([^.]*)\./)) {
+   } elsif (($service,$reason) = ($ThisLine =~ /^Configuration file ([^ ]*) is ([^.]*)\./)) {
       $ConfigError{$reason}{$service}++;
-   } elsif (my ($service,$reason) = ($ThisLine =~ /^\[(.*)\] (Support for option .* has been removed) and it is ignored/)) {
+   } elsif (($service,$reason) = ($ThisLine =~ /^\[(.*)\] (Support for option .* has been removed) and it is ignored/)) {
       $ConfigError{$reason}{$service}++;
-   } elsif (my ($service,$reason) = ($ThisLine =~ /^\[?([^\]:]+(?::\d+)?)[\]:]? (Unknown .* in section '.*')/)) {
+   } elsif (($service,$reason) = ($ThisLine =~ /^\[?([^\]:]+(?::\d+)?)[\]:]? (Unknown .* in section '.*')/)) {
       $ConfigError{$reason}{$service}++;
-   } elsif (my ($service) = ($ThisLine =~ /(\S+): Failed (:?to execute command|with result)/)) {
+   } elsif (($service) = ($ThisLine =~ /(\S+): Failed (:?to execute command|with result)/)) {
       $Failed{$service}++;
-   } elsif (my ($service) = ($ThisLine =~ /(\S+) failed\.$/)) {
+   } elsif (($service) = ($ThisLine =~ /(\S+) failed\.$/)) {
       $Failed{$service}++;
-   } elsif (my ($service) = ($ThisLine =~ /^(.*) failed with error code \d+\.$/)) {
+   } elsif (($service) = ($ThisLine =~ /^(.*) failed with error code \d+\.$/)) {
       $Failed{$service}++;
-   } elsif (my ($service) = ($ThisLine =~ /^(.*): Start request repeated too quickly\.$/)) {
+   } elsif (($service) = ($ThisLine =~ /^(.*): Start request repeated too quickly\.$/)) {
       $Failed{$service}++;
-   } elsif (my ($service) = ($ThisLine =~ /^(.*): Job .* timed out\.$/)) {
+   } elsif (($service) = ($ThisLine =~ /^(.*): Job .* timed out\.$/)) {
       $Failed{$service}++;
-   } elsif (my ($service) = ($ThisLine =~ /^(.*): Job .* failed with result .*$/)) {
+   } elsif (($service) = ($ThisLine =~ /^(.*): Job .* failed with result .*$/)) {
       $Failed{$service}++;
-   } elsif (my ($service) = ($ThisLine =~ /^Failed (unmounting .*)\.$/)) {
+   } elsif (($service) = ($ThisLine =~ /^Failed (unmounting .*)\.$/)) {
       $Failed{$service}++;
-   } elsif (my ($service) = ($ThisLine =~ /^Failed to (listen on .*)\.$/)) {
+   } elsif (($service) = ($ThisLine =~ /^Failed to (listen on .*)\.$/)) {
       $Failed{$service}++;
-   } elsif (my ($target) = ($ThisLine =~ /^Reached target (.*)\.$/)) {
+   } elsif (($target) = ($ThisLine =~ /^Reached target (.*)\.$/)) {
       $Target{$target}++;
       $LastTarget = $target;
-   } elsif (my ($session, $user) = ($ThisLine =~ /^Started Session ([[:xdigit:]]+) of [uU]ser (.*)\.$/)) {
+   } elsif (($session, $user) = ($ThisLine =~ /^Started Session ([[:xdigit:]]+) of [uU]ser (.*)\.$/)) {
       $UserSession{$user}->{$session}++;
-   } elsif (my ($service) = ($ThisLine =~ /^Activated (.*)\.$/)) {
+   } elsif (($service) = ($ThisLine =~ /^Activated (.*)\.$/)) {
       $Activated{$service}++;
-   } elsif (my ($service) = ($ThisLine =~ /^Started (.*)\.$/)) {
+   } elsif (($service) = ($ThisLine =~ /^Started (.*)\.$/)) {
       $Started{$service}++;
-   } elsif (my ($service) = ($ThisLine =~ /^Reloaded (.*)\.$/)) {
+   } elsif (($service) = ($ThisLine =~ /^Reloaded (.*)\.$/)) {
       $Reloaded{$service}++;
-   } elsif (my ($service) = ($ThisLine =~ /^Deactivated (.*)\.$/)) {
+   } elsif (($service) = ($ThisLine =~ /^Deactivated (.*)\.$/)) {
       $Deactivated{$service}++;
-   } elsif (my ($service) = ($ThisLine =~ /(.*): Deactivated /)) {
+   } elsif (($service) = ($ThisLine =~ /(.*): Deactivated /)) {
       $Deactivated{$service}++;
    } elsif ($ThisLine eq "Reexecuting.") {
       $Reexecuted++ if $Detail;
@@ -202,13 +208,13 @@ while (defined(my $ThisLine = <STDIN>)) {
       $TimeChanged++;
    } elsif (my ($slice) = ($ThisLine =~ /^Created slice (.*)\.$/)) {
       $Slice{$slice}++;
-   } elsif (my ($name) = ($ThisLine =~ /^Condition check resulted in (.*) being skipped\.$/)) {
+   } elsif (($name) = ($ThisLine =~ /^Condition check resulted in (.*) being skipped\.$/)) {
       $Skipped{$name}++ if $Detail;
-   } elsif (my ($pidfile) = ($ThisLine =~ /^PID file (.*) not readable \(yet\?\) after start\.$/)) {
+   } elsif (($pidfile) = ($ThisLine =~ /^PID file (.*) not readable \(yet\?\) after start\.$/)) {
       $Slow{$pidfile}++;
-   } elsif (my ($pidfile) = ($ThisLine =~ /: Can't open PID file (.*) \(yet\?\) after start:/)) {
+   } elsif (($pidfile) = ($ThisLine =~ /: Can't open PID file (.*) \(yet\?\) after start:/)) {
       $Slow{$pidfile}++;
-   } elsif (my ($Service, $Exe) = ($ThisLine =~ /^(.*): Found left-over process \d+ \((.*)\) in control group while starting unit\. Ignoring\.$/)) {
+   } elsif (($Service, $Exe) = ($ThisLine =~ /^(.*): Found left-over process \d+ \((.*)\) in control group while starting unit\. Ignoring\.$/)) {
       $LeftOver{"$Service:$Exe"}++ unless "$Service:$Exe" =~/^$Ignore_leftover$/i;
    } else {
       $OtherList{$ThisLine}++;
