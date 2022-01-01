@@ -60,12 +60,12 @@ $vid
 my (
 %badexch,           %conns,                         %crlUpdate,
 %crlUpdateSince,    %ipsecSAs,                      %loglines,
-%maxattempts,       %peer,                          %peerID,
+%maxattempts,       %peerID,
 %peerIP,            %quickmode,                     %rekeyfail,
 %rekeyfailI1,       %rekeyfailQI1,                  %rekeyfailQR1,
 %rekeyfailR1,       %rekeyfail_ICMPunreachable,     %rekeyfail_notknown,
 %rekeysuccess,      %relevantlog,                   %setupfail,
-%statechain,        %stateobjects,                  %xauthsuccess,
+%statechain,        %xauthsuccess,
 %vendorID
 );
 
@@ -76,16 +76,15 @@ while(<>) {
 # May  4 04:04:33 abigail Pluto[24170]: "abigail-istari" #1479: ISAKMP SA expired (LATEST!)
 
    chop;
-   my ($month,$day,$time,$host,$process,$conn,$msg)=split(/ +/,$_,7);
+   my ($month,$day,undef,undef,$process,$conn,$msg)=split(/ +/,$_,7);
    $today="$month $day";
 
    next unless ($process =~ /pluto/i);
    my $iserror=0;
-   my $junk;
 
    if ($conn eq "ERROR:") {
       $iserror = 1;
-      ($junk,$conn,$msg)=split(/ +/,$msg,3);
+      (undef,$conn,$msg)=split(/ +/,$msg,3);
    }
 
    $loglines{$today}++;
@@ -97,7 +96,8 @@ while(<>) {
       $stateinfo = $2;
       $rest      = $3;
    } elsif($msg =~ /no Phase 1 state for Delete/) {
-      $baddelete++;
+      # baddelete not currently used
+      #$baddelete++;
       next;
    } elsif($msg =~ /from ([^:]*)\:([^:]*)\: Main Mode message is part of an unknown exchange/) {
       $ipaddr = $1;
@@ -121,10 +121,11 @@ while(<>) {
    }
    $peerIP{"$conn|$ipaddr"}++;
 
-   $stateobjects{$stateinfo}++;
-   if(!defined($peer{$stateinfo}) && length($ipaddr)>0) {
-      $peer{$stateinfo}=$ipaddr;
-   }
+   # This code no longer seems to be active
+   #$stateobjects{$stateinfo}++;
+   #if(!defined($peer{$stateinfo}) && length($ipaddr)>0) {
+   #   $peer{$stateinfo}=$ipaddr;
+   #}
 
    # ignore following
    next if($rest =~ /ISAKMP SA expired/);
@@ -211,7 +212,7 @@ while(<>) {
 
    } elsif($rest =~ /cannot respond to IPsec SA request because no connection is known for (.*)/) {
       $rekeyfail{$conn}++;
-      $rekeyfail_notknown{$1}++;
+      #$rekeyfail_notknown{$1}++;
 
    } elsif($rest =~ /crl update is overdue since (.*)/) {
 
@@ -222,33 +223,33 @@ while(<>) {
    } elsif($rest =~ /max number of retransmissions \((.*)\) reached STATE_QUICK_I./) {
 
       $rekeyfail{$conn}++;
-      $rekeyfailQI1{$conn}++;
+      #$rekeyfailQI1{$conn}++;
       next;
 
    } elsif($rest =~ /max number of retransmissions \((.*)\) reached STATE_QUICK_R./) {
 
       $rekeyfail{$conn}++;
-      $rekeyfailQR1{$conn}++;
+      #$rekeyfailQR1{$conn}++;
       next;
 
    } elsif($rest =~ /max number of retransmissions \((.*)\) reached STATE_MAIN_I./) {
 
       $rekeyfail{$conn}++;
-      $rekeyfailI1{$conn}++;
+      #$rekeyfailI1{$conn}++;
       next;
 
    } elsif($rest =~ /max number of retransmissions \((.*)\) reached STATE_MAIN_R./) {
       $rekeyfail{$conn}++;
-      $rekeyfailR1{$conn}++;
+      #$rekeyfailR1{$conn}++;
       next;
 
    } elsif($rest =~ /ERROR: asynchronous network error report on .* for message to .* port 500, complainant .*:.*errno (.*), origin ICMP type (.*) code (.*)/) {
       $rekeyfail{$conn}++;
-      $rekeyfail_ICMPunreachable{$conn}++;
+      #$rekeyfail_ICMPunreachable{$conn}++;
 
    } elsif($rest =~ /ERROR: asynchronous network error report on .* for message to .* port 500, complainant .*:.*errno (.*), origin ICMP type (.*) code (.*)/) {
       $rekeyfail{$conn}++;
-      $rekeyfail_ICMPunreachable{$conn}++;
+      #$rekeyfail_ICMPunreachable{$conn}++;
 
    } elsif($rest =~ /XAUTH: Successfully Authenticated/) {
       $xauthsuccess{$conn}++;

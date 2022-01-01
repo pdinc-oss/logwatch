@@ -36,7 +36,7 @@ my $IgnoreUnmatched = $ENV{'qmail_ignore_unmatched'} || 0;
 my (
 $DeliveryResponse,  $EmailFrom,                     $Response,
 $ResponseCode,      $ServerResponseOverallTotal,    $ServerResponses,
-$ToLocal,           $ToRemote,                      $msgid,
+$ToLocal,           $ToRemote,                      
 $percentage,        $threshold_reached,
 );
 #Init Hashes
@@ -58,7 +58,7 @@ while (defined(my $ThisLine = <STDIN>)) {
       ) {
       # We don't care about these
    } elsif (
-         ($msgid,$DeliveryResponse,$Response) = ( $ThisLine =~ /delivery (\d+)\: (.*?)\:(.*)/ )
+         ($DeliveryResponse,$Response) = ( $ThisLine =~ /delivery (?:\d+)\: (.*?)\:(.*)/ )
          ) {
       if ( $Response =~ /did_/ ) {
          # ignore these.

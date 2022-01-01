@@ -47,10 +47,10 @@ my $ListByCidrBits = $ENV{'iptables_list_by_cidr_mask'} || 0;
 my (
 $TU,                $action,            $actionType,
 $chain,             $chain_info,        $from,
-$fromHostCount,     $fromip,            $fromport,
+$fromHostCount,     $fromip,            
 $if,                $ifin,              $ifout,
 $inout,             $interface,         $interfaceCount,
-$on,                $outputMain,        $outputSection,
+$outputMain,        $outputSection,
 $outputServices,    $packetCount,       $port,
 $proto,             $protocol,          $repcnt,
 $rest,              $service,           $to,
@@ -135,7 +135,7 @@ while (defined(my $ThisLine = <STDIN>)) {
    $ThisLine =~ s/^... .. ..:..:.. ([^ ]*) (kernel: )?(\[\s*\d+\.\d+\] )?//;
 
    # IPCHAINS
-   if( ($TU,$from,$port,$on) = ( $ThisLine =~ /IP fw-in deny \w+ (\w+) ([^:]+):\d+ ([^:]+):(\d+) / ) ){
+   if( ($TU,$from,$port) = ( $ThisLine =~ /IP fw-in deny \w+ (\w+) ([^:]+):\d+ ([^:]+):(?:\d+) / ) ){
       if($MaxNum < ++$TCPscan{$TU}{$from}) {
          $MaxNum = $TCPscan{$TU}{$from}
       }
@@ -190,7 +190,7 @@ while (defined(my $ThisLine = <STDIN>)) {
       $ipt2{$actionType}{$interface}{$toport}{$proto}{$fromip}{$toip}{$chain_info}++;
    }
    # IPF
-   elsif (($repcnt,$if,$chain,$fromip,$fromport,$toip,$toport,$proto,$rest,$inout) = ($ThisLine =~ /^.*\d{2,2}:\d{2,2}:\d{2,2}\.\d{6,6}\s*(?:(\d{1,})x)*\s*(\w*)\s*@[-]*\d{1,}:[-]*\d{1,}\s*(\w*)\s*([\w\.:]+\w),*(\d*)\s*->\s*([\w\.:]+\w),*(\d*)\s*PR\s*(\w*)\s*(.*((IN|OUT)).*)/)) {
+   elsif (($repcnt,$if,$chain,$fromip,$toip,$toport,$proto,$rest) = ($ThisLine =~ /^.*\d{2,2}:\d{2,2}:\d{2,2}\.\d{6,6}\s*(?:(\d{1,})x)*\s*(\w*)\s*@[-]*\d{1,}:[-]*\d{1,}\s*(\w*)\s*([\w\.:]+\w),*(?:\d*)\s*->\s*([\w\.:]+\w),*(\d*)\s*PR\s*(\w*)\s*(.*((?:IN|OUT)).*)/)) {
       if ($chain eq 'b') {
           $actionType = "drop";
       } elsif ($chain eq 'p') {

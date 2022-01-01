@@ -40,7 +40,7 @@ my (
 $Conns,                 $CountLength,           $CountSpaceLength,
 $Down,                  $DownLength,            $DownSpaceLength,
 $HostCount,             $HostLength,            $HostSpaceLength,
-$LastLine,              $NonSSLCount,           $NonSSLLength,
+$NonSSLCount,           $NonSSLLength,
 $NonSSLSpaceLength,     $SSL,                   $SSLCount,
 $SSLLength,             $SSLSpaceLength,        $Size,
 $SizeLength,            $SizeSpaceLength,       $TotalCount,
@@ -102,7 +102,7 @@ while (defined(my $ThisLine = <STDIN>)) {
    } elsif ( my ($User, $Host) = ( $ThisLine =~ /^Logout user=(.*?) host=(.*)$/) ) {
       $Logout{$User}{$Host}++;
       $Logout2{$User}++;
-   } elsif ( my ($dummy, $User, $Host, $DownloadSize1, $DownloadSize2) = ( $ThisLine =~ /^(LOGOUT|TIMEOUT|DISCONNECTED), user=(.*?), ip=\[([^ ,]+)\](?:, port=\[\d+\])?, headers=(\d+), body=(\d+)/o ) ) {
+   } elsif ( my ($User, $Host, $DownloadSize1, $DownloadSize2) = ( $ThisLine =~ /^(?:LOGOUT|TIMEOUT|DISCONNECTED), user=(.*?), ip=\[([^ ,]+)\](?:, port=\[\d+\])?, headers=(\d+), body=(\d+)/o ) ) {
       $Logout{$User}{$Host}++;
       $Logout2{$User}++;
       $DownloadedMessagesSize{$User} += $DownloadSize1 + $DownloadSize2;
@@ -142,7 +142,6 @@ while (defined(my $ThisLine = <STDIN>)) {
       chomp($ThisLine);
       $OtherList{$ThisLine}++;
    }
-   $LastLine = $ThisLine;
 }
 
 ################################################
@@ -177,8 +176,6 @@ if ( ( $Detail >= 5 ) and (keys %Connection)) {
              "\n-------------------------------------- | ----------- | -------- | ---------";
 
    my $ConnCount = 0;
-   my $SSLConn = 0;
-   my $TotalConn = 0;
    foreach my $Host (sort keys %Connection) {
       my $Total = $Connection{$Host};
       if (defined ($ConnectionNonSSL{$Host})) {

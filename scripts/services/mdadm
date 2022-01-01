@@ -30,19 +30,20 @@ my $enable_scan = $ENV{'mdadm_enable_scan'} || 0;
 my $ignore_missing = $ENV{'mdadm_ignore_missing'} || 0;
 
 my @devices = ();
-if ( -f "/etc/mdadm.conf" ) {
-  open(MDADM,"< /etc/mdadm.conf");
-} elsif ( -f "/etc/mdadm/mdadm.conf" ) {
-  open(MDADM,"< /etc/mdadm/mdadm.conf");
-} elsif ($enable_scan) {
-  open(MDADM,"mdadm --detail --scan 2>/dev/null|");
-}
-while (<MDADM>) {
-  if (/^ARRAY/) {
-    push(@devices,(split())[1]);
-  }
-}
-close(MDADM);
+my $mdadm;
+
+
+if (
+    open($mdadm, "<", "/etc/mdadm.conf") or
+    open($mdadm, "<", "/etc/mdadm/mdadm.conf") or
+    open($mdadm, "<", "mdadm --detail --scan 2>/dev/null|")) {
+   while (<$mdadm>) {
+       if (/^ARRAY/) {
+         push(@devices,(split())[1]);
+       }
+     }
+     close($mdadm);
+   }
 
 DEV: foreach my $dev (@devices) {
   my %mdhash;

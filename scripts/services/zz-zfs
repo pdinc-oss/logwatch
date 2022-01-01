@@ -104,7 +104,7 @@ exit 0 unless @pools;   # Nothing to do?
 # Read filesystem information for each pool
 foreach my $type (qw( filesystem volume snapshot ) ) {
    foreach my $pool (map { $_->[0] } @pools) {
-      open POOLINFO, '-|', $pathto_zfs, qw(list -H -t), $type, qw(-o name,referenced,available,mountpoint -r), $pool or die "Error running 'zfs list': $!\n";
+      open POOLINFO, '-|', "${pathto_zfs} list -H -t $type -o name,referenced,available,mountpoint -r $pool" or die "Error running 'zfs list': $!\n";
       while(<POOLINFO>) {
          next if /no datasets available/i;
          chomp;

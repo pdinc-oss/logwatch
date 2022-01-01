@@ -363,7 +363,7 @@ my %Logout;
 my %Logout2;
 my %LogoutSize;
 my %LogoutSize2;
-my $RespawnCourier;
+my $RespawnCourier = 0;
 my $ShutdownCourier;
 my $Size;
 my $SSLstop;
