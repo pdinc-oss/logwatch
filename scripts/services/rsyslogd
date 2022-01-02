@@ -51,12 +51,14 @@ if (defined($ENV{'rsyslogd_ignore_modules'})) {
 #Init String Containers
 my $Action;
 my $Certificate;
+my $Host;
 my $Message;
 my $Module;
 my $Reason;
 #Init Hashes
 my %ActionResumed;
 my %ActionSuspended;
+my %CannotConnect;
 my %DaemonActions;
 my %InvalidCerts;
 
@@ -81,6 +83,9 @@ while (defined(my $ThisLine = <STDIN>)) {
    }
    elsif (($Certificate) = $ThisLine =~ /invalid cert info: peer provided \d+ certificate\(s\)\. Certificate \d+ info: (.*);  \[/) {
       $InvalidCertificate{$Certificate}++;
+   }
+   elsif (($Host, $Reason) = $ThisLine =~ /cannot connect to (.+): (.+) \[/) {
+      $CannotConnect{"$Host ($Reason)"}++;
    }
    elsif (
       # More detail for this in the invalid cert info line above
@@ -113,6 +118,14 @@ if (keys %ActionResumed) {
     print "Rsyslogd actions resumed\n";
     foreach my $Action (sort keys %ActionResumed) {
         print "   $Action: $ActionResumed{$Action} Times\n";
+    }
+    print "\n";
+}
+
+if (keys %CannotConnect) {
+    print "Cannot connect:\n";
+    foreach my $Item (sort keys %CannotConnect) {
+        print "   $Item: $CannotConnect{$Item} Times\n";
     }
     print "\n";
 }
