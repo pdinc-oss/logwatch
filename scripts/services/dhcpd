@@ -137,7 +137,7 @@ while (my $line = <STDIN>) {
       $data{'Config error'}{$line}++;
    } elsif ($line =~ /^If this DHCP server is authoritative for that subnet,$/) {
       $data{'Config error'}{'missing authoritative directive'}++; 
-   } elsif ($line =~ s/^WARNING: (Host declarations are global).\s+.*$/\1/) {
+   } elsif ($line =~ s/^WARNING: (Host declarations are global).\s+.*$/$1/) {
       $data{'Config error'}{$line}++;
    } elsif ($line =~ s/Not searching LDAP\s+.*$/No support for LDAP configured/) {
       $data{'Config error'}{$line}++;
