@@ -24,7 +24,7 @@
 #########################################################
 
 use strict;
-#use Logwatch ':all';
+use Logwatch ':all';
 
 my $Debug = $ENV{'LOGWATCH_DEBUG'} || 0;
 my $Detail = $ENV{'LOGWATCH_DETAIL_LEVEL'} || 0;
