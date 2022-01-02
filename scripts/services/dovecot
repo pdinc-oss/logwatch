@@ -158,6 +158,7 @@ while (defined(my $ThisLine = <STDIN>)) {
          $Connection{$Host}++;
       }
    } elsif ( (($User, $Host) = ( $ThisLine =~ /^(?:$dovecottag )?imap-login: Login: (.*?) \[(.*)\]/ ) ) or
+             (($User, $Host) = ( $ThisLine =~ /^(?:$dovecottag )?imap-login: Login: user=\<(.*?)\>.*rip=(.*), lip=.*/ ) )  or
              (($User, $Host, $Session) = ( $ThisLine =~ /^(?:$dovecottag )?imap-login: (?:Info: )?Login: user=\<(.*?)\>.*rip=(.*), lip=.*, session=<([^>]+)>/ ) ) ) {
       if ($Host !~ /$IgnoreHost/) {
          $Host = hostName($Host);
