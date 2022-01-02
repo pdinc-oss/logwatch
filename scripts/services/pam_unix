@@ -136,7 +136,7 @@ while ($line = <STDIN>) {
          # resolve uid to name if possible
          my $onam;
          if ($byid =~ s/^\(uid=(\d+)\)$/$1/) {
-           $onam = getpwuid($byid) or $byid;
+           $onam = getpwuid($byid) || $byid;
          } elsif ($byid =~ s/^(\S+)\(uid=\d+\)$/$1/) {
            $onam = $byid;
          } else {
