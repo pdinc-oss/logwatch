@@ -156,32 +156,53 @@ while (defined(my $ThisLine = <STDIN>)) {
 
 
 if (keys %ServicesBans) {
-    printf("\nBanned services with Fail2Ban:                             Bans:Unbans  ReBans:Flush\n");
+    printf("\nBanned services with Fail2Ban:                        Bans:Unbans  ReBans:Flush\n");
     foreach my $service (sort {$a cmp $b} keys %ServicesBans) {
-        printf("   %-55s [%3d:%-3d]      [%3d:%-3d]\n", "$service:",
-               $ServicesBans{$service}{'(all)'}{'Ban'}, 
-               $ServicesBans{$service}{'(all)'}{'Unban'}, 
-               $ServicesBans{$service}{'(all)'}{'ReBan'},
-               $ServicesBans{$service}{'(all)'}{'FlushUnban'});
+        # Perl handles autoincrement of the uninitialized key values,
+        # but it can issue a warning when used in a print statement.
+        # So we check for existence before printing its value.
+        printf("   %-50s [%3d:%-3d]      [%3d:%-3d]\n", "$service:",
+               (exists $ServicesBans{$service}{'(all)'}{'Ban'}) ?
+                  $ServicesBans{$service}{'(all)'}{'Ban'} : 0,
+               (exists $ServicesBans{$service}{'(all)'}{'Unban'}) ?
+                  $ServicesBans{$service}{'(all)'}{'Unban'} : 0,
+               (exists $ServicesBans{$service}{'(all)'}{'ReBan'}) ?
+                  $ServicesBans{$service}{'(all)'}{'ReBan'} : 0,
+               (exists $ServicesBans{$service}{'(all)'}{'FlushUnban'}) ?
+                  $ServicesBans{$service}{'(all)'}{'FlushUnban'} : 0);
         delete $ServicesBans{$service}{'(all)'};
+
         my $totalSort = TotalCountOrder(%{$ServicesBans{$service}}, \&SortIP);
         if ($Detail >= 5) {
             foreach my $ip (sort $totalSort keys %{$ServicesBans{$service}}) {
-                my $name = LookupIP($ip);
-                printf("      %-53s %3d:%-3d        %3d:%-3d\n",
-                       $name,
-                       $ServicesBans{$service}{$ip}{'Ban'},
-                       $ServicesBans{$service}{$ip}{'Unban'},
-                       $ServicesBans{$service}{$ip}{'ReBan'},
-                       $ServicesBans{$service}{$ip}{'FlushUnban'});
-                if (($Detail >= 10) and ($ServicesBans{$service}{$ip}{'Failures'}>0)) {
+                my @name = split(/ /, LookupIP($ip));
+                # As explained above, we check for existence of hashes
+                # that are autoincremented.
+                printf("      %-48s %3d:%-3d        %3d:%-3d\n",
+                    $name[0],
+                    (exists $ServicesBans{$service}{$ip}{'Ban'}) ?
+                        $ServicesBans{$service}{$ip}{'Ban'} : 0,
+                    (exists $ServicesBans{$service}{$ip}{'Unban'}) ?
+                        $ServicesBans{$service}{$ip}{'Unban'} : 0,
+                    (exists $ServicesBans{$service}{$ip}{'ReBan'}) ?
+                        $ServicesBans{$service}{$ip}{'ReBan'} : 0,
+                    (exists $ServicesBans{$service}{$ip}{'FlushUnban'}) ?
+                        $ServicesBans{$service}{$ip}{'FlushUnban'} : 0);
+                if (scalar @name > 1) {
+                   printf("          %s\n", $name[1]);
+                   }
+                if (($Detail >= 10) and
+                    (exists $ServicesBans{$service}{$ip}{'Failures'}) and
+                    ($ServicesBans{$service}{$ip}{'Failures'}>0)) {
                     print "      Failed ";
                     foreach my $fails (@{$ServicesBans{$service}{$ip}{'Failures'}}) {
                         print " $fails";
                     }
                     print " times";
 }
-                if (($Detail >= 10) and ($ServicesBans{$service}{$ip}{'AlreadyInTheList'}>0)) {
+                if (($Detail >= 10) and
+                    (exists $ServicesBans{$service}{$ip}{'AlreadyInTheList'}) and
+                    ($ServicesBans{$service}{$ip}{'AlreadyInTheList'}>0)) {
                     printf("         (%d Duplicate Ban attempts)\n",
                         $ServicesBans{$service}{$ip}{'AlreadyInTheList'}) ;
                 }

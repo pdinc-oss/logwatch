@@ -565,7 +565,8 @@ if ( ( $Detail >= 10 ) and (keys %AuthUsernameChars)) {
 if (keys %Disconnected) {
    my $Disconnects = 0;
    foreach my $Reason (%Disconnected) {
-      $Disconnects += $Disconnected{$Reason};
+      $Disconnects += (exists $Disconnected{$Reason}) ?
+          $Disconnected{$Reason} : 0;
    }
    printf "\n\nDovecot disconnects: %s Total", $Disconnects;
    if ($Detail >= 5) {
