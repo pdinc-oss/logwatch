@@ -1,0 +1,192 @@
+########################################################
+# Please file all bug reports, patches, and feature
+# requests under:
+#      https://sourceforge.net/p/logwatch/_list/tickets
+# Help requests and discusion can be filed under:
+#      https://sourceforge.net/p/logwatch/discussion/
+########################################################
+
+########################################################
+## Copyright (c) 2019 Orion Poplawski
+## Covered under the included MIT/X-Consortium License:
+##    http://www.opensource.org/licenses/mit-license.php
+## All modifications and contributions by other persons to
+## this script are assumed to have been donated to the
+## Logwatch project and thus assume the above copyright
+## and licensing terms.  If you want to make contributions
+## under your own copyright or a different license this
+## must be explicitly stated in the contribution an the
+## Logwatch project reserves the right to not accept such
+## contributions.  If you have made significant
+## contributions to this script and want to claim
+## copyright please contact logwatch-devel@lists.sourceforge.net.
+#########################################################
+
+use strict;
+use warnings;
+my $Detail = $ENV{'LOGWATCH_DETAIL_LEVEL'} || 0;
+my ($Hostname) = ($ENV{'HOSTNAME'} =~ /^([^.]+)/);
+my %CannotConnect;
+my %Communication;
+my %CommunicationState;
+my %Connected;
+my %DataStale;
+my %DataStaleState;
+my %Logins;
+my %OnBattery;
+my %State;
+my %OtherList;
+my $UpsdrvctlMessages;
+
+# Failure will generate multiple messages like:
+# Feb  5 16:37:50 hostname systemd: ansible-pull.service: main process exited, code=exited, status=2/INVALIDARGUMENT
+# Feb  5 16:37:50 hostname systemd: Failed to start Run ansible-pull on boot.
+# Feb  5 16:37:50 hostname systemd: Unit ansible-pull.service entered failed state.
+# Feb  5 16:37:50 hostname systemd: ansible-pull.service failed.
+
+while (defined(my $ThisLine = <STDIN>)) {
+   chomp($ThisLine);
+   # Strip PID
+   $ThisLine =~ s/^([^[]+)\[\d+\]:/$1:/;
+
+   my $ups;
+   my $state;
+   my $user;
+
+   if ($ThisLine =~ /^upsd: User .* logged out/
+       # TODO - count start/stops
+       or $ThisLine =~ /Signal 15: exiting/
+       or $ThisLine =~ /Startup successful/
+       or $ThisLine =~ /^upsdrvctl: Network UPS Tools - /
+       or $ThisLine =~ /^upsdrvctl: USB communication driver/
+       or $ThisLine =~ /^upsdrvctl: Using subdriver:/
+       or $ThisLine =~ /^upsd: listening on /
+       or $ThisLine =~ /^upsd: Network UPS Tools upsd/
+       or $ThisLine =~ /^upsmon: Connected to/
+       or $ThisLine =~ /^upsmon: Certificate verification is disabled/
+       or $ThisLine =~ /^upsmon: fopen \S+\/upsmon.pid: No such file or directory/
+       or $ThisLine =~ /^upsmon: Network UPS Tools upsmon/
+       # Let the server report data stale messages
+       or $ThisLine =~ /^upsmon: Poll UPS \[(\S+)\] failed - Data stale/
+       or $ThisLine =~ /^snmp-ups: \[(\S+)\] snmp_ups_walk: data (:?resumed|stale)/
+       # This will generate a communication lost message - TODO - track reasons?
+       or $ThisLine =~ /^upsmon: Poll UPS \[(\S+)\] failed - Server disconnected/
+       or $ThisLine =~ /^upsmon: UPS: \S+ \(slave\)/
+       or $ThisLine =~ /^upsmon: Using power down flag file/
+      ) {
+     # Ignore these
+   } elsif (($ups) = ($ThisLine =~ /^upsd: Can't connect to UPS \[(\S+)\]/)) {
+      $CannotConnect{$ups}++;
+   } elsif (($ups) = ($ThisLine =~ /^upsd: Connected to UPS \[(\S+)\]/)) {
+      $Connected{$ups}++;
+   } elsif (($ups) = ($ThisLine =~ /^upsmon: Communications with UPS (\S+) lost/)) {
+      $Communication{$ups}++;
+      $CommunicationState{$ups}++;
+   } elsif (($ups) = ($ThisLine =~ /^upsmon: Communications with UPS (\S+) established/)) {
+      $CommunicationState{$ups}--;
+   } elsif (($ups, $state) = ($ThisLine =~ /^upsmon: UPS (\S+) on (.*)/)) {
+      my ($host) = ($ups =~ /@([^.]+)/);
+      next unless $host eq "localhost" or $host eq $Hostname;
+      $State{$ups} = $state;
+      $OnBattery{$ups}++ if $state eq "battery";
+   } elsif (($ups) = ($ThisLine =~ /^upsd: Data for UPS \[(\S+)\] is stale/)) {
+      $DataStale{$ups}++;
+      $DataStaleState{$ups}++;
+   } elsif (($ups) = ($ThisLine =~ /^upsd: UPS \[(\S+)\] data is no longer stale/)) {
+      $DataStaleState{$ups}--;
+   } elsif (($user, $ups) = ($ThisLine =~ /^upsd: User (\S+) logged into UPS \[(\S+)\]/)) {
+      $Logins{$user}->{$ups}++;
+   } elsif (my ($msg) = ($ThisLine =~ /^upsdrvctl: (.*)/)) {
+      $UpsdrvctlMessages .= "   $msg\n";
+   }  else {
+      $OtherList{$ThisLine}++;
+   }
+}
+
+if (keys %CannotConnect) {
+   print "Cannot connect to UPS:\n";
+   foreach my $ups (sort {$a cmp $b} keys %CannotConnect) {
+      print "   $ups: $CannotConnect{$ups} Time(s)\n";
+   }
+   print "\n";
+}
+
+if ($UpsdrvctlMessages) {
+   print "upsdrvctl Messages:\n";
+   print $UpsdrvctlMessages;
+}
+
+if (keys %OnBattery) {
+   print "UPS on battery:\n";
+   foreach my $ups (sort {$a cmp $b} keys %OnBattery) {
+      print "   $ups: $OnBattery{$ups} Time(s)\n";
+   }
+   print "\n";
+}
+   
+# TODO - Alert if too many disconnects?
+my $CommunicationStateTotal = 0;
+foreach my $ups (keys %Communication) {
+   $CommunicationStateTotal += $CommunicationState{$ups};
+}
+
+if (keys %Communication and ($Detail or $CommunicationStateTotal)) {
+   print "Communication lost:\n";
+   foreach my $ups (sort {$a cmp $b} keys %Communication) {
+      print "   $ups: $Communication{$ups} Time(s)";
+      print " * Currently lost" if $CommunicationState{$ups};
+      print "\n";
+   }
+   print "\n";
+}
+
+# TODO - Alert if too many?
+my $DataStaleStateTotal = 0;
+foreach my $ups (keys %DataStale) {
+   $DataStaleStateTotal += $DataStaleState{$ups};
+}
+
+if (keys %DataStale and ($Detail or $DataStaleStateTotal)) {
+   print "Data is stale:\n";
+   foreach my $ups (sort {$a cmp $b} keys %DataStale) {
+      print "   $ups: $DataStale{$ups} Time(s)";
+      print " * Currently stale" if $DataStaleState{$ups};
+      print "\n";
+   }
+   print "\n";
+}
+
+if (keys %Connected and ($Detail >= 5)) {
+   print "Connected to UPS:\n";
+   foreach my $ups (sort {$a cmp $b} keys %Connected) {
+      print "   $ups: $Connected{$ups} Time(s)\n";
+   }
+   print "\n";
+}
+
+if (keys %Logins and ($Detail >= 10)) {
+   print "Logins:\n";
+   foreach my $user (sort {$a cmp $b} keys %Logins) {
+      print "   $user:\n";
+      foreach my $ups (sort {$a cmp $b} keys %{$Logins{$user}}) {
+         print "      $ups: $Logins{$user}{$ups} Time(s)\n";
+      }
+   }
+   print "\n";
+}
+
+if (keys %OtherList) {
+   print "\n\n**Unmatched Entries**\n";
+   foreach my $line (sort {$a cmp $b} keys %OtherList) {
+      print "   $line: $OtherList{$line} Time(s)\n";
+   }
+}
+
+exit(0);
+
+# vi: shiftwidth=3 tabstop=3 syntax=perl et
+# Local Variables:
+# mode: perl
+# perl-indent-level: 3
+# indent-tabs-mode: nil
+# End:
