@@ -32,7 +32,7 @@
 ## copyright please contact logwatch-devel@lists.sourceforge.net.
 #########################################################
 
-#use Logwatch ':all';
+use Logwatch ':all';
 use strict;
 
 my $Debug = $ENV{'LOGWATCH_DEBUG'} || 0;

@@ -23,7 +23,7 @@
 ### copyright please contact logwatch-devel@lists.sourceforge.net.
 ##########################################################
 
-#use Logwatch ':sort';
+use Logwatch ':sort';
 use strict;
 
 my $Detail = $ENV{'LOGWATCH_DETAIL_LEVEL'} || 0;
