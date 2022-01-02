@@ -102,6 +102,7 @@ while (defined(my $ThisLine = <STDIN>)) {
          ( $ThisLine =~ m/MailScanner child caught a SIGHUP/ ) or
          ( $ThisLine =~ m/Virus and Content Scanning/ ) or
          ( $ThisLine =~ m/Virus Scanning: [\w]+ found/ ) or
+         ( $ThisLine =~ m/Found spam based virus Sanesecurity\./ ) or
          ( $ThisLine =~ m/Virus Scanning: ClamAV Module found [\d]+ infections/ ) or
          ( $ThisLine =~ m/^ClamAV virus database has been updated/ ) or
          ( $ThisLine =~ m/^ClamAV update of/ ) or
