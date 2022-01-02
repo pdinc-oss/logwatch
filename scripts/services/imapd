@@ -45,7 +45,9 @@ $NonSSLSpaceLength,     $SSL,                   $SSLCount,
 $SSLLength,             $SSLSpaceLength,        $Size,
 $SizeLength,            $SizeSpaceLength,       $TotalCount,
 $TotalLength,           $TotalSpaceLength,      $UserLength,
-$UserSpaceLength,       $totalSpaceLength
+$UserSpaceLength,       $totalSpaceLength,
+$DownloadSize1,         $DownloadSize2,         $Host,
+$Num,                   $Reason,                $User,
 );
 #Init Hashes
 my (
@@ -70,39 +72,39 @@ while (defined(my $ThisLine = <STDIN>)) {
       ($ThisLine =~ /^ip=\[.*\], Unexpected SSL connection shutdown.*$/)
    ) {
       # Don't care about these...
-   } elsif ( my ($User, $Host) = ( $ThisLine =~ /^Login user=(.*?) host=(.*\[.*\])$/ ) ) {
+   } elsif ( ($User, $Host) = ( $ThisLine =~ /^Login user=(.*?) host=(.*\[.*\])$/ ) ) {
       $Login{$User}{$Host}++;
-   } elsif ( my ($User, $Host) = ( $ThisLine =~ /^LOGIN, user=(.*?), ip=\[([^ ,]+)\](?:, port=\[\d+\])?, protocol=IMAP$/o ) ) {
+   } elsif ( ($User, $Host) = ( $ThisLine =~ /^LOGIN, user=(.*?), ip=\[([^ ,]+)\](?:, port=\[\d+\])?, protocol=IMAP$/o ) ) {
       $Login{$User}{$Host}++;
-   } elsif ( my ($User,$Host) = ( $ThisLine =~ /^Authenticated user=(.*) host=(.*\[.*\]).*$/ ) ) {
+   } elsif ( ($User,$Host) = ( $ThisLine =~ /^Authenticated user=(.*) host=(.*\[.*\]).*$/ ) ) {
       $Login{$User}{$Host}++;
-   } elsif ( my ($User,$Host) = ( $ThisLine =~ /^Preauthenticated user=(.*) host=(.*)$/ ) ) {
+   } elsif ( ($User,$Host) = ( $ThisLine =~ /^Preauthenticated user=(.*) host=(.*)$/ ) ) {
       $Login{$User}{$Host}++;
-   } elsif ( my ($Host) = ( $ThisLine =~ /^imap service init from (.*)$/ ) ) {
+   } elsif ( ($Host) = ( $ThisLine =~ /^imap service init from (.*)$/ ) ) {
       $ConnectionNonSSL{$Host}++;
       $Connection{$Host}++;
-   } elsif ( my ($Host) = ( $ThisLine =~ /^imaps SSL service init from (.*)$/ ) ) {
+   } elsif ( ($Host) = ( $ThisLine =~ /^imaps SSL service init from (.*)$/ ) ) {
       $ConnectionSSL{$Host}++;
       $Connection{$Host}++;
-   } elsif ( my ($Host) = ( $ThisLine =~ /^Connection, ip=\[(.*)\]$/o ) ) {
+   } elsif ( ($Host) = ( $ThisLine =~ /^Connection, ip=\[(.*)\]$/o ) ) {
       $Connection{$Host}++;
-   } elsif ( my ($Num, $Host) = ( $ThisLine =~ /^message repeated (.*) times: \[ Connection, ip=\[(.*)\]$/o ) ) {
+   } elsif ( ($Num, $Host) = ( $ThisLine =~ /^message repeated (.*) times: \[ Connection, ip=\[(.*)\]$/o ) ) {
       $Connection{$Host} += $Num;
-#   } elsif ( my ($User,$Downloaded,$DownloadSize,$Left,$LeftSize) = ( $ThisLine =~ /^Stats: (.*?) (.*?) (.*?) (.*?) (.*?)$/) ) {
+#   } elsif ( ($User,$Downloaded,$DownloadSize,$Left,$LeftSize) = ( $ThisLine =~ /^Stats: (.*?) (.*?) (.*?) (.*?) (.*?)$/) ) {
 #      $DownloadedMessages{$User} += $Downloaded;
 #      $DownloadedMessagesSize{$User} += $DownloadSize;
 #      $MessagesLeft{$User} = $Left;
 #      $MboxSize{$User} = $LeftSize;
-#   } elsif ( my ($User,$Host) = ( $ThisLine =~ /^authentication failed for user (.*?) - (.*)/ ) ) {
+#   } elsif ( ($User,$Host) = ( $ThisLine =~ /^authentication failed for user (.*?) - (.*)/ ) ) {
 #      $LoginFailed{"$Host ($User)"}++;
-   } elsif ( my ($User, $Host) = ( $ThisLine =~ /^Logout user=(.*?) host=(.*\[.*\])$/) ) {
+   } elsif ( ($User, $Host) = ( $ThisLine =~ /^Logout user=(.*?) host=(.*\[.*\])$/) ) {
       $Logout{$User}{$Host}++;
       $Logout2{$User}++;
    # More generic pattern for uw-imapd
-   } elsif ( my ($User, $Host) = ( $ThisLine =~ /^Logout user=(.*?) host=(.*)$/) ) {
+   } elsif ( ($User, $Host) = ( $ThisLine =~ /^Logout user=(.*?) host=(.*)$/) ) {
       $Logout{$User}{$Host}++;
       $Logout2{$User}++;
-   } elsif ( my ($User, $Host, $DownloadSize1, $DownloadSize2) = ( $ThisLine =~ /^(?:LOGOUT|TIMEOUT|DISCONNECTED), user=(.*?), ip=\[([^ ,]+)\](?:, port=\[\d+\])?, headers=(\d+), body=(\d+)/o ) ) {
+   } elsif ( ($User, $Host, $DownloadSize1, $DownloadSize2) = ( $ThisLine =~ /^(?:LOGOUT|TIMEOUT|DISCONNECTED), user=(.*?), ip=\[([^ ,]+)\](?:, port=\[\d+\])?, headers=(\d+), body=(\d+)/o ) ) {
       $Logout{$User}{$Host}++;
       $Logout2{$User}++;
       $DownloadedMessagesSize{$User} += $DownloadSize1 + $DownloadSize2;
@@ -111,20 +113,20 @@ while (defined(my $ThisLine = <STDIN>)) {
       } else {
          $Connection{$Host}++;
       }
-   } elsif ( my ($User,$Host) = ( $ThisLine =~ /^Autologout user=(.*) host=(.*\[.*\])$/ ) ) {
+   } elsif ( ($User,$Host) = ( $ThisLine =~ /^Autologout user=(.*) host=(.*\[.*\])$/ ) ) {
       $AutoLogout{$User}{$Host}++;
       $Logout{$User}{$Host}++;
       $Logout2{$User}++;
-   } elsif ( my ($Reason,$User,$Host) = ( $ThisLine =~ /^Killed (.*) user=(.*) host=(.*\[.*\])$/ ) ) {
+   } elsif ( ($Reason,$User,$Host) = ( $ThisLine =~ /^Killed (.*) user=(.*) host=(.*\[.*\])$/ ) ) {
       $Logout{$User}{$Host}++;
       $Logout2{$User}++;
       $KilledSession{$User}{$Reason}++;
    } elsif (
-      (my ($User,$Host) = ( $ThisLine =~ /^Broken pipe, while reading line user=(.*) host=(.*\[.*\])$/ )) or
-      (my ($User,$Host) = ( $ThisLine =~ /^Command stream end of file, while reading line user=(.*) host=(.*\[.*\])$/ )) or
-      (my ($User,$Host) = ( $ThisLine =~ /^Connection (?:reset by peer|timed out), while reading line user=(.*) host=(.*\[.*\])$/ )) or
-      (my ($User,$Host) = ( $ThisLine =~ /^No route to host, while reading line user=(.*) host=(.*\[.*\])$/ )) or
-      (my ($User,$Host) = ( $ThisLine =~ /^Unexpected client disconnect, while reading line user=(.*) host=(.*\[.*\])$/ ))
+      ( ($User,$Host) = ( $ThisLine =~ /^Broken pipe, while reading line user=(.*) host=(.*\[.*\])$/ )) or
+      ( ($User,$Host) = ( $ThisLine =~ /^Command stream end of file, while reading line user=(.*) host=(.*\[.*\])$/ )) or
+      ( ($User,$Host) = ( $ThisLine =~ /^Connection (?:reset by peer|timed out), while reading line user=(.*) host=(.*\[.*\])$/ )) or
+      ( ($User,$Host) = ( $ThisLine =~ /^No route to host, while reading line user=(.*) host=(.*\[.*\])$/ )) or
+      ( ($User,$Host) = ( $ThisLine =~ /^Unexpected client disconnect, while reading line user=(.*) host=(.*\[.*\])$/ ))
    ) {
       $Logout{$User}{$Host}++;
       $Logout2{$User}++;

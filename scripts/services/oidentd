@@ -61,18 +61,18 @@ while (defined(my $ThisLine = <STDIN>)) {
       my $Temp = "$User announced as $Identity";
       $Lookups{$Port}{$Temp}{$Host}++;
       $LookupCount++;
-   } elsif ( my ($Host,$Port,$User) = ($ThisLine =~ /^\[([^ ]*)\] \(Masqueraded\) Successful lookup: \d+ , (\d+) : ([^ ]*)$/)) {
+   } elsif ( ($Host,$Port,$User) = ($ThisLine =~ /^\[([^ ]*)\] \(Masqueraded\) Successful lookup: \d+ , (\d+) : ([^ ]*)$/)) {
       my $Temp = "Masqueraded as $User";
       $Lookups{$Port}{$Temp}{$Host}++;
       $LookupCount++;
       $MasqLookupCount++;
    } elsif (
-      (my ($Host) = ($ThisLine =~ /^Connection from ([^ ]* \([^ ]*\)):\d+$/)) or
-      (my ($Host) = ($ThisLine =~ /^Connection from ([^ ]*):\d+$/))
+      ( ($Host) = ($ThisLine =~ /^Connection from ([^ ]* \([^ ]*\)):\d+$/)) or
+      ( ($Host) = ($ThisLine =~ /^Connection from ([^ ]*):\d+$/))
       ) {
       $Connection{$Host}++;
       $Connections++;
-   } elsif ( my ($Host,$Port) = ($ThisLine =~ /^\[([^ ]*)\] \d+ , (\d+) : ERROR : [^ ]*$/)) {
+   } elsif ( ($Host,$Port) = ($ThisLine =~ /^\[([^ ]*)\] \d+ , (\d+) : ERROR : [^ ]*$/)) {
       $ErrorLookup{$Port}{$Host}++;
       $LookupErrorCount++;
    } elsif ( $ThisLine =~ /^oidentd startup\s+succeeded$/ ) {

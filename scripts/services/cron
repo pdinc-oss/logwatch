@@ -36,6 +36,9 @@ my $CHUSERHErr=         my $PAMAUTHErr=
 #Init Reusable strings
 my $Error = "";
 my $User = "";
+my $FileName = "";
+my $Cause = "";
+my $Table = "";
 #Init Array
 my @OtherList = ();
 my $Runs = ();
@@ -76,7 +79,7 @@ while (defined(my $ThisLine = <STDIN>)) {
       ($ThisLine =~ s/^\S+\s+\S+\s+..:..:..\s+\S+\s+\S+\[(\d+)\]:\s+\((\S+)\)\s+//)
    ) {
       my $PID  = $1;
-      my $User = $2; #Not happy with User being everywhere
+      $User = $2; #Not happy with User being everywhere
 
       if ($ThisLine =~ s/^CMD \((.+)\)\s*$/$1/) {
          $Runs->{$User}->{$ThisLine}++;
@@ -121,9 +124,9 @@ while (defined(my $ThisLine = <STDIN>)) {
             $Reason = "failed with error (".$2."): ".$ExecutedCommand{$1}{command};
          }
          $Errors{$ExecutedCommand{$1}{user}}{$Reason}++;
-      } elsif ( my ($FileName) = ($ThisLine =~ /BAD FILE MODE \((.+)\)/) ) {
+      } elsif ( ($FileName) = ($ThisLine =~ /BAD FILE MODE \((.+)\)/) ) {
          $BFMFile{$FileName}++;
-      } elsif ( my ($FileName) = ($ThisLine =~ /WRONG FILE OWNER \((.+)\)/) ) {
+      } elsif ( ($FileName) = ($ThisLine =~ /WRONG FILE OWNER \((.+)\)/) ) {
          $WFO{$FileName}++;
       } elsif ($ThisLine =~ /NULL security context for user, but SELinux in permissive mode/ ) {
          $SELCONTErr{$ThisLine}++;
@@ -163,17 +166,17 @@ while (defined(my $ThisLine = <STDIN>)) {
       $INCRONDSS++;
    } elsif (($ThisLine =~ /incrond/) && ($ThisLine =~ /stopping service/)) {
       $INCRONDStS++;
-   } elsif (($ThisLine =~ /incrond/) && (my ($Table) = ($ThisLine =~ /system table (.*) created, loading/))) {
+   } elsif (($ThisLine =~ /incrond/) && (($Table) = ($ThisLine =~ /system table (.*) created, loading/))) {
       $INCRONDSTCr{$Table}++;
-   } elsif (($ThisLine =~ /incrond/) && (my ($User) = ($ThisLine =~ /table for user (.*) created, loading/))) {
+   } elsif (($ThisLine =~ /incrond/) && (($User) = ($ThisLine =~ /table for user (.*) created, loading/))) {
       $INCRONDUTCr{$User}++;
-   } elsif (($ThisLine =~ /incrond/) && (my ($Table) = ($ThisLine =~ /system table (.*) changed, reloading/))) {
+   } elsif (($ThisLine =~ /incrond/) && (($Table) = ($ThisLine =~ /system table (.*) changed, reloading/))) {
       $INCRONDSTCh{$Table}++;
-   } elsif (($ThisLine =~ /incrond/) && (my ($User) = ($ThisLine =~ /table for user (.*) changed, reloading/))) {
+   } elsif (($ThisLine =~ /incrond/) && (($User) = ($ThisLine =~ /table for user (.*) changed, reloading/))) {
       $INCRONDUTCh{$User}++;
-   } elsif (($ThisLine =~ /incrond/) && (my ($Table) = ($ThisLine =~ /system table (.*) destroyed, removing/))) {
+   } elsif (($ThisLine =~ /incrond/) && (($Table) = ($ThisLine =~ /system table (.*) destroyed, removing/))) {
       $INCRONDSTDe{$Table}++;
-   } elsif (($ThisLine =~ /incrond/) && (my ($User) = ($ThisLine =~ /table for user (.*) destroyed, removing/))) {
+   } elsif (($ThisLine =~ /incrond/) && (($User) = ($ThisLine =~ /table for user (.*) destroyed, removing/))) {
       $INCRONDUTDe{$User}++;
    } elsif (  ($ThisLine =~ /incrond/) &&
       ( (($Error) = ($ThisLine =~ /(cannot create watch for (system table|user) .*: \(2\) No such file or directory)/)) ||
@@ -191,7 +194,7 @@ while (defined(my $ThisLine = <STDIN>)) {
       $SELCONTErr{$Error}++;
    } elsif ($ThisLine =~ /FAILED to authorize user with PAM \(User not known to the underlying authentication module\)/) {
       $PAMAUTHErr++;
-   } elsif ( my ($FileName,$Cause) = ($ThisLine =~ /ERROR chdir failed \((.*)\): (.*)/) ) {
+   } elsif ( ($FileName,$Cause) = ($ThisLine =~ /ERROR chdir failed \((.*)\): (.*)/) ) {
       $CHDIRErr{"$FileName,$Cause"}++;
    } elsif ($ThisLine =~ /ERROR \(failed to change user\)/) {
       $CHUSERHErr++;

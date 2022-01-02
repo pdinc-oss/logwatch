@@ -62,7 +62,7 @@ while (defined(my $ThisLine = <STDIN>)) {
         $Stats{$UserID}{"NumLeft"} = $NumLeft;
         $Stats{$UserID}{"BytesLeft"} = $BytesLeft;
     }
-    elsif (my ($UserID) = ($ThisLine =~ /^\[AUTH\] Failed attempted login to ([^ ]+) from host/ )) {
+    elsif ( ($UserID) = ($ThisLine =~ /^\[AUTH\] Failed attempted login to ([^ ]+) from host/ )) {
         $FailedLogin{$UserID}++;
     }
     elsif ( $ThisLine =~ s/^connect from ([^ ]+)$/$1/ ) {

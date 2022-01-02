@@ -28,6 +28,11 @@ use strict;
 
 my $Detail = $ENV{'LOGWATCH_DETAIL_LEVEL'} || 0;
 
+#Init String Container
+my (
+$IP,        $Mount,     $Name,
+$Number,
+);
 #Init Array
 my @OtherList = ();
 #Init Hashes
@@ -42,38 +47,38 @@ while (defined(my $ThisLine = <STDIN>)) {
          ($ThisLine =~ /^[^ ]* exported to both [0-9.]*\/[0-5]* and [0-9.]*\/[0-9]/) ) {
       # don't care about this, as the next line reports the IP again
    }
-   elsif ( my ($IP,$Mount) = ($ThisLine =~ /^Blocked attempt of (\d+\.\d+\.\d+\.\d+) to mount (.*)$/) ) {
-      my $Name = LookupIP ($IP);
+   elsif ( ($IP,$Mount) = ($ThisLine =~ /^Blocked attempt of (\d+\.\d+\.\d+\.\d+) to mount (.*)$/) ) {
+      $Name = LookupIP ($IP);
       $Mount = "      " . $Mount;
       $Rejected{$Name}{$Mount}++;
    }
-   elsif ( my ($Name,$Mount) = ($ThisLine =~ /^refused mount request from (.+) for ([^ ]+)/) ) {
+   elsif ( ($Name,$Mount) = ($ThisLine =~ /^refused mount request from (.+) for ([^ ]+)/) ) {
       $Mount = "      " . $Mount;
       $Rejected{$Name}{$Mount}++;
    }
-   elsif ( my ($Mount) = ($ThisLine =~ /can.t stat exported dir (.*): No such file or directory/) ) {
+   elsif ( ($Mount) = ($ThisLine =~ /can.t stat exported dir (.*): No such file or directory/) ) {
       $Mount = "      " . $Mount;
       $NotFound{$Mount}++;
    }
-   elsif ( my ($Mount,$IP) = ($ThisLine =~ /^NFS mount of (.*) attempted from (\d+\.\d+\.\d+\.\d+) $/) ) {
+   elsif ( ($Mount,$IP) = ($ThisLine =~ /^NFS mount of (.*) attempted from (\d+\.\d+\.\d+\.\d+) $/) ) {
       $Name = LookupIP ($IP);
       $Mount = "      " . $Mount;
       $Attempted{$Name}{$Mount}++;
    }
-   elsif ( my ($Name,$Mount) = ($ThisLine =~ /^authenticated (?:un)?mount request from (.+):\d+ for ([^ ]+)/) ) {
+   elsif ( ($Name,$Mount) = ($ThisLine =~ /^authenticated (?:un)?mount request from (.+):\d+ for ([^ ]+)/) ) {
       $Mount = "      " . $Mount;
       $Mounted{$Name}{$Mount}++;
    }
-   elsif ( my ($Name) = ($ThisLine =~ /^authenticated (?:un)?mount request from ([\w:]+)/) ) {
+   elsif ( ($Name) = ($ThisLine =~ /^authenticated (?:un)?mount request from ([\w:]+)/) ) {
       $Mount = "      unknown";
       $Mounted{$Name}{$Mount}++;
    }
-   elsif ( my ($Mount,$IP) = ($ThisLine =~ /^(.*) has been mounted by (\d+\.\d+\.\d+\.\d+) $/) ) {
+   elsif ( ($Mount,$IP) = ($ThisLine =~ /^(.*) has been mounted by (\d+\.\d+\.\d+\.\d+) $/) ) {
       $Name = LookupIP ($IP);
       $Mount = "      " . $Mount;
       $Mounted{$Name}{$Mount}++;
    }
-   elsif ( my ($Number) = ($ThisLine =~ /Caught signal ([0-9]*), un-registering and exiting/) ) {
+   elsif ( ($Number) = ($ThisLine =~ /Caught signal ([0-9]*), un-registering and exiting/) ) {
       $SignalExit{$Number}++;
    }
    else {

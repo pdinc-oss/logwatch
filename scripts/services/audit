@@ -125,7 +125,7 @@ while ($ThisLine = <STDIN>) {
       $Warning{$1}++;
     } elsif ( my ($status) = ( $ThisLine =~ /AUDIT_STATUS: (.*)/ ) ) {
       $AuditctlStatus{$status}++; 
-    } elsif ( my ($status) = ( $ThisLine =~ /^auditctl(?:\[[0-9]+\])?: (.*)/ ) ) {
+    } elsif ( ($status) = ( $ThisLine =~ /^auditctl(?:\[[0-9]+\])?: (.*)/ ) ) {
       $AuditctlStatus{$status}++; 
     } elsif ( $ThisLine =~ /audit\([0-9]+\.[0-9]+:[0-9]+\): apparmor=/) {
         # AppArmor

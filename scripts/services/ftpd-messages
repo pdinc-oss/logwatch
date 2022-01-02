@@ -29,7 +29,12 @@ my $IgnoreUnmatched = $ENV{'ftpd_ignore_unmatched'} || 0;
 
 my $SegFault = 0;
 #Init String Containers
-my ($Temp, $Temp2);
+my (
+$Temp,  $Temp2,
+$Class, $Email,     $File,
+$Host,  $IP,        $Limit,
+$Pass,  $User,
+);
 #Init Arrays
 my @OtherList = ();
 #Init Hashes
@@ -74,49 +79,49 @@ while (defined(my $ThisLine = <STDIN>)) {
 
             # We don't care about any of these
 
-   } elsif ( my ($Host,$IP,$Email) = ( $ThisLine =~ /^ANONYMOUS FTP LOGIN FROM ([^ ]+) \[(.*)\], (.*)$/ ) ) {
+   } elsif ( ($Host,$IP,$Email) = ( $ThisLine =~ /^ANONYMOUS FTP LOGIN FROM ([^ ]+) \[(.*)\], (.*)$/ ) ) {
       $Temp = "   " . $Host . " (" . $IP . "): " . $Email . " - ";
       $AnonLogins{$Temp}++;
-   } elsif ( my ($Host,$IP,$User) = ( $ThisLine =~ /FTP LOGIN FROM ([^ ]+) \[(.*)\], (.*)$/ ) ) {
+   } elsif ( ($Host,$IP,$User) = ( $ThisLine =~ /FTP LOGIN FROM ([^ ]+) \[(.*)\], (.*)$/ ) ) {
       $Temp = "   " . $Host . " (" . $IP . "): " . $User . " - ";
       $UserLogins{$Temp}++;
-   } elsif ( my ($Host,$IP,$User) = ( $ThisLine =~ /^FTP LOGIN REFUSED \(.+\) FROM ([^ ]+) \[(.*)\], (.*)$/ ) ) {
+   } elsif ( ($Host,$IP,$User) = ( $ThisLine =~ /^FTP LOGIN REFUSED \(.+\) FROM ([^ ]+) \[(.*)\], (.*)$/ ) ) {
       $Temp = "   " . $Host . " (" . $IP . "): " . $User . " - ";
       $FailedLogins{$Temp}++;
-   } elsif ( my ($Host,$IP,$User) = ( $ThisLine =~ /REFUSED .+ from ([^ ]+) \[(.*)\], (.*)$/i ) ) {
+   } elsif ( ($Host,$IP,$User) = ( $ThisLine =~ /REFUSED .+ from ([^ ]+) \[(.*)\], (.*)$/i ) ) {
       $Temp = "   " . $Host . " (" . $IP . "): " . $User . " - ";
       $FailedLogins{$Temp}++;
-   } elsif ( my ($Host,$IP,$User) = ( $ThisLine =~ /^failed login from ([^ ]+) \[(.*)\], (.*)$/ ) ) {
+   } elsif ( ($Host,$IP,$User) = ( $ThisLine =~ /^failed login from ([^ ]+) \[(.*)\], (.*)$/ ) ) {
       $Temp = "   " . $Host . " (" . $IP . "): " . $User . " - ";
       $FailedLogins{$Temp}++;
-   } elsif ( my ($Limit,$Class,$Host,$IP) = ( $ThisLine =~ /^ACCESS DENIED \(user limit (.*)\; class (.*)\) TO (.*) \[(.*)\]/ ) ) {
+   } elsif ( ($Limit,$Class,$Host,$IP) = ( $ThisLine =~ /^ACCESS DENIED \(user limit (.*)\; class (.*)\) TO (.*) \[(.*)\]/ ) ) {
       $Temp = "   " . $Host . " (" . $IP . "): class " . $Class . " (Limit: " . $Limit . ") - ";
       $FailedLogins{$Temp}++;
-   } elsif ( my ($Host,$IP) = ( $ThisLine =~ /^FTP ACCESS REFUSED \(anonymous password not rfc822\) from (.*) \[(.*)\]/ ) ) {
+   } elsif ( ($Host,$IP) = ( $ThisLine =~ /^FTP ACCESS REFUSED \(anonymous password not rfc822\) from (.*) \[(.*)\]/ ) ) {
       $Temp = "   " . $Host . " (" . $IP . ") - ";
       $FailedLogins{$Temp}++;
-   } elsif ( my ($Host,$IP,$User) = ( $ThisLine =~ /failed login from ([^ ]+) \[(.*)\]$/ ) ) {
+   } elsif ( ($Host,$IP,$User) = ( $ThisLine =~ /failed login from ([^ ]+) \[(.*)\]$/ ) ) {
       $Temp = "   " . $Host . " (" . $IP . ") - ";
       $FailedLogins{$Temp}++;
-   } elsif ( my ($IP,$Host) = ( $ThisLine =~ /^refused PORT ([\d.]+),\d+ from (.*)$/ ) ) {
+   } elsif ( ($IP,$Host) = ( $ThisLine =~ /^refused PORT ([\d.]+),\d+ from (.*)$/ ) ) {
       $Temp = "   " . $Host . " (" . $IP . ") - ";
       $RefusedPorts{$Temp}++;
    } elsif ( $ThisLine =~ /^exiting on signal 11: Segmentation fault$/ ) {
       $SegFault++;
-   } elsif ( my ($User,$Host,$IP,$File) = ( $ThisLine =~ /^([^ ]+) of ([^ ]*) \[(.*)\] deleted (.*)$/ ) ) {
+   } elsif ( ($User,$Host,$IP,$File) = ( $ThisLine =~ /^([^ ]+) of ([^ ]*) \[(.*)\] deleted (.*)$/ ) ) {
       $Temp = "   " . $Host . " (" . $IP . "): " . $User . "\n";
       $Temp2 = "      " . $File . "\n";
       push @{$DeletedFiles{$Temp}}, $Temp2;
-   } elsif ( my ($User,$Pass,$Host,$IP) = ( $ThisLine =~ /(.*)\((.*)\) of (.*) \[(.*)\] tried to/) ) {
+   } elsif ( ($User,$Pass,$Host,$IP) = ( $ThisLine =~ /(.*)\((.*)\) of (.*) \[(.*)\] tried to/) ) {
       $Temp = "   " . $Host . " ($IP): " . $User . " ($Pass) - ";
       $SecurityViolations{$Temp}++;
-   } elsif ( my ($Host,$User,$IP) = ( $ThisLine =~ /(.*)\: (.*)\: SITE .* \[(.*)\] tried to/) ) {
+   } elsif ( ($Host,$User,$IP) = ( $ThisLine =~ /(.*)\: (.*)\: SITE .* \[(.*)\] tried to/) ) {
       $Temp = "   " . $Host . " ($IP): " . $User . " - ";
       $SecurityViolations{$Temp}++;
-   } elsif ( my ($Host,$IP) = ( $ThisLine =~ /^FTP LOGIN FAILED \(cannot set guest privileges\) for ([^ ]+) \[(.*)\], ftp$/ ) ) {
+   } elsif ( ($Host,$IP) = ( $ThisLine =~ /^FTP LOGIN FAILED \(cannot set guest privileges\) for ([^ ]+) \[(.*)\], ftp$/ ) ) {
       $Temp = "   " . $Host . " (" . $IP . "): - ";
       $RefusedAnonLogins{$Temp}++;
-   } elsif ( my ($Host, $User) = ( $ThisLine =~ /^([^ ]+): ([^ ]+): IDLE\[\d+\]: User [^
+   } elsif ( ($Host, $User) = ( $ThisLine =~ /^([^ ]+): ([^ ]+): IDLE\[\d+\]: User [^
 ]+ timed out after / ) ) {
       # dhcp024-208-136-047.insight.rr.com: visitor: IDLE[23195]: User visitor timed out after 900 seconds at Mon Jan 13 00:25:24 2003
       $TimedOut{"   " . $Host . " : " . $User}++;
