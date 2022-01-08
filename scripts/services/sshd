@@ -220,7 +220,7 @@ while (defined(my $ThisLine = <STDIN>)) {
       my $name = LookupIP($Host);
       $NoIdent{$name}++;
    } elsif (
-      ($ThisLine =~ m/^fatal: Connection closed by remote host\./ ) or
+      ($ThisLine =~ m/^(?:error:.*|fatal:) Connection closed by remote host/ ) or
       ($ThisLine =~ m/^(|fatal: )Read error from remote host(| [^ ]+): Connection reset by peer/ ) or
       ($ThisLine =~ m/^Read error from remote host [^ ]+: (Connection timed out|No route to host)/ ) or
       ($ThisLine =~ m/^fatal: Read from socket failed: No route to host/) or
