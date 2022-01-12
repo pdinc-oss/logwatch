@@ -7,7 +7,7 @@
 ########################################################
 
 ########################################################
-## Copyright (c) 2019 Orion Poplawski
+## Copyright (c) 2019-2022 Orion Poplawski
 ## Covered under the included MIT/X-Consortium License:
 ##    http://www.opensource.org/licenses/mit-license.php
 ## All modifications and contributions by other persons to
@@ -30,19 +30,17 @@ my %CannotConnect;
 my %Communication;
 my %CommunicationState;
 my %Connected;
+my %ConnectionFailure;
 my %DataStale;
 my %DataStaleState;
 my %Logins;
 my %OnBattery;
 my %State;
 my %OtherList;
+my %Unavailable;
+my $SelfTestPassed = 0;
+my $SelfTestFailed = 0;
 my $UpsdrvctlMessages;
-
-# Failure will generate multiple messages like:
-# Feb  5 16:37:50 hostname systemd: ansible-pull.service: main process exited, code=exited, status=2/INVALIDARGUMENT
-# Feb  5 16:37:50 hostname systemd: Failed to start Run ansible-pull on boot.
-# Feb  5 16:37:50 hostname systemd: Unit ansible-pull.service entered failed state.
-# Feb  5 16:37:50 hostname systemd: ansible-pull.service failed.
 
 while (defined(my $ThisLine = <STDIN>)) {
    chomp($ThisLine);
@@ -54,12 +52,16 @@ while (defined(my $ThisLine = <STDIN>)) {
    my $user;
 
    if ($ThisLine =~ /^upsd: User .* logged out/
+       # CUPS matches our generous service regex
+       or $ThisLine =~ /^cupsd:/
        # TODO - count start/stops
        or $ThisLine =~ /Signal 15: exiting/
        or $ThisLine =~ /Startup successful/
+       or $ThisLine =~ /^upsdrvctl: Detected .* on host /
        or $ThisLine =~ /^upsdrvctl: Network UPS Tools - /
        or $ThisLine =~ /^upsdrvctl: USB communication driver/
        or $ThisLine =~ /^upsdrvctl: Using subdriver:/
+       or $ThisLine =~ /^upsdrvctl: using '.*' to set battery low state/
        or $ThisLine =~ /^upsd: listening on /
        or $ThisLine =~ /^upsd: Network UPS Tools upsd/
        or $ThisLine =~ /^upsmon: Connected to/
@@ -71,8 +73,14 @@ while (defined(my $ThisLine = <STDIN>)) {
        or $ThisLine =~ /^snmp-ups: \[(\S+)\] snmp_ups_walk: data (:?resumed|stale)/
        # This will generate a communication lost message - TODO - track reasons?
        or $ThisLine =~ /^upsmon: Poll UPS \[(\S+)\] failed - Server disconnected/
+       or $ThisLine =~ /^upsmon: UPS: \S+ \(master\)/
        or $ThisLine =~ /^upsmon: UPS: \S+ \(slave\)/
        or $ThisLine =~ /^upsmon: Using power down flag file/
+       or $ThisLine =~ /^UPS: No longer on battery power/
+       # Should get a particular ups on battery power message
+       or $ThisLine =~ /^UPS: On battery power in response to an input power problem/
+       or $ThisLine =~ /^UPS: UPS: Restored the local network management interface-to-UPS communication/
+       or $ThisLine =~ /^UPS: Started a self-test/
       ) {
      # Ignore these
    } elsif (($ups) = ($ThisLine =~ /^upsd: Can't connect to UPS \[(\S+)\]/)) {
@@ -84,6 +92,11 @@ while (defined(my $ThisLine = <STDIN>)) {
       $CommunicationState{$ups}++;
    } elsif (($ups) = ($ThisLine =~ /^upsmon: Communications with UPS (\S+) established/)) {
       $CommunicationState{$ups}--;
+   # This may always be paired with the "unavailable" message below - so may want to ignore or move to higher detail
+   } elsif (($ups) = ($ThisLine =~ /^upsmon: UPS \[(.+)\]: connect failed: Connection failure:/)) {
+      $ConnectionFailure{$ups}++;
+   } elsif (($ups) = ($ThisLine =~ /^upsmon: UPS (.+)\ is unavailable/)) {
+      $Unavailable{$ups}++;
    } elsif (($ups, $state) = ($ThisLine =~ /^upsmon: UPS (\S+) on (.*)/)) {
       my ($host) = ($ups =~ /@([^.]+)/);
       next unless $host eq "localhost" or $host eq $Hostname;
@@ -98,6 +111,8 @@ while (defined(my $ThisLine = <STDIN>)) {
       $Logins{$user}->{$ups}++;
    } elsif (my ($msg) = ($ThisLine =~ /^upsdrvctl: (.*)/)) {
       $UpsdrvctlMessages .= "   $msg\n";
+   } elsif ($ThisLine =~ /^UPS: Passed a self-test/) {
+      $SelfTestPassed++;
    }  else {
       $OtherList{$ThisLine}++;
    }
@@ -107,6 +122,22 @@ if (keys %CannotConnect) {
    print "Cannot connect to UPS:\n";
    foreach my $ups (sort {$a cmp $b} keys %CannotConnect) {
       print "   $ups: $CannotConnect{$ups} Time(s)\n";
+   }
+   print "\n";
+}
+
+if (keys %ConnectionFailure) {
+   print "Cannot connect to UPS server:\n";
+   foreach my $ups (sort {$a cmp $b} keys %ConnectionFailure) {
+      print "   $ups: $ConnectionFailure{$ups} Time(s)\n";
+   }
+   print "\n";
+}
+
+if (keys %Unavailable) {
+   print "UPS is unavailable:\n";
+   foreach my $ups (sort {$a cmp $b} keys %Unavailable) {
+      print "   $ups: $Unavailable{$ups} Time(s)\n";
    }
    print "\n";
 }
@@ -154,6 +185,10 @@ if (keys %DataStale and ($Detail or $DataStaleStateTotal)) {
       print "\n";
    }
    print "\n";
+}
+
+if ($SelfTestPassed and ($Detail >= 5)) {
+   print "UPS Self-Test Passed $SelfTestPassed Time(s)\n\n";
 }
 
 if (keys %Connected and ($Detail >= 5)) {
