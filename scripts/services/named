@@ -189,6 +189,7 @@ while (defined(my $ThisLine = <STDIN>)) {
       ($ThisLine =~ /^not insecure resolving '.*': .*/) or
       ($ThisLine =~ /^validating \@0x[[:xdigit:]]+: .* DS: must be secure failure/) or
       ($ThisLine =~ /^(error \()?broken trust chain\)? resolving '.*': .*/) or
+      ($ThisLine =~ /dumping all zones, removing journal files: success/) or
       ($ThisLine =~ /journal file [^ ]* does not exist, creating it/) or
       ($ThisLine =~ /serial number \(\d+\) received from master/) or
       ($ThisLine =~ /zone .*: notify from .*: serial \d+/) or
@@ -229,6 +230,7 @@ while (defined(my $ThisLine = <STDIN>)) {
       ($ThisLine =~ /stop limiting/) or
       # Previous line appears to contain the error
       ($ThisLine =~ /client .*: query failed .* for .* at /) or
+      ($ThisLine =~ /increase from .* to .* RRL bins for .* entries/) or
       # ignore this line because the following line describes the error
       ($ThisLine =~ /unexpected error/)
    ) {
@@ -558,12 +560,16 @@ if ( ( $Detail >= 5 ) and (keys %GeoIPError) ) {
    }
 }
 
-if ((keys %CCMessages) or (keys %CCMessages2)){
-   print "\nMessages from control channel\n";
+if ((keys %CCMessages)){
+   print "\nInvalid command messages from control channel\n";
    foreach (keys %CCMessages) {
       my ($From,$Log) = split ",";
       print "   " . $From . ": " . $Log . ": " . $CCMessages{"$From,$Log"} . " Time(s)\n";
    }
+}
+
+if ( ( $Detail >= 5 ) and (keys %CCMessages2)){
+   print "\nMessages from control channel\n";
    foreach my $ThisOne (keys %CCMessages2) {
       print "   " . $ThisOne . ": " . $CCMessages2{$ThisOne} . " Time(s)\n";
    }
