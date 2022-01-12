@@ -27,8 +27,11 @@ use strict;
 my $Detail = $ENV{'LOGWATCH_DETAIL_LEVEL'} || 0;
 my $IgnoreBackendStatus = $ENV{'ignore_backend_status'} || 0;
 my $IgnoreEnumerationRequested = $ENV{'ignore_enumeration_requested'} || 0;
+my $OfflineOkay = $ENV{'offline_okay'} || 0;
+my %CannotContactKDC;
 my $Domain;
 my %Errors;
+my $Realm;
 my $Service;
 my %Starts;
 my %Stops;
@@ -102,6 +105,8 @@ while (defined(my $ThisLine = <STDIN>)) {
    } elsif ($Service eq "p11_child" && $ThisLine =~ /do_work failed/ && $ignore_p11_child_error) {
    } elsif ($Service eq "p11_child" && $ThisLine =~ /p11_child failed/ && $ignore_p11_child_error) {
       $ignore_p11_child_error = 0;
+   } elsif (($Realm) = ($ThisLine =~ /Cannot contact any KDC for realm '(.*)'/)) {
+      $CannotContactKDC{$Realm}++ unless $OfflineOkay;
    } else {
       $OtherList{$Service}{$ThisLine}++;
    }
@@ -123,6 +128,13 @@ foreach $Domain (keys(%BackendOffline)) {
       print "\nSSSD Backend $Domain went offline $BackendOffline{$Domain} Time(s),";
       print " and started " . $Starts{"Backend[$Domain]"} . " Time(s),";
       print " last status was $BackendStatus{$Domain}\n";
+   }
+}
+
+if (keys %CannotContactKDC) {
+   print "\nCannot contact any KDC for realm:\n";
+   foreach my $Realm (sort {$a cmp $b} keys %CannotContactKDC) {
+      print "   $Realm: " . $CannotContactKDC{$Realm} . " Time(s)\n";
    }
 }
 
