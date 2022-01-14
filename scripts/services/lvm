@@ -45,9 +45,10 @@ while (defined(my $ThisLine = <STDIN>)) {
    # Seeing leading space on Fedora 26
    $ThisLine =~ s/^ *//;
    if ($ThisLine =~ /^pvscan\[\d+\] PV .* online(?:|, VG .* is complete)\.$/ 
+       or $ThisLine =~ /pvscan\[\d+\] activating all complete VGs for init/
        or $ThisLine =~ /pvscan\[\d+\] VG .* run autoactivation/
        # This happens often at startup
-       or $ThisLine =~ /^WARNING: lvmetad is being updated, retrying/
+       or $ThisLine =~ /WARNING: lvmetad is being updated, retrying/
        # This happens when dmeventd autostarted
        or $ThisLine =~ /dmeventd ready for processing\.$/
        or $ThisLine =~ /dmeventd shutting down\.$/
