@@ -44,7 +44,7 @@ my @OtherList = ();
 my $Runs = ();
 #Init Hashes
 my (
-%ExecutedCommand,   %CronDeny,      %InodeError,
+%ExecutedCommand,   %CrontabDeny,   %InodeError,
 %Errors,            %BFMFile,       %WFO,
 %SELCONTErr,        %UserReloads,   %INCRONDSTCr,
 %INCRONDSTCh,       %INCRONDSTDe,   %INCRONDUTCr,
@@ -71,6 +71,8 @@ while (defined(my $ThisLine = <STDIN>)) {
       ($ThisLine =~ /void Inotify::Remove\(InotifyWatch\*\): removing watch failed/) or
       ($ThisLine =~ /error: \(22\) Invalid argument/) or
       ($ThisLine =~ /pam_unix\(crond:session\): session (?:opened|closed) for user/) or
+      # This is paired with PAM ERROR handled below
+      ($ThisLine =~ /FAILED to authorize user with PAM/) or
       ($ThisLine =~ /PAM pam_end: NULL pam handle passed/)
    ) {
       # Ignore
@@ -111,7 +113,9 @@ while (defined(my $ThisLine = <STDIN>)) {
       } elsif ( $ThisLine =~ /^MAIL \(mailed \d+ bytes of output but got status [^ ]+/) {
          $MailErrors++;
       } elsif ( $ThisLine =~ /^AUTH \(crontab command not allowed\)/) {
-         $CronDeny{$User}++;
+         $CrontabDeny{$User}++;
+      } elsif ( ($Error) = $ThisLine =~ /^PAM ERROR \((.*)\)/) {
+         $Errors{$User}{$Error}++;
       } elsif ( $ThisLine =~ /^WRONG INODE INFO \([^ ]+\)/) {
          $InodeError{$User}++;
       } elsif ( $ThisLine =~ /session opened/ ||
@@ -206,10 +210,10 @@ while (defined(my $ThisLine = <STDIN>)) {
 
 #######################################
 
-if (%CronDeny) {
+if (%CrontabDeny) {
    print "Attempt to use crontab by unauthorized users:\n";
-   foreach my $User (sort {$a cmp $b} keys %CronDeny) {
-      print "   $User : $CronDeny{$User} Time(s)\n";
+   foreach my $User (sort {$a cmp $b} keys %CrontabDeny) {
+      print "   $User : $CrontabDeny{$User} Time(s)\n";
    }
 }
 
