@@ -29,6 +29,7 @@ use strict;
 #$DoLookup = ValueOrDefault($ENV{'named_ip_lookup'}, 0);
 my $Debug = ValueOrDefault($ENV{'LOGWATCH_DEBUG'}, 0);
 my $Detail = ValueOrDefault($ENV{'LOGWATCH_DETAIL_LEVEL'}, 0);
+my $FailedZoneTransferThreshold = $ENV{'failed_zone_transfer_threshold'} || 0;
 
 #Init Counters
 my $DebugCounter=       my $StartNamed=         my $ReloadNamed=
@@ -45,7 +46,7 @@ $Problem,   $Reason,    $Response,
 $Rhost,     $Server,    $Channel,
 $Client,    $ErrorText, $Message,
 $RR,        $Rcode,     $Source,
-$ViewName,  $Way,
+$ViewName,  $Way,       $Master,
 );
 #Init Arrays
 my @CNAMEAndOther = ();
@@ -191,7 +192,9 @@ while (defined(my $ThisLine = <STDIN>)) {
       ($ThisLine =~ /^(error \()?broken trust chain\)? resolving '.*': .*/) or
       ($ThisLine =~ /dumping all zones, removing journal files: success/) or
       ($ThisLine =~ /journal file [^ ]* does not exist, creating it/) or
+      ($ThisLine =~ /master .* deleted from unreachable cache/) or
       ($ThisLine =~ /serial number \(\d+\) received from master/) or
+      ($ThisLine =~ /zone .*: skipping zone transfer as master .* is unreachable \(cached\)/) or
       ($ThisLine =~ /zone .*: notify from .*: serial \d+/) or
       ($ThisLine =~ /zone is up to date/) or
       ($ThisLine =~ /refresh in progress, refresh check queued/) or
@@ -203,7 +206,7 @@ while (defined(my $ThisLine = <STDIN>)) {
       ($ThisLine =~ /using built-in keys instead/) or
       ($ThisLine =~ /set up managed keys zone/) or
       ($ThisLine =~ /managed-keys-zone.*key now trusted/) or
-      ($ThisLine =~ /key .*: forwarding update for zone/) or
+      ($ThisLine =~ /forwarding update for zone/) or
       ($ThisLine =~ /forwarded dynamic update: master [^ ]* returned: (NXRRSET|YXDOMAIN)/) or
       ($ThisLine =~ /using .* as GeoIP directory/) or
       ($ThisLine =~ /GEO-.* Build/) or
@@ -212,6 +215,8 @@ while (defined(my $ThisLine = <STDIN>)) {
       ($ThisLine =~ /opened GeoIP2? database /) or
       # the following seems okay since it says "success"
       ($ThisLine =~ /managed-keys-zone.*: No DNSKEY RRSIGs found for '.*': success/) or
+      # the following seems to happen on startup
+      ($ThisLine =~ /managed-keys-zone.*: Unable to fetch DNSKEY set '.*': operation canceled/) or
       ($ThisLine =~ /managed-keys-zone.*: Unable to fetch DNSKEY set '.*': timed out/) or
       ($ThisLine =~ /^sizing zone task pool based on \d+ zones/) or
       ($ThisLine =~ /^BIND \d+ is maintained by Internet Systems Consortium/) or
@@ -231,6 +236,7 @@ while (defined(my $ThisLine = <STDIN>)) {
       # Previous line appears to contain the error
       ($ThisLine =~ /client .*: query failed .* for .* at /) or
       ($ThisLine =~ /increase from .* to .* RRL bins for .* entries/) or
+      ($ThisLine =~ /flushing caches in all views succeeded/) or
       # ignore this line because the following line describes the error
       ($ThisLine =~ /unexpected error/)
    ) {
@@ -323,8 +329,12 @@ while (defined(my $ThisLine = <STDIN>)) {
    } elsif ( ($Rhost, $ViewName, $Ldom) = ($ThisLine =~ /client (?:\@0x[0-9a-fA-F]+ )?([\.0-9a-fA-F:]+)#\d+: (?:view (\w+): )?update '(.*)' denied/)) {
       $ViewName = ($ViewName ? "/$ViewName" : "");
       $UpdateDenied{"$Rhost ($Ldom$ViewName)"}++;
+   } elsif ( ($Rhost, $Reason) = ($ThisLine =~ /client (?:\@0x[0-9a-fA-F]+ )?([\.0-9a-fA-F:]+)#\d+: (.*)/)) {
+      $UpdateDenied{"$Rhost ($Reason)"}++;
    } elsif ( ($Rhost, $Ldom) = ($ThisLine =~ /client ([\d\.]+)#\d+: update forwarding '(.*)' denied/)) {
       $UpdateForwardingDenied{"$Rhost ($Ldom)"}++;
+   } elsif ( ($Zone, $Master, $Reason) = ($ThisLine =~ /zone (.*): forwarded dynamic update: master (.*)#\d+ returned: (.*)/)) {
+      $UpdateForwardingDenied{"$Zone ($Master) $Reason"}++;
    } elsif ( ($Zone) = ($ThisLine =~ /zone '([0-9a-zA-Z.-]+)' allows updates by IP address, which is insecure/)) {
       $InsecUpdate{$Zone}++;
    } elsif ( ($Zone) = ($ThisLine =~ /zone ([0-9a-zA-Z.\/-]+): journal rollforward failed: journal out of sync with zone/)) {
@@ -453,11 +463,23 @@ if ( keys %ZoneExpired ) {
 }
 
 if ( keys %FailedZoneTransfers ) {
-   print "\nFailed Zone Transfers:\n";
+   my $first = 1;
    foreach my $Host (keys %FailedZoneTransfers) {
-      print "   $Host:\n";
+      my $firsthost = 1;
       foreach my $Zone (keys %{$FailedZoneTransfers{$Host}}) {
-         print "      $Zone: $FailedZoneTransfers{$Host}{$Zone} Time(s)\n";
+         if ($FailedZoneTransfers{$Host}{$Zone} >= $FailedZoneTransferThreshold) {
+            if ($first) {
+               print "\nFailed Zone Transfers";
+               print " (with threshold >= $FailedZoneTransferThreshold)" if $FailedZoneTransferThreshold;
+               print ":\n";
+               $first = 0;
+            }
+            if ($firsthost) {
+               print "   $Host:\n";
+               $firsthost = 0;
+            }
+            print "      $Zone: $FailedZoneTransfers{$Host}{$Zone} Time(s)\n";
+         }
       }
    }
 }
