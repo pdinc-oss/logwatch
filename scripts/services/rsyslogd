@@ -27,11 +27,7 @@ use strict;
 
 my $Detail = $ENV{'LOGWATCH_DETAIL_LEVEL'} || 0;
  
-#Init Hashes
 my %IgnoreActions;
-my %InvalidCertificate;
-my %OtherList;
-
 if (defined($ENV{'rsyslogd_ignore_actions'})) {
    foreach my $action (split(";",$ENV{'rsyslogd_ignore_actions'})) {
       $IgnoreActions{$action} = 1;
@@ -56,14 +52,18 @@ my $Action;
 my $Certificate;
 my $Host;
 my $Message;
+my $MessagesLost = 0;
 my $Module;
+my $Num;
 my $Reason;
 #Init Hashes
 my %ActionResumed;
 my %ActionSuspended;
 my %CannotConnect;
 my %DaemonActions;
+my %InvalidCertificate;
 my %InvalidCerts;
+my %OtherList;
 my %RemoteClosed;
 
 LINE:
@@ -94,6 +94,9 @@ while (defined(my $ThisLine = <STDIN>)) {
    elsif (($Host) = $ThisLine =~ /^omfwd: remote server at (.+) seems to have closed connection/) {
       $RemoteClosed{"$Host"}++;
    }
+   elsif (($Num) = $ThisLine =~ /(\d+) messages lost due to rate-limiting/) {
+      $MessagesLost += $Num;
+   }
    elsif (
       # More detail for this in the invalid cert info line above
       $ThisLine =~ /^not permitted to talk to peer, certificate invalid:/ or
@@ -103,6 +106,9 @@ while (defined(my $ThisLine = <STDIN>)) {
       $ThisLine =~ /^imuxsock: Acquired UNIX socket .* from systemd/ or
       $ThisLine =~ /^message repeated \d+ times:/ or
       $ThisLine =~ m!^imuxsock: Acquired UNIX socket '/run/systemd/journal/syslog' \(fd 3\) from systemd! or
+      # These should also generate closed connection messages
+      $ThisLine =~ /TCPSendBuf error .*, destruct TCP Connection to/ or
+      $ThisLine =~ /unexpected GnuTLS error .* this could be caused by a broken connection/ or
       0 # This line prevents blame shifting as lines are added above
       ) {
       # Ignore these lines
@@ -145,12 +151,18 @@ if (keys %InvalidCertificate) {
     print "\n";
 }
 
+if ($MessagesLost) {
+    print "$MessagesLost Messages lost due to rate-limiting\n\n";
+}
+
 if (keys %RemoteClosed) {
     my $first = 1;
     foreach my $Host (sort keys %RemoteClosed) {
-        if ($RemoteClosed{$Host} > $RemoteClosedThreshold) {
+        if ($RemoteClosed{$Host} >= $RemoteClosedThreshold) {
             if ($first) {
-                print "Remote closed connection:\n";
+                print "Remote closed connection:";
+                print " (with threshold >= $RemoteClosedThreshold)" if $RemoteClosedThreshold;
+                print "\n";
                 $first = 0;
             }
             print "   $Host: $RemoteClosed{$Host} Times\n";
