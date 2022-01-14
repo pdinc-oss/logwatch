@@ -69,6 +69,7 @@ while (defined(my $ThisLine = <STDIN>)) {
    } elsif ($ThisLine =~ /pam_unix\(sudo:auth\): auth could not identify password for/) {
      # handled in pam_unix
    } elsif ($ThisLine =~ /pam_sss\(sudo:auth\): authentication success/
+         or $ThisLine =~ /pam_sss\(sudo:auth\): User info message: Authenticated with cached credentials/
          or $ThisLine =~ /pam_systemd\(sudo:session\): Cannot create session: Already (running in|occupied by) a session/
            ) {
      # Ignore
