@@ -49,6 +49,8 @@ while (defined(my $ThisLine = <STDIN>)) {
        or $ThisLine =~ /pvscan\[\d+\] VG .* run autoactivation/
        # This happens often at startup
        or $ThisLine =~ /WARNING: lvmetad is being updated, retrying/
+       # This happens on shutdown
+       or $ThisLine =~ /dmeventd detected break while being idle for 0 second\(s\), exiting/
        # This happens when dmeventd autostarted
        or $ThisLine =~ /dmeventd ready for processing\.$/
        or $ThisLine =~ /dmeventd shutting down\.$/
