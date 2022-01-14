@@ -65,17 +65,22 @@ while (defined(my $ThisLine = <STDIN>)) {
        or $ThisLine =~ /^upsd: listening on /
        or $ThisLine =~ /^upsd: Network UPS Tools upsd/
        or $ThisLine =~ /^upsmon: Connected to/
+       or $ThisLine =~ /^upsmon: Connecting in SSL to/
        or $ThisLine =~ /^upsmon: Certificate verification is disabled/
+       or $ThisLine =~ /^upsmon: Do not intend to authenticate server/
        or $ThisLine =~ /^upsmon: fopen \S+\/upsmon.pid: No such file or directory/
+       or $ThisLine =~ /^upsmon: Init SSL without certificate database/
        or $ThisLine =~ /^upsmon: Network UPS Tools upsmon/
-       # Let the server report data stale messages
-       or $ThisLine =~ /^upsmon: Poll UPS \[(\S+)\] failed - Data stale/
-       or $ThisLine =~ /^snmp-ups: \[(\S+)\] snmp_ups_walk: data (:?resumed|stale)/
        # This will generate a communication lost message - TODO - track reasons?
-       or $ThisLine =~ /^upsmon: Poll UPS \[(\S+)\] failed - Server disconnected/
+       or $ThisLine =~ /^upsmon: Poll UPS \[(\S+)\] failed -/
+       or $ThisLine =~ /^upsmon: SSL handshake done successfully with server/
        or $ThisLine =~ /^upsmon: UPS: \S+ \(master\)/
        or $ThisLine =~ /^upsmon: UPS: \S+ \(slave\)/
        or $ThisLine =~ /^upsmon: Using power down flag file/
+       or $ThisLine =~ /^upssched: (?:Cancelling|New) timer:/
+       or $ThisLine =~ /^upssched: Timer daemon started/
+       or $ThisLine =~ /^upssched: Timer queue empty/
+       or $ThisLine =~ /^snmp-ups: \[(\S+)\] snmp_ups_walk: data (:?resumed|stale)/
        or $ThisLine =~ /^UPS: No longer on battery power/
        # Should get a particular ups on battery power message
        or $ThisLine =~ /^UPS: On battery power in response to an input power problem/
@@ -93,7 +98,7 @@ while (defined(my $ThisLine = <STDIN>)) {
    } elsif (($ups) = ($ThisLine =~ /^upsmon: Communications with UPS (\S+) established/)) {
       $CommunicationState{$ups}--;
    # This may always be paired with the "unavailable" message below - so may want to ignore or move to higher detail
-   } elsif (($ups) = ($ThisLine =~ /^upsmon: UPS \[(.+)\]: connect failed: Connection failure:/)) {
+   } elsif (($ups) = ($ThisLine =~ /^upsmon: UPS \[(.+)\]: connect failed:/)) {
       $ConnectionFailure{$ups}++;
    } elsif (($ups) = ($ThisLine =~ /^upsmon: UPS (.+)\ is unavailable/)) {
       $Unavailable{$ups}++;
