@@ -366,7 +366,7 @@ if ((keys %ipt) and $ListByHost) {
                   $outputMain .= "  From $from - $fromHostCount " . ( ( $fromHostCount > 1 ) ? "packets\n" : "packet\n" );
                } else {
                   $outputMain .= "  From $from - $fromHostCount " .  ( ($fromHostCount > 1) ? "packets" : "packet" ) .  " to " ;
-                  foreach my $protocol ( keys %port_list ) {
+                  foreach my $protocol ( sort keys %port_list ) {
                      my $num_ports = keys %{$port_list { $protocol } };
                      if ($num_ports > 10) {
                         $outputMain .= "$num_ports $protocol ports ";

@@ -1012,7 +1012,7 @@ sub PrintStdArray (@) {
 ######################################################################
 sub PrintConfig () {
    # for debugging, print out config...
-   foreach (keys %Config) {
+   foreach (sort keys %Config) {
       print $_ . ' -> ' . $Config{$_} . "\n";
    }
    print "Logdirs List:\n";
