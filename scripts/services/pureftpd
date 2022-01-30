@@ -59,9 +59,12 @@ while (defined(my $ThisLine = <STDIN>)) {
       ( $ThisLine =~ /last message repeated/ ) or
       ( $ThisLine =~ /Timeout/) or
       ( $ThisLine =~ /Can't change directory/) or
+      ( $ThisLine =~ /Can't create directory: File exists/) or
       ( $ThisLine =~ /File successfully renamed or moved/) or
       ( $ThisLine =~ /This is a private system - No anonymous login/) or
       ( $ThisLine =~ /Authentication failed for user/) or
+      ( $ThisLine =~ /Sorry, cleartext sessions and weak ciphers/) or
+      ( $ThisLine =~ /TLS: Enabled/) or
       ( $ThisLine =~ /Transfer aborted/) or
       ( $ThisLine =~ /pure-ftpd startup( |) succeeded/)
    ) {

@@ -168,7 +168,7 @@ while (defined(my $ThisLine = <STDIN>)) {
       ( $ThisLine =~ /polkitd(\(authority=.*\)|\[\d+\])?: Finished loading, compiling and executing \d+ rules$/) or
       ( $ThisLine =~ /polkitd(\(authority=.*\)|\[\d+\])?: Collecting garbage unconditionally/) or
       ( $ThisLine =~ /(gdm-session-worker|gdm-password|gnome-screensaver-dialog)\[\d+\]: gkr-pam: no password is available for user/) or
-      ( $ThisLine =~ /gkr-pam: gnome-keyring-daemon started properly and unlocked keyring/) or
+      ( $ThisLine =~ /gkr-pam: gnome-keyring-daemon started properly/) or
       ( $ThisLine =~ /gkr-pam: stashed password to try later in open session/) or
       ( $ThisLine =~ /gkr-pam: the password for the login keyring was invalid/) or
       ( $ThisLine =~ /gkr-pam: unable to locate daemon control file/) or
@@ -181,6 +181,7 @@ while (defined(my $ThisLine = <STDIN>)) {
       ( $ThisLine =~ /su: pam_systemd(.*): Failed to parse message: /) or
       ( $ThisLine =~ /pam_systemd\(su:session\): Cannot create session: Already (running in|occupied by) a session/) or
       ( $ThisLine =~ /pam_systemd\(su.*:session\): Failed to release session:/) or
+      ( $ThisLine =~ /elogind-daemon\[\d+\]: (New|Removed) session/) or
       ( $ThisLine =~ /systemd-logind\[\d+\]: (New|Removed) session/) or
       ( $ThisLine =~ /systemd-logind\[\d+\]: New seat seat\d+\./) or
       ( $ThisLine =~ /systemd-logind\[\d+\]: Watching system buttons on /) or

@@ -157,6 +157,8 @@ while (defined(my $ThisLine = <STDIN>)) {
        # usually followed by a session opened for user
        ($ThisLine =~ m/^pam_krb5\[\d+\]: authentication succeeds for /) or
        ($ThisLine =~ m/^nss_ldap: reconnect/) or
+       ($ThisLine =~ /gkr-pam: gnome-keyring-daemon started properly/) or
+       ($ThisLine =~ /gkr-pam: unable to locate daemon control file/) or
        ($ThisLine =~ m/^pam_ldap: error trying to bind as user "[^"]+" \(Invalid credentials\)/) or
        ($ThisLine =~ m/^pam_ldap: ldap_starttls_s: Can't contact LDAP server/) or
        ($ThisLine =~ m/^pam_sss\(sshd:.*\)/) or

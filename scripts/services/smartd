@@ -126,6 +126,7 @@ while (defined(my $ThisLine = <STDIN>)) {
       || ($ThisLine =~ /smartd received signal 15: Terminated/)
       || ($ThisLine =~ /smartd is exiting \(exit status 0\)/)
       || ($ThisLine =~ /smartd has fork/)
+      || ($ThisLine =~ /written containing PID/)
       || ($ThisLine =~ /smartd (startup|shutdown) succeeded/)
       || ($ThisLine =~ /Unable to register device (.*) \(no Directive -d removable\). Exiting/)
       || ($ThisLine =~ /Device .*, SATA disks accessed via libata are not currently supported by smartmontools./)

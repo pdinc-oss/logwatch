@@ -135,6 +135,7 @@ while (defined(my $ThisLine = <STDIN>)) {
       ($ThisLine =~ /discarding vacation response/) or
       ($ThisLine =~ /discarded vacation reply to/) or
       ($ThisLine =~ /Debug:/) or
+      ($ThisLine =~ /Plaintext authentication disabled/) or
       ($ThisLine =~ /^$dovecottag imap\(\w+\): Mailbox renamed:/) or
       ($ThisLine =~ /^$dovecottag imap\(\w+\): copy from /) or
       ($ThisLine =~ /^$dovecottag imap\(\w+\): delete: /) or
