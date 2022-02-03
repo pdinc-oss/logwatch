@@ -29,7 +29,6 @@ use URI::URL;
 
 my $Detail = $ENV{'LOGWATCH_DETAIL_LEVEL'} || 0;
 my $Ignore_messages = $ENV{'ignore_messages'} || '^$';
-my $Ignore_profile_program = $ENV{'ignore_profile_program'} || '^$';
 my @PowerShell_Summarize_Users = split(',',$ENV{'powershell_summarize_users'});
 my $Laptops = $ENV{'laptops'} || '^$';
 my %Applications;
