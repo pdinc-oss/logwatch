@@ -26,6 +26,7 @@ use strict;
 use warnings;
 my $Detail = $ENV{'LOGWATCH_DETAIL_LEVEL'} || 0;
 my ($Hostname) = ($ENV{'HOSTNAME'} =~ /^([^.]+)/);
+my $CannotConnectThreshold = $ENV{'cannot_connect_threshold'} || 0;
 my %CannotConnect;
 my %Communication;
 my %CommunicationState;
@@ -124,17 +125,33 @@ while (defined(my $ThisLine = <STDIN>)) {
 }
 
 if (keys %CannotConnect) {
-   print "Cannot connect to UPS:\n";
+   my $first = 1;
    foreach my $ups (sort {$a cmp $b} keys %CannotConnect) {
-      print "   $ups: $CannotConnect{$ups} Time(s)\n";
+      if ($CannotConnect{$ups} >= $CannotConnectThreshold) {
+         if ($first) {
+            print "Cannot connect to UPS:\n";
+            print " (with threshold >= $CannotConnectThreshold)" if $CannotConnectThreshold;
+            print "\n";
+            $first = 0;
+         }
+         print "   $ups: $CannotConnect{$ups} Time(s)\n";
+      }
    }
    print "\n";
 }
 
 if (keys %ConnectionFailure) {
-   print "Cannot connect to UPS server:\n";
+   my $first = 1;
    foreach my $ups (sort {$a cmp $b} keys %ConnectionFailure) {
-      print "   $ups: $ConnectionFailure{$ups} Time(s)\n";
+      if ($ConnectionFailure{$ups} >= $CannotConnectThreshold) {
+         if ($first) {
+            print "Cannot connect to UPS server:\n";
+            print " (with threshold >= $CannotConnectThreshold)" if $CannotConnectThreshold;
+            print "\n";
+            $first = 0;
+         }
+         print "   $ups: $ConnectionFailure{$ups} Time(s)\n";
+      }
    }
    print "\n";
 }
