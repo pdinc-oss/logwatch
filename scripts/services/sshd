@@ -57,7 +57,6 @@ $Why,           $realm,         $user,
 
 my %Users = ();
 my %IllegalUsers = ();
-my %PotentialIllegalUsers = ();
 my %TooManyFailures = ();
 my %NoIdent = ();
 my %BindFailed = ();
@@ -191,6 +190,8 @@ while (defined(my $ThisLine = <STDIN>)) {
        ($ThisLine =~ /Failed to release session: Interrupted system call/) or
        ($ThisLine =~ /Close session: user /) or
        ($ThisLine =~ /error: .*: banner line contains invalid characters/) or
+       # user already accounted for in other statement
+       ($ThisLine =~ /^input_userauth_request: (illegal|invalid) user (.*)(?: \[preauth\])?$/ ) or
        0 # This line prevents blame shifting as lines are added above
    ) {
       # Ignore these
@@ -290,7 +291,7 @@ while (defined(my $ThisLine = <STDIN>)) {
       $RefusedAuthentication{$Reason}++;
    } elsif ( (undef,$Host,$Port,$Reason,$Offer) = ($ThisLine =~ /^(fatal: )?Unable to negotiate with ([^ ]+)( port \d+)?: (.*)\. Their offer: (.*) \[preauth\]$/) ) {
       $NegotiationFailed{$Reason}{$Host}{$Offer}++;
-   } elsif ( ($Reason,$Host,$Offer) = ($ThisLine =~ /^(Protocol major versions differ) for ([^ ]+)(?: port \d+): (.*)$/) ) {
+   } elsif ( ($Reason,$Host,$Offer) = ($ThisLine =~ /^(Protocol major versions differ) for ([^ ]+)(?: port \d+)?: (.*)$/) ) {
       $NegotiationFailed{$Reason}{$Host}{$Offer}++;
    } elsif ( ($Prio,$Host,$Port,$Code,$Reason) = ($ThisLine =~ /^(error: )?Received disconnect from ([^ ]*)( port \d+)?: ?(\d+): (.*)$/)) {
       # Reason 11 ({SSH,SSH2}_DISCONNECT_BY_APPLICATION) is expected, and logged at severity level INFO
@@ -351,12 +352,10 @@ while (defined(my $ThisLine = <STDIN>)) {
    } elsif ( ($Pom,$Error) = ($ThisLine =~ /pam_krb5(\[\d*\]): error resolving user name '[^ ]*' to uid\/gid pai/)) {
       $KrbErr{"error resolving user name '$Error' to uid\/gid pai"}++;
    } elsif ( (undef,$User,$Host) = ($ThisLine =~ m/^(Illegal|Invalid) user (.*) from ([^ ]+)/ )) {
-      $PotentialIllegalUsers{$Host}{$User}++;
-   } elsif ( (undef,$User) = ($ThisLine =~ /^input_userauth_request: (illegal|invalid) user (.*)$/ )) {
-      if ($User =~ m/(.*) \[preauth\]/) {
-        $User = $1;
+      if ($User eq "") {
+          $User = "{undefined}";
       }
-      $PotentialIllegalUsers{"undef"}{$User}++;
+      $IllegalUsers{$Host}{$User}++;
    } elsif (($File,$Perm,$Why) = ($ThisLine =~ /error: chmod (.*) (.*) failed: (.*)/)) {
       $ChmodErr{"$File,$Perm,$Why"}++;
    } elsif (($File,$From,$To,$Why) = ($ThisLine =~ /error: chown (.*) (.*) (.*) failed: (.*)/)) {
@@ -402,26 +401,6 @@ while (defined(my $ThisLine = <STDIN>)) {
 
 ###########################################################
 
-foreach my $Host (sort keys %PotentialIllegalUsers) {
-   foreach my $User (sort keys %{$PotentialIllegalUsers{$Host}}) {
-      my @user_hosts = grep { $PotentialIllegalUsers{$_}{$User} } keys %PotentialIllegalUsers;
-
-      if ($Host eq "undef") {
-         if ((scalar @user_hosts) == 1 && $user_hosts[0] == "undef") {
-            # Report illegal user from "undef" only if there are no other hosts
-            # for the given user
-            $IllegalUsers{"undef"}{$User}++;
-         }
-      }
-      else {
-         while ($IllegalUsers{$Host}{$User} < $PotentialIllegalUsers{$Host}{$User}) {
-            $IllegalUsers{$Host}{$User}++;
-         }
-      }
-   }
-}
-
-###########################################################
 
 sub timesplural {
    my ($count) = @_;
