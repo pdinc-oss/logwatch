@@ -26,7 +26,7 @@ use strict;
 use Logwatch ':ip';
 
 my $Detail = $ENV{'LOGWATCH_DETAIL_LEVEL'} || 0;
-#my $DoLookup = $ENV{'secure_ip_lookup'};
+#DoLookup( $ENV{'secure_ip_lookup'} );
 my $Ignore = $ENV{'ignore_services'} || 0;
 my $Summarize = $ENV{'summarize_connections'} || 0;
 #Init Counters

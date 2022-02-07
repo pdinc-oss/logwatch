@@ -38,7 +38,7 @@ use strict;
 
 my $Detail = $ENV{'LOGWATCH_DETAIL_LEVEL'} || 0;
 my $MinFilter = $ENV{'iptables_host_min_count'} || 0;
-my $DoLookup = $ENV{'iptables_ip_lookup'}; $DoLookup = $DoLookup; # keep -w happy
+DoLookup( $ENV{'iptables_ip_lookup'} );
 my $ListByHost = $ENV{'iptables_list_by_host'} || 0;
 my $ListByService = $ENV{'iptables_list_by_service'} || 0;
 my $ListByCidrBits = $ENV{'iptables_list_by_cidr_mask'} || 0;

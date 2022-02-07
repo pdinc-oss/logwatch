@@ -85,7 +85,7 @@ our @ISA = qw{Exporter};
 our @EXPORT;
 our @EXPORT_OK;
 our %EXPORT_TAGS = (sort => [qw(CountOrder TotalCountOrder SortIP)],
-                    ip   => [qw(LookupIP SortIP)],
+                    ip   => [qw(DoLookup LookupIP SortIP)],
                     dates   => [qw(RangeHelpDM GetPeriod TimeBuild TimeFilter)],
                     );
 
@@ -261,6 +261,11 @@ sub SortIP {
 
 =pod
 
+=item I<DoLookup($DoLookup)>
+
+Sets whether C<LookupIP> does hostname lookups (or not).
+Defaults to true.
+
 =item I<LookupIP($dottedQuadIPaddress)>
 
 This function performs a hostname lookup on a passed in IP address. It
@@ -273,39 +278,22 @@ variable in the caller's namespace to determine if lookups will be made.
 
 =cut
 
+# Default to true
+my $DoLookup = 1;
+
+sub DoLookup {
+    $DoLookup = shift;
+    return;
+}
+
 # Might as well cache it for the duration of the run
 my %LookupCache = ();
 
 sub LookupIP {
    my $Addr = $_[0];
 
-   # OOPS! The 4.3.2 scripts have a $DoLookup variable. Time for some
-   # backwards compatible hand-waving.
-
-   # for 99% of the uses of this function, assuming package 'main' would
-   # be sufficient, but a good perl hacker designs so that the other 1%
-   # isn't in for a nasty surprise.
-   my $pkg = (caller)[0];
-
    if ($ENV{'LOGWATCH_NUMERIC'} == 1 )
       { return $Addr; }
-
-   # Default to true
-   my $DoLookup = 1;
-   {
-       # An eval() here would be shorter (and probably clearer to more
-       # people), but QUITE a bit slower. This function should be
-       # designed to be called a lot, so efficiency is important.
-       local *symTable = $main::{"$pkg\::"};
-
-       # here comes the "black magic," (this "no" is bound to the
-       # enclosing block)
-       no strict 'vars';
-       if (exists $symTable{'DoLookup'} && defined $symTable{'DoLookup'}) {
-           *symTable = $symTable{'DoLookup'};
-           $DoLookup = $symTable;
-       }
-   }
 
    # "Socket" is used solely to get the AF_INET() and AF_INET6()
    # constants, usually 2 and 10, respectively.  Using Socket is
@@ -618,7 +606,7 @@ Imports C<CountOrder>, C<TotalCountOrder and C<SortIP>
 
 =item I<:ip>
 
-Imports C<SortIP> and C<LookupIP>
+Imports C<DoLookup>, C<LookupIP>, and C<SortIP>
 
 =item I<:dates>
 
