@@ -352,8 +352,12 @@ while (defined(my $ThisLine = <STDIN>)) {
    } elsif ( ($Zone) = ($ThisLine =~ /zone ([^\/]+)\/.+: refresh: retry limit for master \S+ exceeded/) ) {
       $RetryLimit{$Zone}++; 
    } elsif ( ($Rcode, $Zone, $Host) = ($ThisLine =~ /(?:error \()?unexpected RCODE\)? \(?(.*?)\)? resolving '(.*)': (.*)$/) ){
+      # Remove port number, for proper IP sorting
+      $Host =~ s/#.*//;
       $UnexpRCODE{$Rcode}{$Zone}{$Host}++;
    } elsif ( ($Rcode, $Zone, $Host) = ($ThisLine =~ /(.*) unexpected RCODE resolving '(.*)': (.*)$/) ){
+      # Remove port number, for proper IP sorting
+      $Host =~ s/#.*//;
       $UnexpRCODE{$Rcode}{$Zone}{$Host}++;
    } elsif ( ($ThisLine =~ /(?:error \()?FORMERR\)? resolving '[^ ]+: [.0-9a-fA-F:#]+/) or
              ($ThisLine =~ /DNS format error from [^ ]+ resolving [^ ]+( for client [^ ]+)?: .*/) ) {
