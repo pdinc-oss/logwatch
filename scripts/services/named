@@ -26,7 +26,7 @@
 use Logwatch ':ip';
 use strict;
 
-#DoLookup( ValueOrDefault($ENV{'named_ip_lookup'}, 0) );
+DoLookup( ValueOrDefault($ENV{'named_ip_lookup'}, 0) );
 my $Debug = ValueOrDefault($ENV{'LOGWATCH_DEBUG'}, 0);
 my $Detail = ValueOrDefault($ENV{'LOGWATCH_DETAIL_LEVEL'}, 0);
 my $FailedZoneTransferThreshold = $ENV{'failed_zone_transfer_threshold'} || 0;

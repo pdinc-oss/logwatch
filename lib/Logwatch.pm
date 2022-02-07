@@ -278,8 +278,8 @@ variable in the caller's namespace to determine if lookups will be made.
 
 =cut
 
-# Default to true
-my $DoLookup = 1;
+# Default to false
+my $DoLookup = 0;
 
 sub DoLookup {
     $DoLookup = shift;
