@@ -215,7 +215,7 @@ while (defined(my $ThisLine = <STDIN>)) {
       $Skipped{$name}++ if $Detail;
    } elsif (($pidfile) = ($ThisLine =~ /^PID file (.*) not readable \(yet\?\) after start\.$/)) {
       $Slow{$pidfile}++;
-   } elsif (($pidfile) = ($ThisLine =~ /: Can't open PID file (.*) \(yet\?\) after start:/)) {
+   } elsif (($pidfile) = ($ThisLine =~ /Can't open PID file (.*) \(yet\?\) after start:/)) {
       $Slow{$pidfile}++;
    } elsif (($Service, $Exe) = ($ThisLine =~ /^(.*): Found left-over process \d+ \((.*)\) in control group while starting unit\. Ignoring\.$/)) {
       $LeftOver{"$Service:$Exe"}++ unless "$Service:$Exe" =~/^$Ignore_leftover$/i;
