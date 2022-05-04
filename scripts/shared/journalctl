@@ -17,8 +17,11 @@
 # The purpose of this script is to pass the output of the journalctl
 # command to the logwatch parsers.  The corresponding conf/logfile 
 # can be simple.  The following example shows a logfile with two lines:
-# LogFile = /dev/null
-# *JournalCtl = "--output=cat --unit=service_name.service"
+#   LogFile = none
+#   *JournalCtl = "--output=cat --unit=service_name.service"
+# or when combining journals from multiple sources (additional
+# processing is needed in this case):
+#   *JournalCtl = "--merge --no-pager --unit=service_name.service"
 #
 # In the example above, the arguments to the JournalCtl command are
 # passed to the journalctl system command.  It is advised to delimit
