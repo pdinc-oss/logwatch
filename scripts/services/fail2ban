@@ -155,7 +155,7 @@ while (defined(my $ThisLine = <STDIN>)) {
 ###########################################################
 
 
-if (keys %ServicesBans) {
+if (keys %ServicesBans and ($Detail > 0)) {
     printf("\nBanned services with Fail2Ban:                        Bans:Unbans  ReBans:Flush\n");
     foreach my $service (sort {$a cmp $b} keys %ServicesBans) {
         # Perl handles autoincrement of the uninitialized key values,
