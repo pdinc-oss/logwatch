@@ -115,6 +115,7 @@ while (defined(my $ThisLine = <STDIN>)) {
          }
       } else {
          $InRange = 0;
+         %Errors = ();
          %Warnings = ();
       }
       # $Version was already logged if necessary, so now we clear it
