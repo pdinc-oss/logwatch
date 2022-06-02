@@ -61,6 +61,7 @@ use Logwatch ':dates';
 
 my $Detail = $ENV{'LOGWATCH_DETAIL_LEVEL'};
 my $Ignore_Outdated = $ENV{'ignore_outdated'} || 0;
+my $Ignore_No_Updates = $ENV{'ignore_no_updates'} || 0;
 
 my $time          = time;
 my $Date;
@@ -149,7 +150,7 @@ if ($UpdatedNum) {
    print "\nThe ClamAV update process was started $UpdatedNum time(s)\n"
       if ($Detail >= 5);
 }
-else {
+elsif ($Ignore_No_Updates == 0) {
    print "\nNo updates detected in the log for the freshclam daemon (the\n";
    print "ClamAV update process).  If the freshclam daemon is not running,\n";
    print "you may need to restart it.  Other options:\n\n";
