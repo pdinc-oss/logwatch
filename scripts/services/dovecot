@@ -480,8 +480,8 @@ if (keys %Login) {
          $LoginUserCount{$User} += $Login{$User}{$Host};
       }
       $LoginCount += $LoginUserCount{$User};
-      $LoginPOP3{$User} = 0 if $LoginPOP3{$User} <= 0;
-      $LoginIMAP{$User} = 0 if $LoginIMAP{$User} <= 0;
+      $LoginPOP3{$User} = 0 if (not defined $LoginPOP3{$User});
+      $LoginIMAP{$User} = 0 if (not defined $LoginIMAP{$User});
    }
    printf "\n" if ($Detail >= 5);
    printf "\nDovecot IMAP and POP3 Successful Logins: %s", $LoginCount;

@@ -82,11 +82,11 @@ while (defined(my $ThisLine = <STDIN>)) {
       if ($egroup) {
          $euser .= ":${egroup}";
       }
-      push @{$byUser{$user}{$euser}}, [$error . $cmd, $args, $dir, $tty];
+      push @{$byUser{$user}{$euser}}, [((defined $error)? $error : "") . $cmd, $args, $dir, $tty];
       $byUserSum{$user}{$euser}{$cmd} += 1;
    } elsif ( ($user,$euser) = $ThisLine =~ /^\s*(\S+) : no passwd entry for (\S+)\!$/) {
       push @{$byUser{$user}{$euser . " (No such user)"}}, ["No password entry"];
-   } elsif ( ($user, $error, $tty, $dir, $euser, $cmd, $args) = $ThisLine =~ m/^\s*\S+ : \(command continued\)/) {
+   } elsif ( $ThisLine =~ m/^\s*\S+ : \(command continued\)/ ) {
       $contlines++;
    } else {
    chomp($ThisLine);
