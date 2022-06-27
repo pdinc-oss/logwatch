@@ -7,7 +7,7 @@ Group: Applications/System
 URL: https://sourceforge.net/projects/logwatch/
 BuildArch: noarch
 Source0: https://sourceforge.net/projects/logwatch/files/%{name}-%{version}/%{name}-%{version}.tar.gz
-Requires: perl,grep,mailx,crontabs
+Requires: perl,grep,(mailx or s-nail),crontabs
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}
 
 %description
