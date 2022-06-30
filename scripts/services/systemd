@@ -213,6 +213,8 @@ while (defined(my $ThisLine = <STDIN>)) {
       $Skipped{$name}++ if $Detail;
    } elsif (($name) = ($ThisLine =~ /^(.*): Skipped due to /)) {
       $Skipped{$name}++ if $Detail;
+   } elsif (($name) = ($ThisLine =~ /^(.*) was skipped because/)) {
+      $Skipped{$name}++ if $Detail;
    } elsif (($pidfile) = ($ThisLine =~ /^PID file (.*) not readable \(yet\?\) after start\.$/)) {
       $Slow{$pidfile}++;
    } elsif (($pidfile) = ($ThisLine =~ /Can't open PID file (.*) \(yet\?\) after start:/)) {
