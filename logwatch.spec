@@ -1,13 +1,13 @@
 Summary: Analyzes and Reports on system logs
 Name: logwatch
-Version: 7.6
+Version: 7.7
 Release: 1
 License: MIT
 Group: Applications/System
 URL: https://sourceforge.net/projects/logwatch/
 BuildArch: noarch
 Source0: https://sourceforge.net/projects/logwatch/files/%{name}-%{version}/%{name}-%{version}.tar.gz
-Requires: perl,grep,(mailx or s-nail),crontabs
+Requires: perl,grep,crontabs
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}
 
 %description
@@ -112,6 +112,8 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Fri Jul 22 2022 Bjorn <bjorn1@users.sourceforge.net> 7.7
+
 * Sat Jan 22 2022 Jason Pyeron <jpyeron@pdinc.us> 7.6-1
 
 * Fri Jul 23 2021 Bjorn <bjorn1@users.sourceforge.net> 7.5.6-1
