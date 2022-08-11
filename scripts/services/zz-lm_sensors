@@ -31,27 +31,60 @@
 ###########################################################################
 #Main
 
-#Exit early if the report is not for the current host.
-use POSIX qw(uname);
 use strict;
-my $logwatch_hostname = $ENV{'LOGWATCH_ONLY_HOSTNAME'};
-my $Detail = $ENV{'LOGWATCH_DETAIL_LEVEL'} || 0;
-my ($OSname, $hostname, $release, $version, $machine) = POSIX::uname(); 
-$hostname =~ s/\..*//;
-exit (0) if ($ENV{'LOGWATCH_ONLY_HOSTNAME'} and ($logwatch_hostname ne $hostname));
+#use warnings;
+
+#Exit early if undesired
+exit 0 unless $ENV{LOGWATCH_DETAIL_LEVEL} || $ENV{PRINTING} && $ENV{PRINTING} eq 'y';
+
+#Exit early if the report is not for the current host.
+if( $ENV{LOGWATCH_ONLY_HOSTNAME} ) {
+    my $hostname = $ENV{HOSTNAME};   # see scripts/logwatch.pl, line 702!
+    $hostname ||= do { require POSIX; ( POSIX::uname() )[1]; }; # fallback ;-)
+    # "ONLY_HOSTNAME" is a misnomer, as it is actually defined as "hostlimit"
+    # @ scripts/logwatch.pl, line 702
+    # which is a list of hosts, per scripts/logwatch.pl, line 1131
+    # so, actually bailout if "current host" is NOT included in this list.
+    my $found = 0;
+    for my $wanted ( split /[,]/, $ENV{LOGWATCH_ONLY_HOSTNAME} ) {
+        my $match_to = $hostname;
+        # shorten only if that's also short
+        if( -1 == index( $wanted, '.' ) ) {
+            $match_to =~ s/[.].*//;
+        }
+        if( $wanted eq $match_to ) {
+            $found = 1;
+            last;
+        }
+    }
+    exit 0 if !$found;
+}
+
+#Exit early if running in some virtual environment
+my $kvm = 0;
+if( $ENV{get_kvm_status} ) {
+    $kvm = qx($ENV{get_kvm_status});
+}
+else {
+    if( open my $fh, '<', '/proc/cpuinfo' ) {
+        while( my $line = <$fh> ) {
+            next if -1 == index( $line, 'QEMU Virtual CPU' );
+            $kvm = 1;
+            last;
+        }
+        close $fh;
+    }
+}
+exit 0 if $kvm;
 
 #Output sensors stats
-
-my $pathto_sensors = $ENV{'pathto_sensors'} || '/usr/bin/sensors';
-my $get_kvm_status = $ENV{'get_kvm_status'} || 'grep -c "QEMU Virtual CPU" /proc/cpuinfo';
-
-my $kvm     = qx($get_kvm_status);
-
-if ($kvm == 0 and (($ENV{PRINTING} eq 'y') or $Detail)) {
-   my $sensors = qx($pathto_sensors);
+for my $exe ( $ENV{pathto_sensors}, '/usr/bin/sensors' ) {
+    if( defined $exe && -x $exe ) {
+        my $sensors = qx($exe);
    if ($sensors) {
       print $sensors;
    }
 }
+}
 
-# vi: shiftwidth=3 tabstop=3 syntax=perl et
+# vi: shiftwidth=4 tabstop=4 syntax=perl expandtab
