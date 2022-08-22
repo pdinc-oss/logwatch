@@ -40,7 +40,7 @@ my %WarningList = ();
 my %InfoList = ();
 my %NoticeList = ();
 my %OtherList = ();
-my %Flushing = ();		# keep track of which services being flushed
+my %Flushing = ();              # keep track of which services being flushed
 
 my %ServicesBans = ();
 my %ServicesFound = ();
@@ -52,8 +52,8 @@ $Action,        $Host,      $Message,
 $NumFailures,   $Service
 );
 if ( $Debug >= 5 ) {
-        print STDERR "\n\nDEBUG: Inside Fail2Ban Filter \n\n";
-        $DebugCounter = 1;
+    print STDERR "\n\nDEBUG: Inside Fail2Ban Filter \n\n";
+    $DebugCounter = 1;
 }
 
 while (defined(my $ThisLine = <STDIN>)) {
@@ -88,12 +88,12 @@ while (defined(my $ThisLine = <STDIN>)) {
         if ( $Debug >= 6 ) {
             print STDERR "DEBUG($DebugCounter): Found $Action for $Service from $Host\n";
         }
-	if (exists $Flushing{$Service}) {
-	    if ($Action =~ /Unban/) {
-	        $ServicesBans{$Service}{$Host}{'FlushUnban'}++;
+        if (exists $Flushing{$Service}) {
+            if ($Action =~ /Unban/) {
+                $ServicesBans{$Service}{$Host}{'FlushUnban'}++;
                 $ServicesBans{$Service}{"(all)"}{'FlushUnban'}++;
             } else {
-            print STDERR "ERROR: Lost track of flushing services\n";
+                print STDERR "ERROR: Lost track of flushing services\n";
             }
         } else {
             $ServicesBans{$Service}{$Host}{$Action}++;
@@ -115,7 +115,7 @@ while (defined(my $ThisLine = <STDIN>)) {
     } elsif ($ThisLine =~ /ERROR.*returned \d+$/) {
         push @ActionErrors, "$ThisLine\n";
     } elsif (($ThisLine =~ /..,... WARNING: \#\S+ reinitialization of firewalls/) or
-            ($ThisLine =~ / ERROR\s*Invariant check failed. Trying to restore a sane environment/)) {
+             ($ThisLine =~ / ERROR\s*Invariant check failed. Trying to restore a sane environment/)) {
         $ReInitializations++;
     } elsif ($ThisLine =~ /..,... WARNING:  is not a valid IP address/) {
         # just ignore - this will be fixed within fail2ban and is harmless warning
@@ -125,26 +125,26 @@ while (defined(my $ThisLine = <STDIN>)) {
         $ServicesIgnored{$Service}{$Host}++;
     # Generic messages
     } elsif ( ($Message) = ($ThisLine =~ / ERROR (.*)$/)) {
-	# Fail2ban can dump huge error messages in its logs
-	if ($ErrLen > 3 && length($Message) > $ErrLen) {
+        # Fail2ban can dump huge error messages in its logs
+        if ($ErrLen > 3 && length($Message) > $ErrLen) {
             $ErrorList{substr($Message,0,$ErrLen-3).'...'}++;
-	} else {
+        } else {
             $ErrorList{$Message}++;
         }
     } elsif ( ($Message) = ($ThisLine =~ / WARNING (.*)$/)) {
         $WarningList{$Message}++;
     } elsif ( ($Message) = ($ThisLine =~ / INFO (.*)$/)) {
         $InfoList{$Message}++;
-	if ( ($Service) = ($Message =~ /Jail \'(.*)\' stopped/)) {
-	    delete $Flushing{$Service};
+        if ( ($Service) = ($Message =~ /Jail \'(.*)\' stopped/)) {
+            delete $Flushing{$Service};
         }
-	if ( ($Service) = ($Message =~ /Stopping all jails|Exiting Fail2ban/)) {
-	    %Flushing = ();
+        if ( ($Service) = ($Message =~ /Stopping all jails|Exiting Fail2ban/)) {
+            %Flushing = ();
         }
     } elsif ( ($Message) = ($ThisLine =~ / NOTICE (.*)$/)) {
         $NoticeList{$Message}++;
-	if ( ($Service) = ($Message =~ /\[(.*)\] Flush ticket/)) {
-	    $Flushing{$Service} = 1;
+        if ( ($Service) = ($Message =~ /\[(.*)\] Flush ticket/)) {
+            $Flushing{$Service} = 1;
         }
     } else {
         # Report any unmatched entries...
