@@ -89,6 +89,13 @@ while (defined(my $ThisLine = <STDIN>)) {
         ($ThisLine =~ m/0\.0\.0\.0 [[:xdigit:]]{4} [[:xdigit:]]{2} /) or # startup
         ($ThisLine =~ m/Soliciting .*server/) or # startup
         ($ThisLine =~ m/kernel reports .*: Clock Unsynchronized/) or # startup
+        ($ThisLine =~ m/Starting/) or # startup
+        ($ThisLine =~ m/(Built|Running) with /) or # startup
+        ($ThisLine =~ m/successfully locked into RAM/) or # startup
+        ($ThisLine =~ m/Using SO_TIMESTAMPNS/) or # startup
+        ($ThisLine =~ m/MRU \d+ entries, \d+ hash bits, \d+ bytes/) or # startup
+        ($ThisLine =~ m/readconfig: parsing file:/) or # startup
+        ($ThisLine =~ m/Using system default root certificates\./) or # startup
         ($ThisLine =~ m/select([^\)]) error: Interrupted system call/) or
         ($ThisLine =~ m/signal_no_reset: signal \d+ had flags \d+/) or
         ($ThisLine =~ /Deleting interface \#[0-9]+ [^,]*, [^,]*, interface stats: received=.*, sent=.*, dropped=.*, active_time=.* secs/) or
@@ -99,6 +106,11 @@ while (defined(my $ThisLine = <STDIN>)) {
         ($ThisLine =~ /.* interface .* -> .*/) or
         ($ThisLine =~ /.* local addr .* -> .*/) or
         ($ThisLine =~ /Deferring DNS for/) or
+        ($ThisLine =~ /DNS: dns_take_status: /) or
+        ($ThisLine =~ /DNS: dns_probe: \S+, cast_flags:.+, flags:/) or
+        ($ThisLine =~ /DNS: dns_check: processing /) or
+        ($ThisLine =~ /DNS: (Server|Pool) taking: /) or
+        ($ThisLine =~ /SYNC: Found \d+ servers, suggest minsane /) or
         ($ThisLine =~ /ntp_io: estimated max descriptors: \d*, initial socket boundary: \d*/) or
         ($ThisLine =~ /peers refreshed$/) or
         ($ThisLine =~ /restrict: error in address/) or
@@ -118,6 +130,8 @@ while (defined(my $ThisLine = <STDIN>)) {
     } elsif ( (undef,$TimeStep) = ($ThisLine =~ /time reset(| \(step\)) ([^ ]+) s$/ )) {
        push @TimeReset, $TimeStep;
     } elsif ( (undef,$TimeStep) = ($ThisLine =~ /(step|adjust) time server [^ ]+ offset ([^ ]+) sec$/ )) {
+       push @TimeReset, $TimeStep;
+    } elsif ( ($TimeStep) = ($ThisLine =~ /time stepped by ([^ ]+)$/ )) {
        push @TimeReset, $TimeStep;
     } elsif ( ($TimeStep) = ($ThisLine =~ /adjusting local clock by ([^ ]+)s$/ )) {
        # Jacob Joseph (12/8/06)
