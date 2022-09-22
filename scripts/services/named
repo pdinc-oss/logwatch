@@ -129,6 +129,7 @@ while (defined(my $ThisLine = <STDIN>)) {
       ($ThisLine =~ /configuring command channel from/) or
       ($ThisLine =~ /interface ignored/) or
       ($ThisLine =~ /no IPv6 interfaces found/) or
+      ($ThisLine =~ /IPv6 socket API is incomplete; explicitly binding to each IPv6 address separately/) or
       ($ThisLine =~ /using \d+ UDP listeners? per interface/) or
       ($ThisLine =~ /^running/) or
       ($ThisLine =~ /^exiting/) or
@@ -166,6 +167,7 @@ while (defined(my $ThisLine = <STDIN>)) {
       ($ThisLine =~ /zone .*: zone serial unchanged. zone may fail to transfer to slaves/) or
       ($ThisLine =~ /zone .*: loading from master file .* failed/) or
       ($ThisLine =~ /zone .*: NS '.*' has no address records/) or
+      ($ThisLine =~ /zone .* \(signed\): receive_secure_serial: unchanged/) or
       ($ThisLine =~ /.*: not a valid number$/) or
       ($ThisLine =~ /^(.*: )?unexpected end of input/) or
       ($ThisLine =~ /too many timeouts resolving '.*' .*: disabling EDNS/) or
@@ -173,7 +175,8 @@ while (defined(my $ThisLine = <STDIN>)) {
       ($ThisLine =~ /reloading zones succeeded/) or
       ($ThisLine =~ /generating session key/) or
       ($ThisLine =~ /success resolving '.*' \(in '.*'?\) after disabling EDNS/) or
-      ($ThisLine =~ /success resolving '.*' \(in '.*'?\) after reducing the advertised EDNS UDP packet size to 512 octets/) or
+      ($ThisLine =~ /success resolving '.*' \(in '.*'?\) after disabling EDNS/) or
+      ($ThisLine =~ /success resolving '.*' after disabling qname minimization due to 'failure'/) or
       ($ThisLine =~ /the working directory is not writable/) or
       ($ThisLine =~ /using default UDP\/IPv[46] port range: \[[0-9]*, [0-9]*\]/) or
       ($ThisLine =~ /adjusted limit on open files from [0-9]* to [0-9]*/) or
@@ -205,7 +208,7 @@ while (defined(my $ThisLine = <STDIN>)) {
       ($ThisLine =~ /using built-in trusted-keys/) or
       ($ThisLine =~ /using built-in keys instead/) or
       ($ThisLine =~ /set up managed keys zone/) or
-      ($ThisLine =~ /managed-keys-zone.*key now trusted/) or
+      ($ThisLine =~ /managed-keys-zone.*[Kk]ey .*now trusted/) or
       ($ThisLine =~ /forwarding update for zone/) or
       ($ThisLine =~ /forwarded dynamic update: master [^ ]* returned: (NXRRSET|YXDOMAIN)/) or
       ($ThisLine =~ /using .* as GeoIP directory/) or
@@ -416,28 +419,28 @@ while (defined(my $ThisLine = <STDIN>)) {
    } elsif (($Client,$Net,$Zone,$Response) = ($ThisLine =~/client ([^#]+)(?:#\d+)? \(.*\): (?:view \w+: )?rate limit slip response to (\S+)(?: for (\S+))? (.*) +\(/)) {
       $Zone = "None" unless defined($Zone);
       $LimitSlip{$Zone}{$Response}{$Net}{$Client}++;
-   } elsif (($Zone,$RR) = ($ThisLine =~ /^\s*validating \@0x[[:xdigit:]]+: (.*) (\w+): got insecure response; parent indicates it should be secure/)) {
+   } elsif (($Zone,$RR) = ($ThisLine =~ /^(?:view \w+:)\s*validating \@0x[[:xdigit:]]+: (.*) (\w+): got insecure response; parent indicates it should be secure/)) {
       $DNSSECInsec{'__Total__'}++;
       $DNSSECInsec{$Zone}{$RR}++;
-   } elsif (($Zone,$RR) = ($ThisLine =~ /^\s*validating \@0x[[:xdigit:]]+: (.*) (\w+): no valid signature found/)) {
+   } elsif (($Zone,$RR) = ($ThisLine =~ /^(?:view \w+:)\s*validating \@0x[[:xdigit:]]+: (.*) (\w+): no valid signature found/)) {
       $DNSSECInvalid{'__Total__'}++;
       $DNSSECInvalid{$Zone}{$RR}++;
-   } elsif (($Zone,$RR) = ($ThisLine =~ /^\s*validating \@0x[[:xdigit:]]+: (.*) (\w+): bad cache hit/)) {
+   } elsif (($Zone,$RR) = ($ThisLine =~ /^(?:view \w+:)\s*validating \@0x[[:xdigit:]]+: (.*) (\w+): bad cache hit/)) {
       $DNSSECBadCache{'__Total__'}++;
       $DNSSECBadCache{$Zone}{$RR}++;
-   } elsif (($Zone,$RR) = ($ThisLine =~ /^\s*validating \@0x[[:xdigit:]]+: (.*) (\w+): verify failed due to bad signature/)) {
+   } elsif (($Zone,$RR) = ($ThisLine =~ /^(?:view \w+:)\s*validating \@0x[[:xdigit:]]+: (.*) (\w+): verify failed due to bad signature/)) {
       $DNSSECInvalid{'__Total__'}++;
       $DNSSECInvalid{$Zone}{$RR}++;
-   } elsif (($Zone,$RR) = ($ThisLine =~ /^\s*validating ([^\/]*)\/(\w+): got insecure response; parent indicates it should be secure/)) {
+   } elsif (($Zone,$RR) = ($ThisLine =~ /^(?:view \w+:)\s*validating ([^\/]*)\/(\w+): got insecure response; parent indicates it should be secure/)) {
       $DNSSECInsec{'__Total__'}++;
       $DNSSECInsec{$Zone}{$RR}++;
-   } elsif (($Zone,$RR) = ($ThisLine =~ /^\s*validating ([^\/]*)\/(\w+): no valid signature found/)) {
+   } elsif (($Zone,$RR) = ($ThisLine =~ /^(?:view \w+:)\s*validating ([^\/]*)\/(\w+): no valid signature found/)) {
       $DNSSECInvalid{'__Total__'}++;
       $DNSSECInvalid{$Zone}{$RR}++;
-   } elsif (($Zone,$RR) = ($ThisLine =~ /^\s*validating ([^\/]*)\/(\w+): verify failed due to bad signature/)) {
+   } elsif (($Zone,$RR) = ($ThisLine =~ /^(?:view \w+:)\s*validating ([^\/]*)\/(\w+): verify failed due to bad signature/)) {
       $DNSSECInvalid{'__Total__'}++;
       $DNSSECInvalid{$Zone}{$RR}++;
-   } elsif (($Zone,$RR) = ($ThisLine =~ /^\s*validating ([^\/]*)\/(\w+): bad cache hit/)) {
+   } elsif (($Zone,$RR) = ($ThisLine =~ /^(?:view \w+:)\s*validating ([^\/]*)\/(\w+): bad cache hit/)) {
       $DNSSECBadCache{'__Total__'}++;
       $DNSSECBadCache{$Zone}{$RR}++;
    } elsif (($Error,$Host) = ($ThisLine =~ /^(?:error \()?(.*)\)? resolving '([^']+)':/)) {

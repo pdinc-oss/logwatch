@@ -84,6 +84,7 @@ while (defined(my $ThisLine = <STDIN>)) {
        # Extransous scope messages with LanSweeper - revisit with EL8.4
        $ThisLine =~ /: Failed to add PIDs to scope's control group: No such process/ or
        $ThisLine =~ /scope: Failed with result 'resources'/ or
+       $ThisLine =~ /session-[[:xdigit:]]+\.scope: Deactivated successfully\./ or
        $ThisLine =~ /^Found device / or
        $ThisLine =~ /Found dependency on / or
        $ThisLine =~ /Got automount request for \/proc\// or
@@ -115,7 +116,7 @@ while (defined(my $ThisLine = <STDIN>)) {
        $ThisLine =~ /^systemd .* running in system mode/ or
        # This is preceeded by a more descriptive message
        $ThisLine =~ /^This usually indicates unclean termination of a previous run, or service implementation deficiencies\.$/ or
-       $ThisLine =~ /Transaction is destructive\./ or
+       $ThisLine =~ /Transaction (for .*)?is destructive/ or
        $ThisLine =~ /^Unit .* is bound to inactive unit .*\. Stopping, too\./ or
        $ThisLine =~ /Unit (.* is )?not needed anymore\. Stopping\./ or
        $ThisLine =~ /[Ss]tart(-pre)? operation timed out\. Terminating\./ or
@@ -191,7 +192,7 @@ while (defined(my $ThisLine = <STDIN>)) {
    } elsif (($target) = ($ThisLine =~ /^Reached target (.*)\.$/)) {
       $Target{$target}++;
       $LastTarget = $target;
-   } elsif (($session, $user) = ($ThisLine =~ /^Started Session ([[:xdigit:]]+) of [uU]ser (.*)\.$/)) {
+   } elsif (($session, $user) = ($ThisLine =~ /^Started (?:session-[[:xdigit:]]+\.scope - )?Session ([[:xdigit:]]+) of [uU]ser (.*)\.$/)) {
       $UserSession{$user}->{$session}++;
    } elsif (($service) = ($ThisLine =~ /^Activated (.*)\.$/)) {
       $Activated{$service}++;
