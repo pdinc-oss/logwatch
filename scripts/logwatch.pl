@@ -702,7 +702,7 @@ $ENV{'LOGWATCH_NUMERIC'} = $Config{'numeric'};
 $ENV{'HOSTNAME'} = $Config{'hostname'};
 $ENV{'OSname'} = $OSname;
 
-my $no_egrep =  system("egrep -V > /dev/null 2>&1");
+my $no_egrep =  system("grep -E -V > /dev/null 2>&1");
 
 #split and splitmail also play with LOGWATCH_ONLY_HOSTNAME which is not shown by debug
 if ($Config{'hostlimit'}) {
@@ -1401,11 +1401,11 @@ sub parselogs {
             $Command = " ( $Config{'pathtocat'} $FileText| " ;
             if ($ServiceData{$Service}{pre_ignore}) {
                if ($no_egrep) {
-                  die "No egrep executable found, which is required when\n" .
+                  die "No working grep -E found, which is required when\n" .
                       "using the Pre_Ignore variable in configuration \n" .
                       "file ${Service}.conf\n";
                } else {
-                  $Command .= "egrep -v \"$ServiceData{$Service}{pre_ignore}\" | ";
+                  $Command .= "grep -E -v \"$ServiceData{$Service}{pre_ignore}\" | ";
                }
             }
             if ($HostStrip ne " ") {

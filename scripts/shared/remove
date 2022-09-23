@@ -20,10 +20,10 @@
 
 use strict;
 
-# Just a case-insensitive, inverse egrep
+# Just a case-insensitive, inverse grep -E
 
-#/bin/egrep -vi "$@"
-system("egrep -vi \"@ARGV\"");
+#/bin/grep -E -vi "$@"
+system("grep -E -vi \"@ARGV\"");
 
 # vi: shiftwidth=3 syntax=perl tabstop=3 et
 # Local Variables:

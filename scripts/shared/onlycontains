@@ -20,9 +20,9 @@
 
 use strict;
 
-# Just does a case-insensitive egrep ;)
+# Just does a case-insensitive grep -E ;)
 
-system("egrep -i \"@ARGV\"");
+system("grep -E -i \"@ARGV\"");
 
 # vi: shiftwidth=3 syntax=perl tabstop=3 et
 # Local Variables:
